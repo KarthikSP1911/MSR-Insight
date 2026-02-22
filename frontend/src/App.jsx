@@ -1,21 +1,37 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Report from "./pages/Report";
 import "./App.css";
+
+function Navbar() {
+  const location = useLocation();
+  const isReportPage = location.pathname === "/report";
+
+  return (
+    <nav className="navbar">
+      <div className="nav-logo">
+        <Link to="/">SmartReport</Link>
+      </div>
+      <div className="nav-actions">
+        {isReportPage ? (
+          <button onClick={() => window.print()} className="generate-btn">
+            Generate Report
+          </button>
+        ) : (
+          <Link to="/report" className="generate-btn">
+            Generate Report
+          </Link>
+        )}
+      </div>
+    </nav>
+  );
+}
 
 function App() {
   return (
     <Router>
       <div className="app-wrapper">
-        <nav className="navbar">
-          <div className="nav-logo">
-            <Link to="/">SmartReport</Link>
-          </div>
-          <div className="nav-links">
-            <Link to="/">Home</Link>
-            <Link to="/report">Report</Link>
-          </div>
-        </nav>
+        <Navbar />
 
         <main className="content">
           <Routes>
@@ -23,10 +39,6 @@ function App() {
             <Route path="/report" element={<Report />} />
           </Routes>
         </main>
-
-        <footer className="footer">
-          <p>&copy; 2024 Smart Report Generator. All rights reserved.</p>
-        </footer>
       </div>
     </Router>
   );

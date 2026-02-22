@@ -11,7 +11,7 @@ const Home = () => {
     }, []);
 
     return (
-        <div className="home-container">
+        <div className="home-container" style={{ padding: '4rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <header className="hero">
                 <h1>{data || "Smart Report Generator"}</h1>
                 <p>Generate intelligent reports with AI power.</p>
