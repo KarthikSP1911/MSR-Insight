@@ -39,7 +39,7 @@ const Report = () => {
                             marginBottom: `${(zoom - 1) * 1123}px`
                         }}
                     >
-                        <div className="a4-sheet">
+                        <div id="report-sheet" className="a4-sheet">
                             {/* Header Section */}
                             <header className="sheet-header">
                                 <div className="college-logo">
@@ -99,6 +99,9 @@ const Report = () => {
                                     />
                                 </div>
                             </section>
+
+                            {/* Spacer pushes footer to bottom */}
+                            <div style={{ flexGrow: 1 }}></div>
 
                             {/* Footer of the sheet */}
                             <footer className="sheet-footer">
