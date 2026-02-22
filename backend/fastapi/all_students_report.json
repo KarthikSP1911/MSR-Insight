@@ -1,0 +1,268 @@
+{
+    "1MS24IS400": {
+        "name": "AJAY KUMAR  S",
+        "usn": "1MS24IS400",
+        "class_details": "B.E-IS,  SEM 06,  SEC A",
+        "cgpa": "9.21",
+        "last_updated": "2026-02-22 20:44:21",
+        "current_semester": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE644",
+                "name": "Cloud Computing",
+                "cie": 0,
+                "attendance": 80
+            },
+            {
+                "code": "23PHOE04",
+                "name": "Biophysics",
+                "cie": 0,
+                "attendance": 0
+            }
+        ],
+        "exam_history": [
+            {
+                "semester": "ODD Feb 2025",
+                "sgpa": "9.23",
+                "credits_earned": "21",
+                "courses": [
+                    {
+                        "code": "23IS33",
+                        "name": "DATA STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23UHV38",
+                        "name": "UNIVERSAL HUMAN VALUE",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS34",
+                        "name": "OPERATING SYSTEMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS35",
+                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS31(R)",
+                        "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23IS32",
+                        "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "AM31",
+                        "name": "ADDITIONAL MATHEMATICS-I",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    },
+                    {
+                        "code": "23ISAEC393",
+                        "name": "NUMERICAL ANALYSIS WITH PYTHON",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISL37",
+                        "name": "UNIX SYSTEM PROGRAMMING LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL36",
+                        "name": "DATA STRUCTURES LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    }
+                ]
+            },
+            {
+                "semester": "Even May 2025",
+                "sgpa": "9.2",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23IS44",
+                        "name": "DATABASE MANAGEMENT SYSTEMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS41",
+                        "name": "STATISTICS, PROBABILITY AND LINEAR PROGRAMMING",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS45",
+                        "name": "ADVANCED JAVA",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS43",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23AM41",
+                        "name": "ADDITIONAL MATHEMATICS-II",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    },
+                    {
+                        "code": "23ISAEC493",
+                        "name": "JAVASCRIPT AND JQUERY",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL47",
+                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL46",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL48",
+                        "name": "ADVANCED JAVA LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23INT410",
+                        "name": "INTER/ INTRA INSTITUTIONAL INTERNSHIP",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    }
+                ]
+            }
+        ]
+    },
+    "1MS23IS051": {
+        "name": "KARTHIK S  POOJARY",
+        "class_details": "B.E-IS,  SEM 06,  SEC B",
+        "last_updated": "2026-02-22 19:58:44",
+        "subjects": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "cie": 0,
+                "attendance": 67
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "cie": 0,
+                "attendance": 100
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "cie": 0,
+                "attendance": 60
+            },
+            {
+                "code": "23ISE641",
+                "name": "Business Analytics",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23PHOE04",
+                "name": "Biophysics",
+                "cie": 0,
+                "attendance": 0
+            }
+        ]
+    }
+}
