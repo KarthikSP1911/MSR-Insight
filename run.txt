@@ -1,0 +1,47 @@
+
+Smart-Report/
+ ├── backend/
+ │    ├── express/
+ │    └── fastapi/
+ └── frontend/
+
+Terminal 1 — Start FastAPI (Port 8000)
+
+cd backend/fastapi
+venv\Scripts\activate        # Windows
+
+
+(Mac/Linux → source venv/bin/activate)
+
+Then:
+uvicorn main:app --reload --port 8000
+
+FastAPI running at: http://localhost:8000
+
+
+Terminal 2 — Start Express (Port 5000)
+Open new terminal:
+
+cd backend/express
+node server.js
+
+
+Express running at:
+
+http://localhost:5000
+
+Terminal 3 — Start React (Port 5173)
+
+Open new terminal:
+cd frontend
+npm run dev
+
+
+React running at:http://localhost:5173
+
+How They Connect
+React (5173)
+      ↓
+Express (5000)
+      ↓
+FastAPI (8000)
