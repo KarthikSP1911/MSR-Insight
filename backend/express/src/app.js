@@ -1,22 +1,17 @@
-const dotenv = require("dotenv");
-dotenv.config();
+import "dotenv/config";
+import express from "express";
 
-const express = require("express");
-
-const connectDB = require("./config/db.config");
-const authRoutes = require("./routes/auth.routes");
-const reportRoutes = require("./routes/report.routes");
-const errorHandler = require("./middlewares/error.middleware");
+import authRoutes from "./routes/auth.routes.js";
+import reportRoutes from "./routes/report.routes.js";
+import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
 
 app.use(express.json());
-
-connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/report", reportRoutes);
 
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

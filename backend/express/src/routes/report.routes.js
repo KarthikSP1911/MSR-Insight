@@ -1,10 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const { generateReport } = require("../controllers/report.controller");
+import { Router } from "express";
+import { generateReport } from "../controllers/report.controller.js";
+import requireSession from "../middlewares/session.middleware.js";
 
-// GET /api/report          → uses hardcoded USN (1MS24IS400)
+// GET /api/report          → uses hardcoded USN
 // GET /api/report/:usn     → uses USN from URL param
-router.get("/", generateReport);
-router.get("/:usn", generateReport);
+const router = Router();
 
-module.exports = router;
+router.get("/", requireSession, generateReport);
+router.get("/:usn", requireSession, generateReport);
+
+export default router;

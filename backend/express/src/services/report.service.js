@@ -1,4 +1,4 @@
-const axios = require("axios");
+import axios from "axios";
 
 const FASTAPI_BASE_URL = process.env.FASTAPI_URL || "http://localhost:8000";
 
@@ -12,4 +12,4 @@ const getRemarkByUSN = async (usn) => {
     return response.data;
 };
 
-module.exports = { getRemarkByUSN };
+export { getRemarkByUSN };

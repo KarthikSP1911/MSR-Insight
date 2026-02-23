@@ -1,13 +1,13 @@
-const User = require("../models/user.model");
+import prisma from "../config/db.config.js";
 
 class UserRepository {
-  async findByUsername(username) {
-    return await User.findOne({ username });
+  async findByUSN(usn) {
+    return await prisma.user.findUnique({ where: { usn } });
   }
 
   async create(userData) {
-    return await User.create(userData);
+    return await prisma.user.create({ data: userData });
   }
 }
 
-module.exports = new UserRepository();
+export default new UserRepository();
