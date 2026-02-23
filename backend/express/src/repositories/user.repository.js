@@ -1,8 +1,8 @@
-const User = require("../models/user.model");
+import User from "../models/user.model.js";
 
 class UserRepository {
-  async findByUsername(username) {
-    return await User.findOne({ username });
+  async findByUSN(usn) {
+    return await User.findOne({ username: usn });
   }
 
   async create(userData) {
@@ -10,4 +10,4 @@ class UserRepository {
   }
 }
 
-module.exports = new UserRepository();
+export default new UserRepository();

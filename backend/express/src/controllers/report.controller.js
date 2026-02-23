@@ -1,6 +1,5 @@
-const { getRemarkByUSN } = require("../services/report.service");
+import { getRemarkByUSN } from "../services/report.service.js";
 
-// Hardcoded USN for now
 const HARDCODED_USN = "1MS24IS400";
 
 const generateReport = async (req, res, next) => {
@@ -12,7 +11,6 @@ const generateReport = async (req, res, next) => {
             data,
         });
     } catch (error) {
-        // Forward FastAPI error details if available
         if (error.response) {
             return res.status(error.response.status).json({
                 success: false,
@@ -23,4 +21,4 @@ const generateReport = async (req, res, next) => {
     }
 };
 
-module.exports = { generateReport };
+export { generateReport };

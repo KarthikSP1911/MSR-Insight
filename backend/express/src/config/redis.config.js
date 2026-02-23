@@ -1,6 +1,6 @@
-const redis = require("redis");
+import { createClient } from "redis";
 
-const redisClient = redis.createClient({
+const redisClient = createClient({
   url: process.env.REDIS_URL,
   socket: {
     tls: true,
@@ -24,4 +24,4 @@ redisClient.on("error", (err) => {
   }
 })();
 
-module.exports = redisClient;
+export default redisClient;

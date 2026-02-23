@@ -1,12 +1,12 @@
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
 dotenv.config();
 
-const express = require("express");
+import express from "express";
 
-const connectDB = require("./config/db.config");
-const authRoutes = require("./routes/auth.routes");
-const reportRoutes = require("./routes/report.routes");
-const errorHandler = require("./middlewares/error.middleware");
+import connectDB from "./config/db.config.js";
+import authRoutes from "./routes/auth.routes.js";
+import reportRoutes from "./routes/report.routes.js";
+import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -19,4 +19,4 @@ app.use("/api/report", reportRoutes);
 
 app.use(errorHandler);
 
-module.exports = app;
+export default app;
