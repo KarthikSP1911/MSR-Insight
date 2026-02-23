@@ -5,6 +5,7 @@ const express = require("express");
 
 const connectDB = require("./config/db.config");
 const authRoutes = require("./routes/auth.routes");
+const reportRoutes = require("./routes/report.routes");
 const errorHandler = require("./middlewares/error.middleware");
 
 const app = express();

@@ -11,29 +11,37 @@ class PromptBuilder:
             [f"- {s['code']} - {s['name']}: Marks={s['marks']}, Attendance={s['attendance']}%" for s in subjects]
         )
 
-        prompt = f"""Generate structured semester performance remarks based on the data below.
+        prompt = f"""Generate a concise semester performance remark based on the data below.
 
 Student Data:
 {subjects_block}
 
 Instructions:
-1. Write exactly one sentence per subject.
-2. Each sentence must be on a SINGLE LINE.
-3. Format: <Subject Name>: <score-based phrase> and <attendance phrase>.
-4. Use descriptive phrases for marks (e.g., "scored well", "achieved good marks", "secured satisfactory marks", "scored below expectations").
-5. Attendance phrase rule: 
-   - 85% or above: "maintained regular attendance"
-   - Below 85%: "attendance below expected level"
-6. Do NOT display any numeric values in the output.
-7. Do NOT use blank lines.
-8. No motivational language or advice.
-9. After subject sentences, add a line:
-   Overall performance: <summary of scoring trend> and <overall attendance trend>.
-10. Final sentence must follow this format:
-    Improvement needed in <subjects with marks below 50> and attendance improvement required in <subjects with attendance below 85%>.
-    - Determine low scores as marks < 50 and low attendance as < 85%.
-    - List subject names only (e.g., "Machine Learning"). Do NOT include subject codes.
-    - If no subjects meet the criteria for a category, use "none".
+1. Do NOT write subject-wise sentences.
+2. Generate exactly TWO lines only.
+3. First line must be:
+   Overall performance: <summary of overall marks trend> and <overall attendance trend>.
+   - The attendance trend should mention if attendance was lower in some subjects (e.g., "attendance was lower in a few subjects").
+4. Second line must follow one of these formats:
 
-Output only the sentences as requested."""
+   If there are subjects with marks below 50 and/or attendance below 85%:
+   Improvement needed in <number> subjects and attendance improvement required in <number> subjects.
+
+   If there are NO subjects with marks below 50:
+   Good academic performance across all subjects.
+
+   If there are NO subjects with attendance below 85%:
+   Consistent attendance maintained across all subjects.
+
+   If both academic performance and attendance are satisfactory:
+   Good academic performance across all subjects and consistent attendance maintained across all subjects.
+
+5. Determine low scores as marks below 50.
+6. Determine low attendance as attendance below 85%.
+7. Do NOT list subject names.
+8. Do NOT display numeric marks or percentages.
+9. No motivational language or advice.
+10. No blank lines.
+
+Output only the two lines exactly as specified."""
         return prompt.strip()

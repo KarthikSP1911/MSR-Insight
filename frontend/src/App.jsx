@@ -6,7 +6,7 @@ import "./App.css";
 
 function Navbar() {
   const location = useLocation();
-  const isReportPage = location.pathname === "/report";
+  const isReportPage = location.pathname.startsWith("/report/");
 
   const handleDownloadPDF = () => {
     const element = document.getElementById("report-sheet");
@@ -62,7 +62,7 @@ function Navbar() {
             Generate Report
           </button>
         ) : (
-          <Link to="/report" className="generate-btn">
+          <Link to="/report/1MS24IS400" className="generate-btn">
             Generate Report
           </Link>
         )}
@@ -80,7 +80,7 @@ function App() {
         <main className="content">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/report" element={<Report />} />
+            <Route path="/report/:usn" element={<Report />} />
           </Routes>
         </main>
       </div>

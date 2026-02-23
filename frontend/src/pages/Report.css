@@ -123,18 +123,21 @@
 .sheet-header {
     display: flex;
     align-items: center;
-    gap: 30px;
-    margin-bottom: 20px;
+    width: 100%;
+    gap: 14px;
+    margin-bottom: 10px;
 }
 
 .college-logo-img {
-    height: 80px;
+    height: 75px;
     width: auto;
     object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 12px;
 }
 
 .college-info h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     margin: 0;
     color: #0f172a;
     letter-spacing: 0.02em;
@@ -143,64 +146,72 @@
 }
 
 .college-info h2 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #64748b;
-    margin: 5px 0 10px 0;
+    margin: 2px 0 6px 0;
 }
 
 .student-meta {
     font-size: 0.8rem;
-    color: #94a3b8;
+    color: #475569;
     font-weight: 500;
+    margin: 4px 0;
+    letter-spacing: 0.01em;
 }
 
 .divider {
     border: none;
-    border-top: 2px solid #e2e8f0;
-    margin: 20px 0 40px 0;
+    border-top: 1.5px solid #e2e8f0;
+    margin: 8px 0 16px 0;
 }
 
 .table-section {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .table-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 20px;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
     color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .marks-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    border: 1px solid #000;
+    margin-bottom: 10px;
+    border: 1px solid #94a3b8;
+    font-size: 0.78rem;
 }
 
 .marks-table th,
 .marks-table td {
-    border: 1px solid #000;
-    padding: 10px 15px;
+    border: 1px solid #94a3b8;
+    padding: 5px 10px;
 }
 
 .marks-table th {
-    background: #f8fafc;
+    background: #f1f5f9;
     text-align: left;
-    color: #1e293b;
-    font-size: 0.75rem;
+    color: #475569;
+    font-size: 0.68rem;
     text-transform: uppercase;
     font-weight: 700;
+    letter-spacing: 0.04em;
 }
 
 .marks-table td {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    color: #334155;
 }
 
 .grade-badge {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
 }
 
 .grade-badge.o {
@@ -223,18 +234,64 @@
     color: #854d0e;
 }
 
+
+.grade-badge.b {
+    background: #fff7ed;
+    color: #9a3412;
+}
+
+.grade-badge.f {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.grade-badge.aplus {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* Loading spinner */
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(139, 92, 246, 0.2);
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer meta (last updated) */
+.footer-meta {
+    align-self: flex-end;
+    margin-bottom: 4px;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    flex: 1;
+}
+
 /* TipTap Styles in Sheet */
+
 .remarks-section {
     display: flex;
     flex-direction: column;
-    gap: 25px;
-    margin-top: 20px;
+    gap: 14px;
+    margin-top: 12px;
 }
 
 .editable-remarks-container h4 {
-    font-size: 0.9rem;
+    font-size: 0.78rem;
     color: #475569;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
 }
 
 .tiptap-editor-container {
@@ -268,25 +325,51 @@
 
 .sheet-footer {
     margin-top: auto;
-    /* Push to bottom of sheet */
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
-    padding: 0;
+    align-items: flex-end;
+    padding: 20px 0 6px 0;
+    width: 100%;
+    border-top: none;
+    gap: 12px;
+}
+
+.footer-meta {
+    text-align: center;
+    flex: 1;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.footer-meta small {
+    display: block;
 }
 
 .signature-area {
     text-align: center;
+    flex: 1;
 }
 
 .signature-line {
-    width: 180px;
-    border-top: 1px solid #000;
-    margin-bottom: 8px;
+    width: 100%;
+    max-width: 180px;
+    border-top: 1.5px solid #334155;
+    margin: 0 auto 8px auto;
 }
 
 .signature-area p {
     font-size: 0.8rem;
     color: #64748b;
+    margin: 0;
+}
+
+@media (max-width: 480px) {
+    .sheet-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
 }
 
 /* ── Print: true A4 layout, no scaling ── */
