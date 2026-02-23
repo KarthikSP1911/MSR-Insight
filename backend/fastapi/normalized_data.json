@@ -1,0 +1,65 @@
+{
+    "1MS24IS400": {
+        "usn": "1MS24IS400",
+        "name": "AJAY KUMAR  S",
+        "class_details": "B.E-IS,  SEM 06,  SEC A",
+        "cgpa": "9.21",
+        "last_updated": "2026-02-22 20:44:21",
+        "subjects": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE644",
+                "name": "Cloud Computing",
+                "marks": 0,
+                "attendance": 80
+            },
+            {
+                "code": "23PHOE04",
+                "name": "Biophysics",
+                "marks": 0,
+                "attendance": 0
+            }
+        ]
+    }
+}

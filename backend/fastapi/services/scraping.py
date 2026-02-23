@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 
 # --- CONFIGURATION ---
-BRAVE_PATH = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+#BRAVE_PATH = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 JSON_STORAGE = "all_students_report.json"
 
 def get_complete_student_data(usn, day, month, year):
@@ -153,6 +153,14 @@ def parse_and_save_data(scraped_data):
         json.dump(database, f, indent=4)
     
     print(f"[+] All data (Dashboard + Exams) saved for {name} ({usn})")
+
+    # Trigger normalization for downstream services (AI, etc.)
+    try:
+        from .data_normalizer import DataNormalizer
+        DataNormalizer.normalize_all_data(JSON_STORAGE, "normalized_data.json")
+        print("[+] Data normalization complete.")
+    except Exception as e:
+        print(f"[!] Normalization failed: {e}")
 
 #---Part done by Ajay----
 # --- EXECUTION ---

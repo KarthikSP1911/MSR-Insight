@@ -1,0 +1,83 @@
+--- Raw Record for: AJAY KUMAR  S (1MS24IS400) ---
+
+Normalized Data:
+{
+  "usn": "1MS24IS400",
+  "name": "AJAY KUMAR  S",
+  "class_details": "B.E-IS,  SEM 06,  SEC A",
+  "cgpa": "9.21",
+  "last_updated": "2026-02-22 20:44:21",
+  "subjects": [
+    {
+      "code": "23AL61",
+      "name": "Management & Entrepreneurship",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23IS62",
+      "name": "Machine Learning",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23ISL65",
+      "name": "Machine Learning Lab",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23ISL66",
+      "name": "DevOps Lab",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23ISP67",
+      "name": "Mini Project",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23IS68",
+      "name": "Technical Skill Enhancement Course",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23ISE633",
+      "name": "Block chain essentials and DApps",
+      "marks": 0,
+      "attendance": 0
+    },
+    {
+      "code": "23ISE644",
+      "name": "Cloud Computing",
+      "marks": 0,
+      "attendance": 80
+    },
+    {
+      "code": "23PHOE04",
+      "name": "Biophysics",
+      "marks": 0,
+      "attendance": 0
+    }
+  ]
+}
+
+=== AI Service Output ===
+{
+  "student_detail": {
+    "name": "AJAY KUMAR  S",
+    "usn": "1MS24IS400",
+    "class_details": "B.E-IS,  SEM 06,  SEC A",
+    "cgpa": "9.21",
+    "last_updated": "2026-02-22 20:44:21"
+  },
+  "ai_remark": "23AL61 - Management & Entrepreneurship: scored below expectations and attendance below expected level.\n23IS62 - Machine Learning: scored below expectations and attendance below expected level.\n23ISL65 - Machine Learning Lab: scored below expectations and attendance below expected level.\n23ISL66 - DevOps Lab: scored below expectations and attendance below expected level.\n23ISP67 - Mini Project: scored below expectations and attendance below expected level.\n23IS68 - Technical Skill Enhancement Course: scored below expectations and attendance below expected level.\n23ISE633 - Block chain essentials and DApps: scored below expectations and attendance below expected level.\n23ISE644 - Cloud Computing: scored below expectations and maintained regular attendance.\n23PHOE04 - Biophysics: scored below expectations and attendance below expected level.\n\nOverall performance: scored below expectations in most subjects and overall attendance below expected level.\nImprovement needed in 23AL61 - Management & Entrepreneurship, 23IS62 - Machine Learning, 23ISL65 - Machine Learning Lab, 23ISL66 - DevOps Lab, 23ISP67 - Mini Project, 23IS68 - Technical Skill Enhancement Course, 23ISE633 - Block chain essentials and DApps, 23PHOE04 - Biophysics and attendance improvement required in 23AL61 - Management & Entrepreneurship, 23IS62 - Machine Learning, 23ISL65 - Machine Learning Lab, 23ISL66 - DevOps Lab, 23ISP67 - Mini Project, 23IS68 - Technical Skill Enhancement Course, 23ISE633 - Block chain essentials and DApps, 23PHOE04 - Biophysics, 23ISE644 - Cloud Computing.",
+  "meta": {
+    "model": "llama-3.1-8b-instant",
+    "tokens_used": 830,
+    "generation_time_ms": 705
+  }
+}

@@ -1,59 +1,47 @@
+from typing import Any
+
+
 class PromptBuilder:
+    """Class to build prompts for AI remark generation."""
 
     @staticmethod
-    def build_remark_prompt(data: dict) -> str:
-        marks = data.get("marks", {})
-        attendance = data.get("attendance", {})
+    def build_remark_prompt(data: dict[str, Any]) -> str:
+        subjects = data.get("subjects", [])
+        subjects_block = "\n".join(
+            [f"- {s['code']} - {s['name']}: Marks={s['marks']}, Attendance={s['attendance']}%" for s in subjects]
+        )
 
-        marks_block = ""
-        for subject, score in marks.items():
-            marks_block += f"- {subject}: {score}\n"
-        
-        attendance_block = ""
-        for subject, att_score in attendance.items():
-            attendance_block += f"- {subject}: {att_score}%\n"
-
-        prompt = f"""
-Generate structured semester performance remarks.
+        prompt = f"""Generate a concise semester performance remark based on the data below.
 
 Student Data:
-Marks:
-{marks_block}
-
-Attendance:
-{attendance_block}
+{subjects_block}
 
 Instructions:
+1. Do NOT write subject-wise sentences.
+2. Generate exactly TWO lines only.
+3. First line must be:
+   Overall performance: <summary of overall marks trend> and <overall attendance trend>.
+   - The attendance trend should mention if attendance was lower in some subjects (e.g., "attendance was lower in a few subjects").
+4. Second line must follow one of these formats:
 
-1. Write exactly one sentence per subject.
-2. Each sentence must be on a SINGLE LINE.
-3. Format:
-   <Subject>: <score-based phrase> and <attendance phrase>.
-4. Performance phrases must refer only to marks, such as:
-   - "scored well"
-   - "achieved good marks"
-   - "secured satisfactory marks"
-   - "scored below expectations"
-5. Attendance rule:
-   - 85% or above → "maintained regular attendance".
-   - Below 85% → "attendance below expected level".
-6. Do NOT display numeric values.
-7. Do NOT use student name.
-8. No motivational language.
+   If there are subjects with marks below 50 and/or attendance below 85%:
+   Improvement needed in <number> subjects and attendance improvement required in <number> subjects.
 
-9. After subject sentences, add:
-   Overall performance: <summary of scoring trend> and <overall attendance trend>.
+   If there are NO subjects with marks below 50:
+   Good academic performance across all subjects.
 
-10. Then add one final line:
-    Improvement needed in <subjects with low scores> and attendance improvement required in <subjects with low attendance>.
+   If there are NO subjects with attendance below 85%:
+   Consistent attendance maintained across all subjects.
 
-11. The final improvement sentence must:
-    - Mention subject names explicitly.
-    - Be direct and factual.
-    - Not include advice words like "should", "encouraged", "recommended".
-    - Not include motivational phrases.
+   If both academic performance and attendance are satisfactory:
+   Good academic performance across all subjects and consistent attendance maintained across all subjects.
 
-12. Output only the sentences separated by newline characters.
-13. Do NOT insert blank lines.
-"""
+5. Determine low scores as marks below 50.
+6. Determine low attendance as attendance below 85%.
+7. Do NOT list subject names.
+8. Do NOT display numeric marks or percentages.
+9. No motivational language or advice.
+10. No blank lines.
+
+Output only the two lines exactly as specified."""
         return prompt.strip()
