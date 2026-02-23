@@ -14,6 +14,7 @@ app.use(express.json());
 connectDB();
 
 app.use("/api/auth", authRoutes);
+app.use("/api/report", reportRoutes);
 
 app.use(errorHandler);
 

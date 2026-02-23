@@ -1,0 +1,392 @@
+.report-viewer-page {
+    background-color: #0f172a;
+    height: calc(100vh - var(--nav-height));
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.scroll-container {
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    background-color: #0f172a;
+}
+
+/* The 794px-wide frame that actually scrolls — scrollbar sits at sheet edge */
+.sheet-scroll-frame {
+    width: calc(794px + 8px);
+    /* A4 width + scrollbar width */
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    padding: 0;
+    /* No padding — scrollbar starts at the very top */
+}
+
+/* Scrollbar attached to the sheet-scroll-frame (right edge of A4) */
+.sheet-scroll-frame::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sheet-scroll-frame::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 0 0 0 0;
+}
+
+.sheet-scroll-frame::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+}
+
+.sheet-scroll-frame::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+.a4-sheet-wrapper {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: center;
+    height: fit-content;
+}
+
+.a4-sheet {
+    background: white;
+    width: 794px;
+    min-height: 1123px;
+    padding: 60px;
+    color: #1e293b;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.zoom-controls {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 8px 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.zoom-controls button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.zoom-controls button:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.zoom-level {
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 45px;
+    text-align: center;
+    color: white;
+    letter-spacing: 0.025em;
+}
+
+.reset-btn {
+    font-size: 0.75rem !important;
+    width: auto !important;
+    height: 28px !important;
+    padding: 0 10px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+.sheet-header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.college-logo-img {
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+}
+
+.college-info h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+    background: none;
+    -webkit-text-fill-color: initial;
+}
+
+.college-info h2 {
+    font-size: 1rem;
+    color: #64748b;
+    margin: 5px 0 10px 0;
+}
+
+.student-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.divider {
+    border: none;
+    border-top: 2px solid #e2e8f0;
+    margin: 20px 0 40px 0;
+}
+
+.table-section {
+    margin-bottom: 40px;
+}
+
+.table-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: #334155;
+}
+
+.marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    border: 1px solid #000;
+}
+
+.marks-table th,
+.marks-table td {
+    border: 1px solid #000;
+    padding: 10px 15px;
+}
+
+.marks-table th {
+    background: #f8fafc;
+    text-align: left;
+    color: #1e293b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.marks-table td {
+    font-size: 0.9rem;
+}
+
+.grade-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.7rem;
+}
+
+.grade-badge.o {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.grade-badge.a\+ {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.grade-badge.a {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.grade-badge.b\+ {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+/* TipTap Styles in Sheet */
+.remarks-section {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.editable-remarks-container h4 {
+    font-size: 0.9rem;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+.tiptap-editor-container {
+    border: 2px solid #666;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.tiptap-editor-container:focus-within {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+
+
+.tiptap-content {
+    padding: 12px;
+    min-height: 100px;
+    outline: none;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.tiptap-content ul {
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.sheet-footer {
+    margin-top: auto;
+    /* Push to bottom of sheet */
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+}
+
+.signature-area {
+    text-align: center;
+}
+
+.signature-line {
+    width: 180px;
+    border-top: 1px solid #000;
+    margin-bottom: 8px;
+}
+
+.signature-area p {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* ── Print: true A4 layout, no scaling ── */
+@page {
+    size: A4 portrait;
+    margin: 10mm;
+}
+
+@media print {
+
+    /* Reset globals */
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        height: auto !important;
+        min-height: auto !important;
+    }
+
+    /* Hide all UI controls */
+    .navbar,
+    .zoom-controls,
+    .footer,
+    .generate-btn {
+        display: none !important;
+    }
+
+    /* Flatten all wrappers */
+    .app-wrapper,
+    .content,
+    .report-viewer-page {
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: white !important;
+        display: block !important;
+    }
+
+    .scroll-container,
+    .sheet-scroll-frame,
+    .a4-sheet-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+        display: block !important;
+        transform: none !important;
+    }
+
+    /* A4 sheet — natural size, centered */
+    .a4-sheet {
+        width: 190mm !important;
+        /* 210mm minus 10mm margins on each side */
+        min-height: 277mm !important;
+        /* 297mm minus 10mm margins on each side */
+        margin: 0 auto !important;
+        padding: 0 !important;
+        /* Page margins handle outer spacing */
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* Prevent page breaks inside sections */
+    .sheet-header,
+    .table-section,
+    .remarks-section,
+    .editable-remarks-container,
+    .sheet-footer,
+    .marks-table,
+    .marks-table tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Trim only excessive spacing — keep natural sizes */
+    .divider {
+        margin: 15px 0 25px 0 !important;
+    }
+
+    .table-section {
+        margin-bottom: 25px !important;
+    }
+
+    .remarks-section {
+        gap: 15px !important;
+        margin-top: 15px !important;
+    }
+
+    .tiptap-editor-container {
+        border: 1px solid #999 !important;
+    }
+
+    .tiptap-content {
+        min-height: auto !important;
+    }
+
+    .sheet-footer {
+        padding: 25px 0 10px 0 !important;
+    }
+}
