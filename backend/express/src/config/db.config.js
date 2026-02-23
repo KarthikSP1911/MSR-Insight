@@ -1,13 +1,11 @@
-import mongoose from "mongoose";
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log(" MongoDB Connected");
-  } catch (error) {
-    console.warn("MongoDB Connection Failed (non-fatal):", error.message);
-    // Not exiting — report routes don't require MongoDB
-  }
-};
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
-export default connectDB;
+const prisma = new PrismaClient({
+  adapter,
+  log: ["warn", "error"],
+});
+
+export default prisma;

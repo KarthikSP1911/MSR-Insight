@@ -1,12 +1,12 @@
-import User from "../models/user.model.js";
+import prisma from "../config/db.config.js";
 
 class UserRepository {
   async findByUSN(usn) {
-    return await User.findOne({ username: usn });
+    return await prisma.user.findUnique({ where: { usn } });
   }
 
   async create(userData) {
-    return await User.create(userData);
+    return await prisma.user.create({ data: userData });
   }
 }
 
