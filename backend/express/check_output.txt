@@ -1,0 +1,53 @@
+(node:3052) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Proctors in DB: [
+  {
+    "id": "4a17c9e2-88db-4229-9a3c-f916e509987c",
+    "proctorId": "p000",
+    "password": "$2b$10$s2Y22SaZ81uqKQL1jbwfKegcBXLV//uA8cMui.7gn3M898NrCSpZ2",
+    "name": null,
+    "createdAt": "2026-02-24T12:44:57.194Z",
+    "updatedAt": "2026-02-24T12:44:57.194Z"
+  },
+  {
+    "id": "03a0cd20-2995-4812-8b6a-b5d009751708",
+    "proctorId": "P000",
+    "password": "password123",
+    "name": "Default Proctor",
+    "createdAt": "2026-02-24T17:58:37.682Z",
+    "updatedAt": "2026-02-24T17:58:37.682Z"
+  }
+]
+Students in DB: [
+  {
+    "id": "e97bbf17-3909-423f-b133-1c355739795d",
+    "usn": "1MS23IS051",
+    "dob": "19-11-2004",
+    "proctorId": null,
+    "createdAt": "2026-02-24T12:45:04.731Z",
+    "updatedAt": "2026-02-24T13:21:52.788Z"
+  },
+  {
+    "id": "0f423206-923c-437d-916c-194aa1d86a08",
+    "usn": "1MS24IS400",
+    "dob": "20-10-2005",
+    "proctorId": null,
+    "createdAt": "2026-02-24T12:45:04.948Z",
+    "updatedAt": "2026-02-24T13:21:53.008Z"
+  },
+  {
+    "id": "74c3b2bc-6ac3-42a7-bcef-bbec15cdaa7c",
+    "usn": "1ms23is051",
+    "dob": "2004-11-19",
+    "proctorId": "03a0cd20-2995-4812-8b6a-b5d009751708",
+    "createdAt": "2026-02-24T18:01:04.953Z",
+    "updatedAt": "2026-02-24T18:01:04.953Z"
+  }
+]

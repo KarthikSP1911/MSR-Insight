@@ -13,6 +13,18 @@ model User {
   id        String   @id @default(uuid())
   usn       String   @unique
   dob       String
+  proctorId String?
+  proctor   Proctor? @relation(fields: [proctorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Proctor {
+  id        String   @id @default(uuid())
+  proctorId String   @unique
+  password  String
+  name      String?
+  students  User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

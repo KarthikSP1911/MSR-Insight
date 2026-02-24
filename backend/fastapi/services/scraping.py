@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 
 # --- CONFIGURATION ---
 #BRAVE_PATH = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
 JSON_STORAGE = "all_students_report.json"
 
 def get_complete_student_data(usn, day, month, year):
@@ -19,7 +20,7 @@ def get_complete_student_data(usn, day, month, year):
     options.binary_location = BRAVE_PATH
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    # options.add_argument("--headless") # Uncomment to hide browser
+    options.add_argument("--headless") # Uncomment to hide browser
 
     driver = webdriver.Chrome(options=options)
     
@@ -156,7 +157,10 @@ def parse_and_save_data(scraped_data):
 
     # Trigger normalization for downstream services (AI, etc.)
     try:
-        from .data_normalizer import DataNormalizer
+        try:
+            from .data_normalizer import DataNormalizer
+        except (ImportError, ValueError):
+            from data_normalizer import DataNormalizer
         DataNormalizer.normalize_all_data(JSON_STORAGE, "normalized_data.json")
         print("[+] Data normalization complete.")
     except Exception as e:
@@ -165,8 +169,8 @@ def parse_and_save_data(scraped_data):
 #---Part done by Ajay----
 # --- EXECUTION ---
 if __name__ == "__main__":
-    MY_USN = "1MS24IS400"
-    DD, MM, YYYY = "20", "10", "2005"
+    MY_USN = "1MS23IS051"
+    DD, MM, YYYY = "19", "11", "2004"
 
     full_data = get_complete_student_data(MY_USN, DD, MM, YYYY)
     if full_data:
