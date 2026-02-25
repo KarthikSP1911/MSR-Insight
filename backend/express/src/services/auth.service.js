@@ -12,13 +12,14 @@ class AuthService {
       throw new Error("User already exists");
     }
 
-    await userRepository.create({ username: usn, dob });
+    const normalizedUSN = usn.toUpperCase();
+    await userRepository.create({ usn: normalizedUSN, dob });
 
     const sessionId = randomUUID();
-    await redisClient.set(`session:${sessionId}`, usn, { EX: 2592000 });
-    await redisClient.set(`usn:${usn}`, sessionId, { EX: 2592000 });
+    await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
+    await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
 
-    return { usn, sessionId };
+    return { usn: normalizedUSN, sessionId };
   }
 
   async login(usn, dob) {
@@ -28,17 +29,21 @@ class AuthService {
       throw new Error("Invalid USN or Date of Birth");
     }
 
-    const existingSessionId = await redisClient.get(`usn:${usn}`);
+    const normalizedUSN = user.usn.toUpperCase();
+
+    // Check for existing session
+    const existingSessionId = await redisClient.get(`usn:${normalizedUSN}`);
     if (existingSessionId) {
       await redisClient.expire(`session:${existingSessionId}`, 2592000);
-      return { usn, sessionId: existingSessionId };
+      return { usn: normalizedUSN, sessionId: existingSessionId };
     }
 
     const sessionId = randomUUID();
-    await redisClient.set(`session:${sessionId}`, usn, { EX: 2592000 });
-    await redisClient.set(`usn:${usn}`, sessionId, { EX: 2592000 });
+    // Store prefixed identity to distinguish between Student and Proctor
+    await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
+    await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
 
-    return { usn, sessionId };
+    return { usn: normalizedUSN, sessionId };
   }
 
   async proctorRegister(proctorId, password, name) {
@@ -66,13 +71,12 @@ class AuthService {
     const proctor = await proctorRepository.findByProctorId(normalizedId);
 
     if (!proctor) {
-      console.warn(`[Auth] Proctor not found: ${proctorId}`);
+      console.warn(`[Auth] Proctor not found: ${normalizedId}`);
       const err = new Error("Proctor not found");
       err.statusCode = 404;
       throw err;
     }
 
-    // Support both bcrypt hashed and legacy plaintext passwords
     let passwordValid = false;
     if (proctor.password.startsWith("$2b$") || proctor.password.startsWith("$2a$")) {
       passwordValid = await bcrypt.compare(password, proctor.password);
@@ -81,52 +85,72 @@ class AuthService {
     }
 
     if (!passwordValid) {
-      console.warn(`[Auth] Invalid password for proctor: ${proctorId}`);
+      console.warn(`[Auth] Invalid password for proctor: ${normalizedId}`);
       const err = new Error("Invalid Proctor ID or Password");
       err.statusCode = 401;
       throw err;
     }
 
-    // Reuse existing session or create new
-    const existingSessionId = await redisClient.get(`proctor:${proctorId}`);
+    const existingSessionId = await redisClient.get(`proctor:${normalizedId}`);
     if (existingSessionId) {
       await redisClient.expire(`session:${existingSessionId}`, 2592000);
-      console.log(`[Auth] Reusing existing session for proctor: ${proctorId}`);
-      return { proctorId, sessionId: existingSessionId };
+      console.log(`[Auth] Reusing existing session for proctor: ${normalizedId}`);
+      return { proctorId: normalizedId, sessionId: existingSessionId };
     }
 
     const sessionId = randomUUID();
-    await redisClient.set(`session:${sessionId}`, proctorId, { EX: 2592000 });
-    await redisClient.set(`proctor:${proctorId}`, sessionId, { EX: 2592000 });
+    await redisClient.set(`session:${sessionId}`, `proctor:${normalizedId}`, { EX: 2592000 });
+    await redisClient.set(`proctor:${normalizedId}`, sessionId, { EX: 2592000 });
 
-    console.log(`[Auth] New session created for proctor: ${proctorId}`);
-    return { proctorId, sessionId };
+    console.log(`[Auth] New session created for proctor: ${normalizedId}`);
+    return { proctorId: normalizedId, sessionId };
   }
 
   async logout(sessionId) {
-    const usn = await redisClient.get(`session:${sessionId}`);
-    if (usn) {
-      await redisClient.del(`usn:${usn}`);
+    const identity = await redisClient.get(`session:${sessionId}`);
+    if (identity) {
+      if (identity.startsWith("student:")) {
+        const usn = identity.split(":")[1];
+        await redisClient.del(`usn:${usn}`);
+      } else if (identity.startsWith("proctor:")) {
+        const pId = identity.split(":")[1];
+        await redisClient.del(`proctor:${pId}`);
+      }
     }
     await redisClient.del(`session:${sessionId}`);
   }
 
   async getProfile(sessionId) {
-    const usn = await redisClient.get(`session:${sessionId}`);
-    if (!usn) {
+    const identity = await redisClient.get(`session:${sessionId}`);
+    if (!identity) {
       const err = new Error("Session expired or invalid");
       err.statusCode = 401;
       throw err;
     }
 
-    const user = await userRepository.findByUSN(usn);
-    if (!user) {
-      const err = new Error("User not found");
-      err.statusCode = 404;
-      throw err;
+    if (identity.startsWith("student:")) {
+      const usn = identity.split(":")[1];
+      const user = await userRepository.findByUSN(usn);
+      if (!user) {
+        const err = new Error("Student not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      return { ...user, role: 'student' };
+    } else if (identity.startsWith("proctor:")) {
+      const pId = identity.split(":")[1];
+      const proctor = await proctorRepository.findByProctorId(pId);
+      if (!proctor) {
+        const err = new Error("Proctor not found");
+        err.statusCode = 404;
+        throw err;
+      }
+      // Don't return password
+      const { password, ...proctorData } = proctor;
+      return { ...proctorData, role: 'proctor' };
     }
 
-    return user;
+    throw new Error("Invalid identity type");
   }
 }
 

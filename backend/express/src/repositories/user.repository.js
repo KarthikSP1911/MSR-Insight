@@ -2,7 +2,9 @@ import prisma from "../config/db.config.js";
 
 class UserRepository {
   async findByUSN(usn) {
-    return await prisma.user.findUnique({ where: { usn } });
+    return await prisma.user.findFirst({
+      where: { usn: { equals: usn, mode: "insensitive" } },
+    });
   }
 
   async create(userData) {

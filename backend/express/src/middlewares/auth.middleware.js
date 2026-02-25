@@ -11,17 +11,21 @@ export const verifySession = async (req, res, next) => {
             });
         }
 
-        const userId = await redisClient.get(`session:${sessionId}`);
+        const identity = await redisClient.get(`session:${sessionId}`);
 
-        if (!userId) {
+        if (!identity) {
             return res.status(401).json({
                 success: false,
                 message: "Unauthorized: Invalid or expired session"
             });
         }
 
-        // Attach userId (USN or ProctorID) to request for later use
-        req.userId = userId;
+        // Extract role and clean ID from identity (e.g., student:1MS24IS400)
+        const [role, id] = identity.split(":");
+
+        // Attach to request for later use
+        req.userId = id;
+        req.userRole = role;
         next();
     } catch (error) {
         console.error("[SessionMiddleware Error]", error);
