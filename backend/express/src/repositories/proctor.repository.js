@@ -14,9 +14,10 @@ class ProctorRepository {
     }
 
     async getProctees(proctorId) {
-        return await prisma.proctor.findFirst({
+        const normalizedId = proctorId.toUpperCase();
+        return await prisma.proctor.findUnique({
             where: {
-                proctorId: { equals: proctorId, mode: 'insensitive' }
+                proctorId: normalizedId
             },
             include: {
                 students: {
