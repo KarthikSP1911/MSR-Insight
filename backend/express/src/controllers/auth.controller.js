@@ -124,6 +124,34 @@ class AuthController {
       next(error);
     }
   }
+
+  async profile(req, res, next) {
+    try {
+      const sessionId = req.headers["x-session-id"];
+
+      if (!sessionId) {
+        return res.status(401).json({
+          success: false,
+          message: "No session ID provided",
+        });
+      }
+
+      const result = await authService.getProfile(sessionId);
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      if (error.statusCode) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message,
+        });
+      }
+      next(error);
+    }
+  }
 }
 
 export default new AuthController();

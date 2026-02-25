@@ -8,5 +8,6 @@ router.post("/proctor-register", authController.proctorRegister);
 router.post("/login", authController.login);
 router.post("/proctor-login", authController.proctorLogin);
 router.post("/logout", authController.logout);
+router.get("/profile", authController.profile);
 
 export default router;

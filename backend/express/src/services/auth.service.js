@@ -110,6 +110,24 @@ class AuthService {
     }
     await redisClient.del(`session:${sessionId}`);
   }
+
+  async getProfile(sessionId) {
+    const usn = await redisClient.get(`session:${sessionId}`);
+    if (!usn) {
+      const err = new Error("Session expired or invalid");
+      err.statusCode = 401;
+      throw err;
+    }
+
+    const user = await userRepository.findByUSN(usn);
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return user;
+  }
 }
 
 export default new AuthService();

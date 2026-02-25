@@ -55,8 +55,9 @@ class ProctorController {
 
     async getProctee(req, res, next) {
         try {
-            const { proctorId, studentId } = req.params;
-            const student = await proctorRepository.getProctee(proctorId, studentId);
+            const { proctorId, studentUsn } = req.params;
+
+            const student = await proctorRepository.getProcteeByUsn(proctorId, studentUsn);
 
             if (!student) {
                 return res.status(404).json({
@@ -65,10 +66,12 @@ class ProctorController {
                 });
             }
 
-            // Fetch full details from FastAPI if possible
+            // Fetch full details from FastAPI
             let details = {};
             try {
-                const response = await axios.get(`http://localhost:8000/reports/${student.usn}`);
+                // FastAPI expects USN in uppercase as keys in all_students_report.json
+                const normalizedUsn = student.usn.toUpperCase();
+                const response = await axios.get(`http://localhost:8000/get-normalized-report/${normalizedUsn}`);
                 if (response.data) {
                     details = response.data;
                 }
