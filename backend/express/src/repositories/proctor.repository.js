@@ -14,9 +14,10 @@ class ProctorRepository {
     }
 
     async getProctees(proctorId) {
-        const normalizedId = proctorId.toUpperCase();
-        return await prisma.proctor.findUnique({
-            where: { proctorId: normalizedId },
+        return await prisma.proctor.findFirst({
+            where: {
+                proctorId: { equals: proctorId, mode: 'insensitive' }
+            },
             include: {
                 students: {
                     select: {
@@ -30,12 +31,22 @@ class ProctorRepository {
     }
 
     async getProctee(proctorId, studentId) {
-        const normalizedId = proctorId.toUpperCase();
         return await prisma.user.findFirst({
             where: {
                 id: studentId,
                 proctor: {
-                    proctorId: normalizedId
+                    proctorId: { equals: proctorId, mode: 'insensitive' }
+                }
+            }
+        });
+    }
+
+    async getProcteeByUsn(proctorId, usn) {
+        return await prisma.user.findFirst({
+            where: {
+                usn: { equals: usn, mode: 'insensitive' },
+                proctor: {
+                    proctorId: { equals: proctorId, mode: 'insensitive' }
                 }
             }
         });
