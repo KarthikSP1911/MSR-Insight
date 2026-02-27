@@ -214,61 +214,61 @@
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
-                "cie": 0,
-                "attendance": 63
+                "cie": 21,
+                "attendance": 85
             },
             {
                 "code": "23IS62",
                 "name": "Machine Learning",
-                "cie": 0,
-                "attendance": 67
+                "cie": 25,
+                "attendance": 90
             },
             {
                 "code": "23ISL65",
                 "name": "Machine Learning Lab",
-                "cie": 0,
-                "attendance": 0
+                "cie": 27,
+                "attendance": 75
             },
             {
                 "code": "23ISL66",
                 "name": "DevOps Lab",
-                "cie": 0,
-                "attendance": 50
+                "cie": 30,
+                "attendance": 87
             },
             {
                 "code": "23ISP67",
                 "name": "Mini Project",
-                "cie": 0,
-                "attendance": 0
+                "cie": 25,
+                "attendance": 100
             },
             {
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
-                "cie": 0,
-                "attendance": 0
+                "cie": 28,
+                "attendance": 100
             },
             {
                 "code": "23ISE633",
                 "name": "Block chain essentials and DApps",
-                "cie": 0,
-                "attendance": 60
+                "cie": 20,
+                "attendance": 75
             },
             {
                 "code": "23ISE641",
                 "name": "Business Analytics",
-                "cie": 0,
-                "attendance": 0
+                "cie": 27,
+                "attendance": 95
             },
             {
                 "code": "23PHOE04",
                 "name": "Biophysics",
-                "cie": 0,
-                "attendance": 0
+                "cie": 26,
+                "attendance": 78
             }
         ],
         "exam_history": [
             {
-                "semester": "ODD - December 2023",
+                "semester": "ODD December 2023",
                 "sgpa": "9.25",
                 "credits_earned": "20",
                 "courses": [
@@ -329,7 +329,7 @@
                 ]
             },
             {
-                "semester": "EVEN - May 2024",
+                "semester": "EVEN May 2024",
                 "sgpa": "9.65",
                 "credits_earned": "20",
                 "courses": [

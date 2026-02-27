@@ -72,56 +72,56 @@
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
-                "marks": 0,
-                "attendance": 63
+                "marks": 21,
+                "attendance": 85
             },
             {
                 "code": "23IS62",
                 "name": "Machine Learning",
-                "marks": 0,
-                "attendance": 67
+                "marks": 25,
+                "attendance": 90
             },
             {
                 "code": "23ISL65",
                 "name": "Machine Learning Lab",
-                "marks": 0,
-                "attendance": 0
+                "marks": 27,
+                "attendance": 75
             },
             {
                 "code": "23ISL66",
                 "name": "DevOps Lab",
-                "marks": 0,
-                "attendance": 50
+                "marks": 30,
+                "attendance": 87
             },
             {
                 "code": "23ISP67",
                 "name": "Mini Project",
-                "marks": 0,
-                "attendance": 0
+                "marks": 25,
+                "attendance": 100
             },
             {
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
-                "marks": 0,
-                "attendance": 0
+                "marks": 28,
+                "attendance": 100
             },
             {
                 "code": "23ISE633",
                 "name": "Block chain essentials and DApps",
-                "marks": 0,
-                "attendance": 60
+                "marks": 20,
+                "attendance": 75
             },
             {
                 "code": "23ISE641",
                 "name": "Business Analytics",
-                "marks": 0,
-                "attendance": 0
+                "marks": 27,
+                "attendance": 95
             },
             {
                 "code": "23PHOE04",
                 "name": "Biophysics",
-                "marks": 0,
-                "attendance": 0
+                "marks": 26,
+                "attendance": 78
             }
         ]
     }

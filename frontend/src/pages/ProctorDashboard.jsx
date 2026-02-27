@@ -14,7 +14,7 @@ const ProctorDashboard = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/proctor/${proctorId}/dashboard`);
+        const response = await axios.get(`http://localhost:5001/api/proctor/${proctorId}/dashboard`);
         if (response.data.success) {
           setStudents(response.data.data);
         }
