@@ -857,7 +857,6 @@ const StudentDashboard = () => {
                                                 <div className="table-header">
                                                     <div className="col-code">Code</div>
                                                     <div className="col-name">Course Name</div>
-                                                    <div className="col-credits">Credits</div>
                                                     <div className="col-grade">Grade</div>
                                                 </div>
                                                 <div className="table-body">
@@ -867,7 +866,6 @@ const StudentDashboard = () => {
                                                                 <span className="code-badge">{course.code}</span>
                                                             </div>
                                                             <div className="col-name">{course.name}</div>
-                                                            <div className="col-credits">{course.credits || '-'}</div>
                                                             <div className="col-grade">
                                                                 <span 
                                                                     className="grade-badge"
