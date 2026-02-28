@@ -319,13 +319,13 @@
         "usn": "1MS23IS051",
         "class_details": "B.E-IS,  SEM 06,  SEC B",
         "cgpa": "9.39",
-        "last_updated": "2026-02-25 21:37:34",
+        "last_updated": "2026-02-28 16:46:29",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "cie": 0,
-                "attendance": 63
+                "attendance": 69
             },
             {
                 "code": "23IS62",
@@ -383,18 +383,6 @@
                 "credits_earned": "20",
                 "courses": [
                     {
-                        "code": "23AECP17",
-                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23HSCP15",
-                        "name": "COMMUNICATIVE ENGLISH",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23PYC12",
                         "name": "ENGINEERING PHYSICS",
                         "gpa": "8",
@@ -417,6 +405,18 @@
                         "name": "PRINCIPLES OF PROGRAMMING USING C",
                         "gpa": "10",
                         "grade": "O"
+                    },
+                    {
+                        "code": "23AECP17",
+                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23HSCP15",
+                        "name": "COMMUNICATIVE ENGLISH",
+                        "gpa": "9",
+                        "grade": "A+"
                     },
                     {
                         "code": "23ESC133",
@@ -444,18 +444,6 @@
                 "credits_earned": "20",
                 "courses": [
                     {
-                        "code": "23HSCC25",
-                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "23HSCC26",
-                        "name": "CONSTITUTION OF INDIA",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23MAC21",
                         "name": "NUMERICAL TECHNIQUES AND DIFFERENTIAL EQUATIONS",
                         "gpa": "10",
@@ -472,6 +460,18 @@
                         "name": "ENGINEERING CHEMISTRY",
                         "gpa": "10",
                         "grade": "O"
+                    },
+                    {
+                        "code": "23HSCC25",
+                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23HSCC26",
+                        "name": "CONSTITUTION OF INDIA",
+                        "gpa": "9",
+                        "grade": "A+"
                     },
                     {
                         "code": "23ESC231",
@@ -602,6 +602,12 @@
                         "grade": "O"
                     },
                     {
+                        "code": "23ISL48",
+                        "name": "ADVANCED JAVA LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
                         "code": "23ISL47",
                         "name": "DATABASE MANAGEMENT SYSTEMS LAB",
                         "gpa": "10",
@@ -610,12 +616,6 @@
                     {
                         "code": "23ISL46",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "23ISL48",
-                        "name": "ADVANCED JAVA LAB",
                         "gpa": "10",
                         "grade": "O"
                     },

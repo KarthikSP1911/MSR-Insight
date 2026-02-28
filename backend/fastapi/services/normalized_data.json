@@ -67,13 +67,13 @@
         "name": "KARTHIK S  POOJARY",
         "class_details": "B.E-IS,  SEM 06,  SEC B",
         "cgpa": "9.39",
-        "last_updated": "2026-02-25 21:37:34",
+        "last_updated": "2026-02-28 16:46:29",
         "subjects": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "marks": 0,
-                "attendance": 63
+                "attendance": 69
             },
             {
                 "code": "23IS62",
