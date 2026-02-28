@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import TiptapEditor from '../components/Editor';
+import html2pdf from 'html2pdf.js';
 import './Report.css';
 
 const FASTAPI_BASE = 'http://localhost:8000';
@@ -16,6 +17,7 @@ const getGrade = (score) => {
 };
 
 const Report = () => {
+    const navigate = useNavigate();
     const [zoom, setZoom] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,8 +32,8 @@ const Report = () => {
     const [systemRemarks, setSystemRemarks] = useState('');
     const [proctorRemarks, setProctorRemarks] = useState('<p>Enter proctor observations here...</p>');
 
-    // USN from URL param — uppercase for API consistency
-    const { usn: rawUsn } = useParams();
+    // Extract proctorId and usn from URL params
+    const { proctorId, usn: rawUsn } = useParams();
     const USN = rawUsn?.toUpperCase() || '1MS24IS400';
 
     useEffect(() => {
@@ -80,6 +82,33 @@ const Report = () => {
     const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
     const handleResetZoom = () => setZoom(1);
 
+    const handleDownload = () => {
+        const element = document.getElementById('report-sheet');
+        const opt = {
+            margin: 0,
+            filename: `Report_${USN}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        // Reset zoom to 1 before capturing to avoid scaling issues in PDF
+        const currentZoom = zoom;
+        setZoom(1);
+
+        setTimeout(() => {
+            html2pdf().set(opt).from(element).save().then(() => {
+                setZoom(currentZoom);
+            });
+        }, 300);
+    };
+
     // Parse class_details: "B.E-IS,  SEM 06,  SEC A"
     const parseSemester = (classDetails) => {
         if (!classDetails) return '';
@@ -120,6 +149,13 @@ const Report = () => {
             <div className="report-viewer-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center', color: '#ef4444' }}>
                     <p>⚠️ Error: {error}</p>
+                    <button
+                        className="btn btn-secondary"
+                        style={{ marginTop: '1rem' }}
+                        onClick={() => navigate(`/proctor/${proctorId}/student/${USN}`)}
+                    >
+                        ← Back to Student Profile
+                    </button>
                 </div>
             </div>
         );
@@ -127,6 +163,41 @@ const Report = () => {
 
     return (
         <div className="report-viewer-page">
+            {/* Context Navigation Overlay: Back to Student Button */}
+            <div style={{
+                position: 'fixed',
+                top: 'calc(var(--nav-height) + 20px)',
+                left: '20px',
+                zIndex: 100
+            }}>
+                <button
+                    className="back-nav-btn"
+                    onClick={() => navigate(`/proctor/${proctorId}/student/${USN}`)}
+                >
+                    ← Back to Student
+                </button>
+            </div>
+
+            {/* Action Overlay: Generate Report Button */}
+            <div style={{
+                position: 'fixed',
+                top: 'calc(var(--nav-height) + 20px)',
+                right: '20px',
+                zIndex: 100
+            }}>
+                <button
+                    className="generate-report-btn generate-btn"
+                    onClick={handleDownload}
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Generate Report
+                </button>
+            </div>
+
             {/* Zoom Controls Overlay */}
             <div className="zoom-controls">
                 <button onClick={handleZoomOut} title="Zoom Out">−</button>

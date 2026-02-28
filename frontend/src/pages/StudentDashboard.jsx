@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./StudentDashboard.css";
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -46,35 +45,50 @@ const StudentDashboard = () => {
         navigate("/student-login");
     };
 
-    if (loading) return <div className="dashboard-loading">Loading...</div>;
+    if (loading) return (
+        <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
+            <p>Loading profile...</p>
+        </div>
+    );
 
     return (
-        <div className="student-dashboard">
-            <header className="dashboard-header">
+        <div className="container fade-in" style={{ padding: 'var(--space-xl) 0' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--space-xl)' }}>
                 <div>
-                    <h1>Student Dashboard</h1>
-                    <p>Welcome back, {student?.name || student?.usn}</p>
+                    <h1 style={{ marginBottom: 'var(--space-xs)' }}>Student Dashboard</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Welcome back, {student?.name || student?.usn}</p>
                 </div>
-                <button onClick={handleLogout} className="logout-btn">Logout</button>
+                <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
             </header>
 
             <div className="dashboard-grid">
-                <section className="profile-card">
-                    <h2>Profile Details</h2>
-                    <div className="profile-item">
-                        <span className="label">Full Name</span>
-                        <span className="value">{student?.name || "Not set"}</span>
+                <div className="card">
+                    <h2 style={{ fontSize: '1.25rem', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-xs)' }}>
+                        Profile Details
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        <div>
+                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Full Name</span>
+                            <span style={{ fontWeight: '600' }}>{student?.name || "Not set"}</span>
+                        </div>
+                        <div>
+                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>USN</span>
+                            <span style={{ fontWeight: '600' }}>{student?.usn}</span>
+                        </div>
                     </div>
-                    <div className="profile-item">
-                        <span className="label">USN</span>
-                        <span className="value">{student?.usn}</span>
-                    </div>
-                </section>
+                </div>
 
-                <section className="status-card">
-                    <h2>Report Status</h2>
-                    <p>Reports will appear here once finalized by your proctor.</p>
-                </section>
+                <div className="card">
+                    <h2 style={{ fontSize: '1.25rem', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-xs)' }}>
+                        Report Status
+                    </h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>
+                        Your academic reports will appear here once they are finalized and published by your assigned proctor.
+                    </p>
+                    <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No reports available yet.</span>
+                    </div>
+                </div>
             </div>
         </div>
     );

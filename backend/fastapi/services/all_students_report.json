@@ -1,0 +1,632 @@
+{
+    "1MS23IS124": {
+        "name": "SUBODH  KUMAR",
+        "usn": "1MS23IS124",
+        "class_details": "B.E-IS,  SEM 06,  SEC C",
+        "cgpa": "8.07",
+        "last_updated": "2026-02-25 21:32:51",
+        "current_semester": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "cie": 0,
+                "attendance": 88
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "cie": 0,
+                "attendance": 100
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE641",
+                "name": "Business Analytics",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23MEOE03",
+                "name": "Sustainable Waste Management Technique",
+                "cie": 0,
+                "attendance": 67
+            }
+        ],
+        "exam_history": [
+            {
+                "semester": "ODD - December 2023",
+                "sgpa": "7.85",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23AECP17",
+                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23PPC18",
+                        "name": "PRINCIPLES OF PROGRAMMING USING C",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23HSCP15",
+                        "name": "COMMUNICATIVE ENGLISH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23MAC11",
+                        "name": "ADVANCED CALCULUS AND MODULAR ARITHMETIC",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23PYC12",
+                        "name": "ENGINEERING PHYSICS",
+                        "gpa": "6",
+                        "grade": "B"
+                    },
+                    {
+                        "code": "23HSCP16K",
+                        "name": "KANNADA KALI",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ESC133",
+                        "name": "INTRODUCTION TO ELECTRONICS ENGINEERING",
+                        "gpa": "6",
+                        "grade": "B"
+                    },
+                    {
+                        "code": "23PLC141",
+                        "name": "INTRODUCTION TO WEB PROGRAMMING",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23PYLC19",
+                        "name": "ENGINEERING PHYSICS LABORATORY",
+                        "gpa": "9",
+                        "grade": "A+"
+                    }
+                ]
+            },
+            {
+                "semester": "EVEN - May 2024",
+                "sgpa": "8.1",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23HSCC25",
+                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23HSCC26",
+                        "name": "CONSTITUTION OF INDIA",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23AECC27",
+                        "name": "DESIGN THINKING",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23MAC21",
+                        "name": "NUMERICAL TECHNIQUES AND DIFFERENTIAL EQUATIONS",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23CYC22",
+                        "name": "ENGINEERING CHEMISTRY",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23ESC231",
+                        "name": "INTRODUCTION TO CIVIL ENGINEERING",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23ETC246",
+                        "name": "INTRODUCTION TO CYBER SECURITY",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23MELC28",
+                        "name": "COMPUTER-AIDED ENGINEERING DRAWING LABORATORY",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23CYLC29",
+                        "name": "ENGINEERING CHEMISTRY LABORATORY",
+                        "gpa": "9",
+                        "grade": "A+"
+                    }
+                ]
+            },
+            {
+                "semester": "ODD Feb 2025",
+                "sgpa": "8.09",
+                "credits_earned": "21",
+                "courses": [
+                    {
+                        "code": "23IS35",
+                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS31(R)",
+                        "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23IS32",
+                        "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23UHV38",
+                        "name": "UNIVERSAL HUMAN VALUE",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS33",
+                        "name": "DATA STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS34",
+                        "name": "OPERATING SYSTEMS",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23ISAEC393",
+                        "name": "NUMERICAL ANALYSIS WITH PYTHON",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23ISL37",
+                        "name": "UNIX SYSTEM PROGRAMMING LAB",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23ISL36",
+                        "name": "DATA STRUCTURES LAB",
+                        "gpa": "9",
+                        "grade": "A+"
+                    }
+                ]
+            },
+            {
+                "semester": "Even May 2025",
+                "sgpa": "8.25",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS43",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS44",
+                        "name": "DATABASE MANAGEMENT SYSTEMS",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23IS41",
+                        "name": "STATISTICS, PROBABILITY AND LINEAR PROGRAMMING",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23IS45",
+                        "name": "ADVANCED JAVA",
+                        "gpa": "7",
+                        "grade": "B+"
+                    },
+                    {
+                        "code": "23ISAEC493",
+                        "name": "JAVASCRIPT AND JQUERY",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISL47",
+                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23ISL46",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL48",
+                        "name": "ADVANCED JAVA LAB",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23INT410",
+                        "name": "INTER/ INTRA INSTITUTIONAL INTERNSHIP",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    }
+                ]
+            }
+        ]
+    },
+    "1MS23IS051": {
+        "name": "KARTHIK S  POOJARY",
+        "usn": "1MS23IS051",
+        "class_details": "B.E-IS,  SEM 06,  SEC B",
+        "cgpa": "9.39",
+        "last_updated": "2026-02-25 21:37:34",
+        "current_semester": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "cie": 0,
+                "attendance": 63
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "cie": 0,
+                "attendance": 67
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "cie": 0,
+                "attendance": 50
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "cie": 0,
+                "attendance": 60
+            },
+            {
+                "code": "23ISE641",
+                "name": "Business Analytics",
+                "cie": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23PHOE04",
+                "name": "Biophysics",
+                "cie": 0,
+                "attendance": 0
+            }
+        ],
+        "exam_history": [
+            {
+                "semester": "ODD - December 2023",
+                "sgpa": "9.25",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23AECP17",
+                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23HSCP15",
+                        "name": "COMMUNICATIVE ENGLISH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23PYC12",
+                        "name": "ENGINEERING PHYSICS",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23MAC11",
+                        "name": "ADVANCED CALCULUS AND MODULAR ARITHMETIC",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23HSCP16M",
+                        "name": "KANNADA MANASU",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23PPC18",
+                        "name": "PRINCIPLES OF PROGRAMMING USING C",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ESC133",
+                        "name": "INTRODUCTION TO ELECTRONICS ENGINEERING",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
+                    {
+                        "code": "23PLC143",
+                        "name": "BASICS OF JAVA PROGRAMMING",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23PYLC19",
+                        "name": "ENGINEERING PHYSICS LABORATORY",
+                        "gpa": "10",
+                        "grade": "O"
+                    }
+                ]
+            },
+            {
+                "semester": "EVEN - May 2024",
+                "sgpa": "9.65",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23HSCC25",
+                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23HSCC26",
+                        "name": "CONSTITUTION OF INDIA",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23MAC21",
+                        "name": "NUMERICAL TECHNIQUES AND DIFFERENTIAL EQUATIONS",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23AECC27",
+                        "name": "DESIGN THINKING",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23CYC22",
+                        "name": "ENGINEERING CHEMISTRY",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ESC231",
+                        "name": "INTRODUCTION TO CIVIL ENGINEERING",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ETC246",
+                        "name": "INTRODUCTION TO CYBER SECURITY",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23MELC28",
+                        "name": "COMPUTER-AIDED ENGINEERING DRAWING LABORATORY",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23CYLC29",
+                        "name": "ENGINEERING CHEMISTRY LABORATORY",
+                        "gpa": "9",
+                        "grade": "A+"
+                    }
+                ]
+            },
+            {
+                "semester": "ODD Feb 2025",
+                "sgpa": "9.47",
+                "credits_earned": "21",
+                "courses": [
+                    {
+                        "code": "23IS35",
+                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS31(R)",
+                        "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS32",
+                        "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23UHV38",
+                        "name": "UNIVERSAL HUMAN VALUE",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS33",
+                        "name": "DATA STRUCTURES",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS34",
+                        "name": "OPERATING SYSTEMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISAEC392",
+                        "name": "CAPACITY PLANNING IN IT",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISL37",
+                        "name": "UNIX SYSTEM PROGRAMMING LAB",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISL36",
+                        "name": "DATA STRUCTURES LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    }
+                ]
+            },
+            {
+                "semester": "Even May 2025",
+                "sgpa": "9.2",
+                "credits_earned": "20",
+                "courses": [
+                    {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS43",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS44",
+                        "name": "DATABASE MANAGEMENT SYSTEMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS45",
+                        "name": "ADVANCED JAVA",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS41",
+                        "name": "STATISTICS, PROBABILITY AND LINEAR PROGRAMMING",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23ISAEC493",
+                        "name": "JAVASCRIPT AND JQUERY",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL47",
+                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL46",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL48",
+                        "name": "ADVANCED JAVA LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23INT410",
+                        "name": "INTER/ INTRA INSTITUTIONAL INTERNSHIP",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    }
+                ]
+            }
+        ]
+    }
+}
