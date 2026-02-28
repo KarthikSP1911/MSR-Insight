@@ -1,7 +1,6 @@
 # Smart Report Generator 🎓
 
-[![Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20FastAPI-blue)](https://github.com/KarthikSP1911/Smart-Report-Generator)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, secure session management, and generative AI feedback loops.
 
