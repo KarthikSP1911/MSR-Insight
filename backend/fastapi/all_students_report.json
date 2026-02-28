@@ -4,13 +4,13 @@
         "usn": "1MS24IS400",
         "class_details": "B.E-IS,  SEM 06,  SEC A",
         "cgpa": "9.21",
-        "last_updated": "2026-02-24 23:19:34",
+        "last_updated": "2026-02-28 18:13:23",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 100
             },
             {
                 "code": "23IS62",
@@ -52,7 +52,7 @@
                 "code": "23ISE644",
                 "name": "Cloud Computing",
                 "cie": 0,
-                "attendance": 80
+                "attendance": 89
             },
             {
                 "code": "23PHOE04",
@@ -67,24 +67,6 @@
                 "sgpa": "9.23",
                 "credits_earned": "21",
                 "courses": [
-                    {
-                        "code": "23IS32",
-                        "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "AM31",
-                        "name": "ADDITIONAL MATHEMATICS-I",
-                        "gpa": "0",
-                        "grade": "Pass"
-                    },
-                    {
-                        "code": "23IS33",
-                        "name": "DATA STRUCTURES",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
                     {
                         "code": "23UHV38",
                         "name": "UNIVERSAL HUMAN VALUE",
@@ -108,6 +90,24 @@
                         "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
                         "gpa": "8",
                         "grade": "A"
+                    },
+                    {
+                        "code": "23IS32",
+                        "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "AM31",
+                        "name": "ADDITIONAL MATHEMATICS-I",
+                        "gpa": "0",
+                        "grade": "Pass"
+                    },
+                    {
+                        "code": "23IS33",
+                        "name": "DATA STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
                     },
                     {
                         "code": "23ISAEC393",
@@ -135,18 +135,6 @@
                 "credits_earned": "20",
                 "courses": [
                     {
-                        "code": "23IS43",
-                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23IS44",
-                        "name": "DATABASE MANAGEMENT SYSTEMS",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23IS41",
                         "name": "STATISTICS, PROBABILITY AND LINEAR PROGRAMMING",
                         "gpa": "9",
@@ -161,6 +149,18 @@
                     {
                         "code": "23IS42",
                         "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS43",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS44",
+                        "name": "DATABASE MANAGEMENT SYSTEMS",
                         "gpa": "9",
                         "grade": "A+"
                     },

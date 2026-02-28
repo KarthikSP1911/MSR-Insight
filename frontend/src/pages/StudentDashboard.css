@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Modern Student Dashboard - Redesigned UI
+   Modern Student Dashboard - Fully Responsive Design
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
@@ -89,6 +89,58 @@ body {
     background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
+}
+
+/* ==========================================================================
+   Mobile Menu Toggle & Overlay
+   ========================================================================== */
+
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: calc(var(--navbar-height) + 1rem);
+    left: 1rem;
+    z-index: 300;
+    width: 48px;
+    height: 48px;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    color: var(--text-primary);
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--surface-hover);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 150;
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    pointer-events: none;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 /* ==========================================================================
@@ -1074,7 +1126,7 @@ body {
 
 .table-header {
     display: grid;
-    grid-template-columns: 100px 1fr 80px 80px;
+    grid-template-columns: 100px 1fr 80px;
     gap: 1rem;
     padding: 0.75rem 1rem;
     background: var(--bg-secondary);
@@ -1098,9 +1150,9 @@ body {
 
 .table-row {
     display: grid;
-    grid-template-columns: 100px 1fr 80px 80px;
+    grid-template-columns: 100px 1fr 80px;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -1135,7 +1187,6 @@ body {
     color: var(--text-primary);
 }
 
-.col-credits,
 .col-grade {
     text-align: center;
     font-size: 0.875rem;
@@ -1315,10 +1366,70 @@ body {
     color: var(--text-muted);
 }
 
+/* Recharts Tooltip Global Fixes */
+.recharts-tooltip-item {
+    color: #ffffff !important;
+}
+
+.recharts-default-tooltip {
+    background-color: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+}
+
+.recharts-pie-sector, .recharts-radial-bar-sector {
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-origin: center;
+}
+
+.recharts-pie-sector:hover, .recharts-radial-bar-sector:hover {
+    transform: scale(1.03);
+    cursor: pointer;
+}
+
+.recharts-pie-sector:hover path, 
+.recharts-radial-bar-sector:hover path {
+    outline: none !important;
+    stroke: none !important;
+}
+
+.recharts-radial-bar-sector {
+    outline: none !important;
+}
+
+.recharts-sector {
+    outline: none !important;
+}
+
+g.recharts-layer.recharts-radial-bar-sector path {
+    stroke-width: 0 !important;
+}
+
+g.recharts-layer.recharts-radial-bar-sector path.recharts-radial-bar-sector {
+    outline: none !important;
+    stroke: none !important;
+    stroke-width: 0 !important;
+}
+
+g.recharts-layer.recharts-radial-bar-sector path.recharts-radial-bar-sector:hover {
+    outline: none !important;
+    stroke: none !important;
+    stroke-width: 0 !important;
+}
+
 /* ==========================================================================
-   Responsive Design
+   RESPONSIVE DESIGN - COMPREHENSIVE MOBILE OPTIMIZATION
    ========================================================================== */
 
+/* Large Desktop */
+@media (max-width: 1400px) {
+    .charts-grid {
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    }
+}
+
+/* Desktop */
 @media (max-width: 1200px) {
     .charts-grid {
         grid-template-columns: 1fr;
@@ -1337,10 +1448,15 @@ body {
     }
     
     .insights-list {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    
+    .subjects-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
 }
 
+/* Tablet */
 @media (max-width: 1024px) {
     :root {
         --sidebar-width: 240px;
@@ -1357,52 +1473,175 @@ body {
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
+    
+    .chart-body {
+        min-height: 280px;
+    }
+    
+    .medium-chart {
+        min-height: 320px;
+    }
 }
 
+/* Mobile Landscape & Small Tablet */
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .subjects-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+/* Mobile Portrait & Tablet Portrait - MAJOR BREAKPOINT */
 @media (max-width: 768px) {
+    :root {
+        --navbar-height: 64px;
+    }
+    
+    /* Show mobile menu controls */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .mobile-overlay {
+        display: block;
+    }
+    
+    /* Sidebar - slides in from left */
     .dashboard-sidebar {
         position: fixed;
         left: -100%;
+        top: 0;
+        height: 100vh;
+        width: 280px;
         transition: left var(--transition-base);
         z-index: 200;
+        box-shadow: var(--shadow-lg);
     }
     
     .dashboard-sidebar.open {
         left: 0;
     }
     
+    .sidebar-header {
+        padding-top: calc(var(--navbar-height) + 1rem);
+    }
+    
+    /* Main content - full width on mobile */
     .dashboard-main-content {
         margin-left: 0;
+        padding-top: calc(var(--navbar-height) + 1rem);
     }
     
     .content-wrapper {
         padding: 1.5rem 1rem;
     }
     
+    /* Page header adjustments */
     .page-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
     
     .page-title {
         font-size: 1.75rem;
+        line-height: 1.3;
     }
     
+    .page-subtitle {
+        font-size: 0.9375rem;
+    }
+    
+    .semester-badge {
+        padding: 0.625rem 1rem;
+        font-size: 0.8125rem;
+    }
+    
+    /* Stats grid - stack vertically */
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .stat-value {
+        font-size: 2.25rem;
+    }
+    
+    .cgpa-value {
+        font-size: 3.25rem;
+    }
+    
+    /* Charts - single column */
     .charts-grid,
+    .charts-row,
     .subjects-grid,
     .analytics-grid {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
     
+    .chart-card {
+        padding: 1.5rem;
+    }
+    
+    .chart-title {
+        font-size: 1rem;
+    }
+    
+    .chart-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .chart-body {
+        min-height: 260px;
+    }
+    
+    .medium-chart {
+        min-height: 300px;
+    }
+    
+    .large-chart {
+        min-height: 320px;
+    }
+    
+    .chart-legend {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    /* Subjects grid */
+    .subjects-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .subject-card {
+        padding: 1.25rem;
+    }
+    
+    .subject-stats-dual {
+        gap: 1rem;
+    }
+    
+    /* History table - simplified layout */
     .table-header,
     .table-row {
-        grid-template-columns: 80px 1fr 60px 60px;
-        gap: 0.5rem;
+        grid-template-columns: 85px 1fr 70px;
+        gap: 0.75rem;
         padding: 0.75rem;
+        font-size: 0.875rem;
     }
     
     .col-name {
@@ -1411,29 +1650,431 @@ body {
     
     .code-badge {
         font-size: 0.6875rem;
-        padding: 0.25rem 0.5rem;
+        padding: 0.3rem 0.5rem;
+    }
+    
+    .grade-badge {
+        width: 44px;
+        height: 44px;
+        font-size: 0.9375rem;
+    }
+    
+    .semester-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .semester-sgpa {
+        text-align: left;
+    }
+    
+    .sgpa-value {
+        font-size: 2.25rem;
+    }
+    
+    /* Insights */
+    .insights-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .insight-item {
+        padding: 1rem;
+    }
+    
+    .insight-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Reports */
+    .reports-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .reports-icon {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .reports-title {
+        font-size: 1.5rem;
+    }
+    
+    .reports-description {
+        font-size: 0.9375rem;
+    }
+    
+    .generate-report-button {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9375rem;
     }
 }
 
+/* Small Mobile - 480px and below */
 @media (max-width: 480px) {
+    .content-wrapper {
+        padding: 1.25rem 0.875rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    /* Stats cards - more compact */
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-header {
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+    }
+    
     .stat-value {
         font-size: 2rem;
     }
     
     .cgpa-value {
-        font-size: 3rem;
+        font-size: 2.75rem;
+    }
+    
+    .stat-max {
+        font-size: 1rem;
+    }
+    
+    .trend-badge {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Charts - smaller on tiny screens */
+    .chart-card {
+        padding: 1.25rem;
     }
     
     .chart-body {
-        min-height: 250px;
+        min-height: 240px;
     }
     
+    .medium-chart {
+        min-height: 280px;
+    }
+    
+    .large-chart {
+        min-height: 300px;
+    }
+    
+    /* Subject cards */
+    .subject-card {
+        padding: 1rem;
+    }
+    
+    .subject-name {
+        font-size: 0.9375rem;
+    }
+    
+    .subject-stats-dual {
+        gap: 0.75rem;
+    }
+    
+    .stat-item-value-large {
+        font-size: 1.5rem;
+    }
+    
+    .attendance-badge {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+    
+    /* History - ultra compact */
+    .history-grid {
+        gap: 1.5rem;
+    }
+    
+    .semester-card {
+        font-size: 0.875rem;
+    }
+    
+    .semester-header {
+        padding: 1.25rem;
+    }
+    
+    .semester-title {
+        font-size: 1.125rem;
+    }
+    
+    .sgpa-value {
+        font-size: 2rem;
+    }
+    
+    .courses-table {
+        padding: 1rem;
+    }
+    
+    /* Hide table header on very small screens, stack table rows */
+    .table-header {
+        display: none;
+    }
+    
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .col-code {
+        order: 1;
+    }
+    
+    .col-name {
+        order: 2;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-top: 0.25rem;
+    }
+    
+    .col-grade {
+        order: 3;
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+    
+    .grade-badge {
+        width: 40px;
+        height: 40px;
+        font-size: 0.875rem;
+    }
+    
+    .semester-footer {
+        padding: 1rem 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    /* Insights - stack vertically with centered icon */
+    .insight-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .insight-icon {
+        margin: 0 auto;
+    }
+    
+    /* Reports */
     .reports-card {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
+    }
+    
+    .reports-icon {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .reports-title {
+        font-size: 1.375rem;
+    }
+    
+    .reports-description {
+        font-size: 0.875rem;
     }
     
     .generate-report-button {
         width: 100%;
         justify-content: center;
+        padding: 1rem 1.25rem;
+    }
+    
+    .reports-features {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+    }
+    
+    /* Sidebar adjustments for small screens */
+    .sidebar-header {
+        padding: 1.5rem 1.25rem;
+    }
+    
+    .logo-text {
+        font-size: 1.125rem;
+    }
+    
+    .sidebar-navigation {
+        padding: 1.25rem 0.875rem;
+    }
+    
+    .nav-button {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
+    }
+    
+    .sidebar-footer {
+        padding: 1.25rem;
+    }
+    
+    .user-profile-card {
+        padding: 0.625rem;
+    }
+    
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.125rem;
+    }
+    
+    .user-name {
+        font-size: 0.875rem;
+    }
+    
+    .user-usn {
+        font-size: 0.75rem;
+    }
+}
+
+/* Extra Small Mobile - 375px and below (iPhone SE, small Android) */
+@media (max-width: 375px) {
+    .page-title {
+        font-size: 1.375rem;
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+    }
+    
+    .cgpa-value {
+        font-size: 2.5rem;
+    }
+    
+    .chart-body {
+        min-height: 220px;
+    }
+    
+    /* Subject cards - vertical layout for attendance/CIE */
+    .subject-stats-dual {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stat-divider {
+        display: none;
+    }
+    
+    .stat-item {
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .stat-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .mobile-menu-toggle {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .dashboard-sidebar {
+        width: 260px;
+    }
+}
+
+/* Landscape orientation optimization for mobile devices */
+@media (max-height: 600px) and (orientation: landscape) {
+    .dashboard-sidebar {
+        overflow-y: auto;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .chart-body {
+        min-height: 200px;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .content-wrapper {
+        padding: 1rem;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger tap targets for touch devices */
+    .nav-button {
+        min-height: 48px;
+    }
+    
+    .mobile-menu-toggle {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    
+    .logout-button {
+        min-height: 48px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .stat-card:hover {
+        transform: none;
+    }
+    
+    .subject-card:hover {
+        transform: none;
+    }
+    
+    .semester-card:hover {
+        transform: none;
+    }
+    
+    .insight-item:hover {
+        transform: none;
+    }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ensure crisp rendering on high-DPI displays */
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Print styles */
+@media print {
+    .dashboard-sidebar,
+    .mobile-menu-toggle,
+    .mobile-overlay,
+    .nav-button,
+    .logout-button,
+    .generate-report-button {
+        display: none !important;
+    }
+    
+    .dashboard-main-content {
+        margin-left: 0;
+    }
+    
+    .stat-card,
+    .chart-card,
+    .subject-card,
+    .semester-card {
+        page-break-inside: avoid;
     }
 }

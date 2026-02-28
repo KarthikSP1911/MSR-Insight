@@ -10,7 +10,7 @@ import {
     LayoutDashboard, Target, History, LogOut, FileText, 
     ExternalLink, Award, TrendingUp, TrendingDown, BookOpen, 
     Calendar, GraduationCap, Trophy, Clock, BarChart3,
-    ChevronDown, Download, AlertCircle, CheckCircle2, XCircle
+    ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X
 } from "lucide-react";
 import "./StudentDashboard.css";
 
@@ -29,6 +29,7 @@ const StudentDashboard = () => {
     const [detailedData, setDetailedData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -73,6 +74,19 @@ const StudentDashboard = () => {
     const handleLogout = () => {
         localStorage.clear();
         navigate("/student-login");
+    };
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false);
+    };
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        closeMobileMenu();
     };
 
     if (loading) return (
@@ -137,8 +151,23 @@ const StudentDashboard = () => {
 
     return (
         <div className="student-dashboard-container">
+            {/* Mobile Menu Toggle Button */}
+            <button 
+                className="mobile-menu-toggle" 
+                onClick={toggleMobileMenu}
+                aria-label="Toggle menu"
+            >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
+            {/* Mobile Overlay */}
+            <div 
+                className={`mobile-overlay ${isMobileMenuOpen ? 'active' : ''}`}
+                onClick={closeMobileMenu}
+            ></div>
+
             {/* Sidebar */}
-            <aside className="dashboard-sidebar">
+            <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <div className="logo-container">
                         <div className="logo-icon">
@@ -153,35 +182,35 @@ const StudentDashboard = () => {
                 <nav className="sidebar-navigation">
                     <button 
                         className={`nav-button ${activeTab === 'overview' ? 'active' : ''}`} 
-                        onClick={() => setActiveTab('overview')}
+                        onClick={() => handleTabChange('overview')}
                     >
                         <LayoutDashboard size={20} />
                         <span>Overview</span>
                     </button>
                     <button 
                         className={`nav-button ${activeTab === 'performance' ? 'active' : ''}`} 
-                        onClick={() => setActiveTab('performance')}
+                        onClick={() => handleTabChange('performance')}
                     >
                         <Target size={20} />
                         <span>Current Semester</span>
                     </button>
                     <button 
                         className={`nav-button ${activeTab === 'analytics' ? 'active' : ''}`} 
-                        onClick={() => setActiveTab('analytics')}
+                        onClick={() => handleTabChange('analytics')}
                     >
                         <BarChart3 size={20} />
                         <span>Analytics</span>
                     </button>
                     <button 
                         className={`nav-button ${activeTab === 'history' ? 'active' : ''}`} 
-                        onClick={() => setActiveTab('history')}
+                        onClick={() => handleTabChange('history')}
                     >
                         <History size={20} />
                         <span>Exam History</span>
                     </button>
                     <button 
                         className={`nav-button ${activeTab === 'reports' ? 'active' : ''}`} 
-                        onClick={() => setActiveTab('reports')}
+                        onClick={() => handleTabChange('reports')}
                     >
                         <FileText size={20} />
                         <span>Reports</span>
@@ -335,6 +364,7 @@ const StudentDashboard = () => {
                                                             borderRadius: '12px',
                                                             boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
                                                         }}
+                                                        itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                                                     />
                                                     <Area 
                                                         type="monotone" 
@@ -342,7 +372,7 @@ const StudentDashboard = () => {
                                                         stroke="#8b5cf6" 
                                                         strokeWidth={3}
                                                         fill="url(#sgpaGradient)"
-                                                        activeDot={{ r: 6, fill: '#fff', stroke: '#8b5cf6', strokeWidth: 2 }}
+                                                        activeDot={false}
                                                     />
                                                 </AreaChart>
                                             </ResponsiveContainer>
@@ -381,6 +411,7 @@ const StudentDashboard = () => {
                                                             border: '1px solid rgba(255,255,255,0.1)',
                                                             borderRadius: '12px'
                                                         }}
+                                                        itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                                                     />
                                                     <Legend 
                                                         verticalAlign="bottom" 
@@ -439,6 +470,7 @@ const StudentDashboard = () => {
                                                     clockWise
                                                     dataKey="attendance"
                                                     cornerRadius={10}
+                                                    activeShape={false}
                                                 />
                                                 <Tooltip 
                                                     cursor={{ fill: 'transparent' }}
@@ -448,8 +480,12 @@ const StudentDashboard = () => {
                                                         borderRadius: '12px',
                                                         color: '#ffffff'
                                                     }}
-                                                    itemStyle={{ color: '#ffffff' }}
-                                                    formatter={(value, name, props) => [`${value}%`, props.payload.name]}
+                                                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                                                    formatter={(value) => [`${value}%`, '']}
+                                                    separator=""
+                                                    labelFormatter={(label, payload) => {
+                                                        return payload?.[0]?.payload?.name || '';
+                                                    }}
                                                 />
                                                 <Legend 
                                                     iconSize={10}
@@ -638,7 +674,7 @@ const StudentDashboard = () => {
                                                 data={currentSem.map(subject => ({
                                                     ...subject,
                                                     shortName: subject.code || (subject.name ? subject.name.substring(0, 8) : 'SUB'),
-                                                    ciePercentage: ((subject.cie || 0) / 50) * 100 // Normalized for visual comparison
+                                                    ciePercentage: ((subject.cie || 0) / 50) * 100
                                                 }))} 
                                                 margin={{ top: 20, right: 30, bottom: 40, left: 20 }}
                                             >

@@ -4,13 +4,13 @@
         "name": "AJAY KUMAR  S",
         "class_details": "B.E-IS,  SEM 06,  SEC A",
         "cgpa": "9.21",
-        "last_updated": "2026-02-24 23:19:34",
+        "last_updated": "2026-02-28 18:13:23",
         "subjects": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "marks": 0,
-                "attendance": 0
+                "attendance": 100
             },
             {
                 "code": "23IS62",
@@ -52,7 +52,7 @@
                 "code": "23ISE644",
                 "name": "Cloud Computing",
                 "marks": 0,
-                "attendance": 80
+                "attendance": 89
             },
             {
                 "code": "23PHOE04",
