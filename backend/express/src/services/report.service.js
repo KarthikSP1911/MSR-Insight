@@ -12,10 +12,4 @@ const getRemarkByUSN = async (usn) => {
     return response.data;
 };
 
-const getStudentDataByUSN = async (usn) => {
-    const response = await axios.get(`${FASTAPI_BASE_URL}/student/${usn}`);
-    return response.data;
-};
-
-export { getRemarkByUSN, getStudentDataByUSN };
-
+export { getRemarkByUSN };
