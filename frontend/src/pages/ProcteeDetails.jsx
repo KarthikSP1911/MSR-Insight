@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./StudentDashboard.css"; // Reuse existing styles
-import "./ProctorDashboard.css";
 
 const ProcteeDetails = () => {
-    const { proctorId, studentId } = useParams();
+    const { proctorId, usn } = useParams();
     const navigate = useNavigate();
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -15,46 +13,56 @@ const ProcteeDetails = () => {
         const fetchStudentDetails = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:5000/api/proctor/${proctorId}/proctee/${studentId}`);
+                const sessionId = localStorage.getItem("proctorSessionId");
+
+                if (!sessionId) {
+                    navigate("/proctor-login");
+                    return;
+                }
+
+                const response = await axios.get(`http://localhost:5000/api/proctor/${proctorId}/student/${usn}`, {
+                    headers: { "x-session-id": sessionId }
+                });
+
                 if (response.data.success) {
                     setStudent(response.data.data);
                 }
             } catch (err) {
+                if (err.response?.status === 401) {
+                    localStorage.clear();
+                    navigate("/proctor-login");
+                    return;
+                }
                 setError(err.response?.data?.message || "Failed to fetch student details");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (proctorId && studentId) {
+        if (proctorId && usn) {
             fetchStudentDetails();
         }
-    }, [proctorId, studentId]);
+    }, [proctorId, usn]);
 
     const handleGenerateReport = () => {
         if (student?.usn) {
-            navigate(`/report/${student.usn}`);
+            navigate(`/proctor/${proctorId}/report/${student.usn}`);
         }
     };
 
     if (loading) {
         return (
-            <div className="proctor-dashboard">
-                <div className="loading-container">
-                    <div className="spinner"></div>
-                    <p>Fetching student profile...</p>
-                </div>
+            <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
+                <p>Fetching student profile...</p>
             </div>
         );
     }
 
     if (error || !student) {
         return (
-            <div className="proctor-dashboard">
-                <div className="error-container">
-                    <p>⚠️ {error || "Student not found"}</p>
-                    <button className="btn-primary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>Back to Dashboard</button>
-                </div>
+            <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
+                <p style={{ color: 'var(--error)', marginBottom: 'var(--space-md)' }}>⚠️ {error || "Student not found"}</p>
+                <button className="btn btn-primary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>Back to Dashboard</button>
             </div>
         );
     }
@@ -62,77 +70,148 @@ const ProcteeDetails = () => {
     const details = student.details || {};
 
     return (
-        <div className="proctor-dashboard">
-            <header className="dashboard-header">
+        <div className="container fade-in" style={{ padding: 'var(--space-lg) 0' }}>
+            {/* Back Button Placement: Aligned with container, above student name */}
+            <button
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '16px',
+                    color: 'var(--text-secondary)',
+                    textDecoration: 'none',
+                    fontSize: '0.9rem',
+                    background: 'transparent',
+                    border: '1px solid var(--border-bright)',
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                }}
+                onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}
+            >
+                ← Back to Dashboard
+            </button>
+
+            {/* Header: Student Name (Left) | Generate Report (Right) */}
+            <header style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: 'var(--space-xl)',
+                background: 'var(--bg-secondary)',
+                padding: 'var(--space-lg)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-subtle)'
+            }}>
                 <div>
-                    <button
-                        className="btn-secondary"
-                        style={{ marginBottom: '1rem', padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-                        onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}
-                    >
-                        ← Back to Dashboard
-                    </button>
-                    <h1>{details.name || student.usn}</h1>
-                    <p className="auth-subtitle" style={{ margin: 0 }}>
-                        Student Profile & Academic Overview
+                    <h1 style={{ fontSize: '2.5rem', marginBottom: '4px', fontWeight: '800' }}>
+                        {details.name || student.usn}
+                    </h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+                        USN: <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{student.usn}</span>
+                        {' • '}
+                        {details.class_details || "Student Profile Active"}
                     </p>
                 </div>
-                <button className="btn-primary" onClick={handleGenerateReport}>
+                <button className="btn btn-primary" onClick={handleGenerateReport} style={{ padding: '12px 24px', fontWeight: '600' }}>
                     Generate Report
                 </button>
             </header>
 
-            <div className="dashboard-grid">
-                <div className="profile-card">
-                    <h2>Personal Information</h2>
-                    <div className="profile-item">
-                        <span className="label">Full Name</span>
-                        <span className="value">{details.name || "N/A"}</span>
-                    </div>
-                    <div className="profile-item">
-                        <span className="label">USN</span>
-                        <span className="value">{student.usn}</span>
-                    </div>
-                    <div className="profile-item">
-                        <span className="label">Date of Birth</span>
-                        <span className="value">{student.dob}</span>
-                    </div>
-                    <div className="profile-item">
-                        <span className="label">Class Details</span>
-                        <span className="value">{details.class_details || "N/A"}</span>
+            {/* Two-Column Grid Layout */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                gap: '24px'
+            }}>
+                {/* Personal Information Card */}
+                <div className="card" style={{ padding: 'var(--space-lg)' }}>
+                    <h2 style={{
+                        fontSize: '1.25rem',
+                        marginBottom: 'var(--space-lg)',
+                        color: 'var(--text-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                    }}>
+                        <span style={{ color: 'var(--accent-primary)' }}>■</span> Personal Information
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        <div>
+                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Name</span>
+                            <span style={{ fontWeight: '500', fontSize: '1.1rem' }}>{details.name || "Not Available"}</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
+                            <div>
+                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>USN</span>
+                                <span style={{ fontWeight: '500' }}>{student.usn}</span>
+                            </div>
+                            <div>
+                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date of Birth</span>
+                                <span style={{ fontWeight: '500' }}>{student.dob}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Class Details</span>
+                            <span style={{ fontWeight: '500' }}>{details.class_details || "Not Available"}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="status-card">
-                    <h2>Academic Status</h2>
-                    <div className="profile-item">
-                        <span className="label">Current CGPA</span>
-                        <span className="value" style={{ color: '#10b981', fontSize: '2rem', fontWeight: '800' }}>
-                            {details.cgpa || "N/A"}
-                        </span>
-                    </div>
-                    <div className="profile-item">
-                        <span className="label">Last Scraped</span>
-                        <span className="value">{details.last_updated || "Never"}</span>
-                    </div>
+                {/* Academic Status Card */}
+                <div className="card" style={{ padding: 'var(--space-lg)' }}>
+                    <h2 style={{
+                        fontSize: '1.25rem',
+                        marginBottom: 'var(--space-lg)',
+                        color: 'var(--text-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                    }}>
+                        <span style={{ color: 'var(--accent-primary)' }}>■</span> Academic Status
+                    </h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: 'var(--space-md)',
+                            background: 'rgba(255,255,255,0.02)',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--border-subtle)'
+                        }}>
+                            <div>
+                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current CGPA</span>
+                                <span style={{ color: details.cgpa ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: '2.5rem', fontWeight: '700' }}>
+                                    {details.cgpa || "—"}
+                                </span>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</span>
+                                <span style={{
+                                    color: details.cgpa >= 5 ? 'var(--success)' : 'var(--warning)',
+                                    fontWeight: '600'
+                                }}>
+                                    {details.cgpa ? (details.cgpa >= 5 ? 'Good Standing' : 'Needs Regularity') : '—'}
+                                </span>
+                            </div>
+                        </div>
 
-                    <div style={{ marginTop: '2rem' }}>
-                        <h4 style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '1rem' }}>
-                            Course Summary
-                        </h4>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.75rem 1.25rem', borderRadius: '0.75rem' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                                    {(details.current_semester || []).length}
-                                </div>
-                                <div style={{ fontSize: '0.6rem', color: '#94a3b8' }}>ACTIVE COURSES</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700' }}>{(details.current_semester || []).length}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Registered Courses</span>
                             </div>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.75rem 1.25rem', borderRadius: '0.75rem' }}>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                                    {(details.exam_history || []).length}
-                                </div>
-                                <div style={{ fontSize: '0.6rem', color: '#94a3b8' }}>SEMESTERS COMPLETED</div>
+                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700' }}>{(details.exam_history || []).length}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Academic Terms</span>
                             </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>Information Currency</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>Updated: {details.last_updated || "—"}</span>
                         </div>
                     </div>
                 </div>

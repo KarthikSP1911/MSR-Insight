@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Auth.css";
 
 const ProctorLogin = () => {
     const navigate = useNavigate();
@@ -42,48 +41,48 @@ const ProctorLogin = () => {
     };
 
     return (
-        <section className="auth-wrapper">
-            <div className="auth-card">
-                <h1>Proctor login</h1>
-                <p className="auth-subtitle">
-                    Access the administrative dashboard using your proctor ID and password.
+        <div className="container fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - var(--nav-height))' }}>
+            <div className="card" style={{ maxWidth: '450px', width: '100%', padding: 'var(--space-xl)' }}>
+                <h1 style={{ marginBottom: 'var(--space-xs)', textAlign: 'center' }}>Proctor Login</h1>
+                <p style={{ textAlign: 'center', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>
+                    Access your administrative dashboard.
                 </p>
-                <form onSubmit={handleSubmit} className="auth-form" noValidate>
-                    <div className="field">
-                        <label htmlFor="proctorId">Proctor ID</label>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">Proctor ID</label>
                         <input
-                            id="proctorId"
                             type="text"
-                            autoComplete="off"
+                            className="input-field"
                             value={proctorId}
                             onChange={(e) => setProctorId(e.target.value)}
-                            placeholder="P1102"
-                            required
+                            placeholder="e.g. P1102"
                         />
                     </div>
 
-                    <div className="field">
-                        <label htmlFor="password">Password</label>
+                    <div className="form-group">
+                        <label className="form-label">Password</label>
                         <input
-                            id="password"
                             type="password"
+                            className="input-field"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
-                            required
                         />
                     </div>
 
-                    <div className="auth-error-slot">
-                        {error && <span className="auth-error">{error}</span>}
-                    </div>
+                    {error && (
+                        <div style={{ color: 'var(--error)', fontSize: '0.85rem', marginBottom: 'var(--space-sm)', textAlign: 'center' }}>
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? "Signing in..." : "Sign in"}
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-sm)' }} disabled={loading}>
+                        {loading ? "Authenticating..." : "Sign In"}
                     </button>
                 </form>
             </div>
-        </section>
+        </div>
     );
 };
 

@@ -1,0 +1,128 @@
+{
+    "1MS23IS124": {
+        "usn": "1MS23IS124",
+        "name": "SUBODH  KUMAR",
+        "class_details": "B.E-IS,  SEM 06,  SEC C",
+        "cgpa": "8.07",
+        "last_updated": "2026-02-25 21:32:51",
+        "subjects": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "marks": 0,
+                "attendance": 88
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "marks": 0,
+                "attendance": 100
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE641",
+                "name": "Business Analytics",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23MEOE03",
+                "name": "Sustainable Waste Management Technique",
+                "marks": 0,
+                "attendance": 67
+            }
+        ]
+    },
+    "1MS23IS051": {
+        "usn": "1MS23IS051",
+        "name": "KARTHIK S  POOJARY",
+        "class_details": "B.E-IS,  SEM 06,  SEC B",
+        "cgpa": "9.39",
+        "last_updated": "2026-02-28 16:46:29",
+        "subjects": [
+            {
+                "code": "23AL61",
+                "name": "Management & Entrepreneurship",
+                "marks": 0,
+                "attendance": 69
+            },
+            {
+                "code": "23IS62",
+                "name": "Machine Learning",
+                "marks": 0,
+                "attendance": 67
+            },
+            {
+                "code": "23ISL65",
+                "name": "Machine Learning Lab",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISL66",
+                "name": "DevOps Lab",
+                "marks": 0,
+                "attendance": 50
+            },
+            {
+                "code": "23ISP67",
+                "name": "Mini Project",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23IS68",
+                "name": "Technical Skill Enhancement Course",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23ISE633",
+                "name": "Block chain essentials and DApps",
+                "marks": 0,
+                "attendance": 60
+            },
+            {
+                "code": "23ISE641",
+                "name": "Business Analytics",
+                "marks": 0,
+                "attendance": 0
+            },
+            {
+                "code": "23PHOE04",
+                "name": "Biophysics",
+                "marks": 0,
+                "attendance": 0
+            }
+        ]
+    }
+}
