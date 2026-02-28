@@ -1,5 +1,5 @@
 .report-viewer-page {
-    background-color: #0f172a;
+    background-color: var(--bg-primary);
     height: calc(100vh - var(--nav-height));
     width: 100%;
     overflow: hidden;
@@ -13,7 +13,7 @@
     overflow: hidden;
     display: flex;
     justify-content: center;
-    background-color: #0f172a;
+    background-color: var(--bg-primary);
 }
 
 /* The 794px-wide frame that actually scrolls — scrollbar sits at sheet edge */
@@ -57,13 +57,16 @@
 .a4-sheet {
     background: white;
     width: 794px;
-    min-height: 1123px;
-    padding: 60px;
+    height: 1120px;
+    /* Reduced by 3px to avoid the 'hidden' bleed triggering second page */
+    padding: 35px 45px;
+    /* Reduced from 60px/40px */
     color: #1e293b;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .zoom-controls {
@@ -120,6 +123,74 @@
     font-weight: 500 !important;
 }
 
+/* Professional Generate Report Button */
+.generate-report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(255, 138, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.generate-report-btn:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 16px rgba(255, 138, 0, 0.35);
+}
+
+.generate-report-btn:active {
+    transform: translateY(0);
+}
+
+.generate-report-btn svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+}
+
+/* Professional Back Button */
+.back-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    background: rgba(11, 15, 25, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-bright);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    font-weight: 500;
+}
+
+.back-nav-btn:hover {
+    background: rgba(11, 15, 25, 0.95);
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    transform: translateX(-3px);
+}
+
+.reset-btn {
+    font-size: 0.75rem !important;
+    width: auto !important;
+    height: 28px !important;
+    padding: 0 10px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
 .sheet-header {
     display: flex;
     align-items: center;
@@ -137,7 +208,8 @@
 }
 
 .college-info h1 {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    /* Reduced from 1.4rem */
     margin: 0;
     color: #0f172a;
     letter-spacing: 0.02em;
@@ -146,23 +218,26 @@
 }
 
 .college-info h2 {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
+    /* Reduced from 0.95rem */
     color: #64748b;
-    margin: 2px 0 6px 0;
+    margin: 1px 0 4px 0;
 }
 
 .student-meta {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    /* Reduced from 0.8rem */
     color: #475569;
     font-weight: 500;
-    margin: 4px 0;
+    margin: 2px 0;
     letter-spacing: 0.01em;
 }
 
 .divider {
     border: none;
     border-top: 1.5px solid #e2e8f0;
-    margin: 8px 0 16px 0;
+    margin: 8px 0 12px 0;
+    /* Reduced margin */
 }
 
 .table-section {
@@ -170,8 +245,10 @@
 }
 
 .table-section h3 {
-    font-size: 0.85rem;
-    margin-bottom: 8px;
+    font-size: 0.8rem;
+    /* Reduced from 0.85rem */
+    margin-bottom: 6px;
+    /* Reduced from 8px */
     color: #334155;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -180,9 +257,10 @@
 .marks-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border: 1px solid #94a3b8;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
+    /* Reduced from 0.78rem */
 }
 
 .marks-table th,
@@ -281,14 +359,18 @@
 .remarks-section {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-top: 12px;
+    gap: 10px;
+    /* Reduced from 14px */
+    margin-top: 8px;
+    /* Reduced from 12px */
 }
 
 .editable-remarks-container h4 {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
+    /* Reduced from 0.78rem */
     color: #475569;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    /* Reduced from 6px */
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-weight: 700;
@@ -311,16 +393,19 @@
 
 
 .tiptap-content {
-    padding: 12px;
-    min-height: 100px;
+    padding: 10px;
+    min-height: 80px;
+    /* Reduced from 100px */
     outline: none;
-    font-size: 0.9rem;
-    line-height: 1.6;
+    font-size: 0.85rem;
+    /* Reduced from 0.9rem */
+    line-height: 1.5;
+    /* Slightly tighter leading */
 }
 
 .tiptap-content ul {
-    padding-left: 20px;
-    margin-bottom: 10px;
+    padding-left: 18px;
+    margin-bottom: 8px;
 }
 
 .sheet-footer {
@@ -329,10 +414,11 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
-    padding: 20px 0 6px 0;
+    padding: 15px 0 0 0;
+    /* Reduced padding */
     width: 100%;
     border-top: none;
-    gap: 12px;
+    gap: 10px;
 }
 
 .footer-meta {

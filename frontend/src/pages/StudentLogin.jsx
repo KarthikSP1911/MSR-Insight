@@ -1,26 +1,48 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Auth.css";
 
 const CustomSelect = ({ value, onChange, options, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="custom-select-container">
+        <div className="custom-select-container" style={{ position: 'relative', flex: 1 }}>
             <div
-                className={`custom-select-trigger ${isOpen ? "open" : ""} ${!value ? "placeholder" : ""}`}
+                className="input-field"
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 onClick={() => setIsOpen(!isOpen)}
             >
-                {value || placeholder}
-                <span className="arrow"></span>
+                <span style={{ color: value ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    {value || placeholder}
+                </span>
+                <span style={{ fontSize: '10px' }}>▼</span>
             </div>
             {isOpen && (
-                <div className="custom-options-list">
+                <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 4px)',
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'var(--bg-card)',
+                    border: '1px solid var(--border-bright)',
+                    borderRadius: 'var(--radius-md)',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 10,
+                    boxShadow: 'var(--shadow-lg)'
+                }}>
                     {options.map((opt) => (
                         <div
                             key={opt}
-                            className={`custom-option ${value === opt ? "selected" : ""}`}
+                            style={{
+                                padding: '10px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s',
+                                color: value === opt ? 'var(--accent-primary)' : 'var(--text-primary)',
+                                background: value === opt ? 'var(--accent-glow)' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = 'var(--bg-secondary)'}
+                            onMouseLeave={(e) => e.target.style.background = value === opt ? 'var(--accent-glow)' : 'transparent'}
                             onClick={() => {
                                 onChange(opt);
                                 setIsOpen(false);
@@ -31,7 +53,7 @@ const CustomSelect = ({ value, onChange, options, placeholder }) => {
                     ))}
                 </div>
             )}
-            {isOpen && <div className="select-overlay" onClick={() => setIsOpen(false)} />}
+            {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setIsOpen(false)} />}
         </div>
     );
 };
@@ -87,29 +109,28 @@ const StudentLogin = () => {
     };
 
     return (
-        <section className="auth-wrapper">
-            <div className="auth-card">
-                <h1>Student login</h1>
-                <p className="auth-subtitle">
-                    Use your university seat number and date of birth to sign in.
+        <div className="container fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - var(--nav-height))' }}>
+            <div className="card" style={{ maxWidth: '500px', width: '100%', padding: 'var(--space-xl)' }}>
+                <h1 style={{ marginBottom: 'var(--space-xs)', textAlign: 'center' }}>Student Login</h1>
+                <p style={{ textAlign: 'center', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>
+                    Access your personalized academic report.
                 </p>
-                <form onSubmit={handleSubmit} className="auth-form" noValidate>
-                    <div className="field">
-                        <label htmlFor="usn">USN</label>
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">University Seat Number (USN)</label>
                         <input
-                            id="usn"
                             type="text"
-                            autoComplete="off"
+                            className="input-field"
                             value={usn}
                             onChange={(e) => setUsn(e.target.value.toUpperCase())}
-                            placeholder="1MS24CS001"
-                            required
+                            placeholder="e.g. 1MS24CS001"
                         />
                     </div>
 
-                    <div className="field">
-                        <label>Date of Birth</label>
-                        <div className="dob-selects">
+                    <div className="form-group">
+                        <label className="form-label">Date of Birth</label>
+                        <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
                             <CustomSelect
                                 value={day}
                                 onChange={setDay}
@@ -131,16 +152,18 @@ const StudentLogin = () => {
                         </div>
                     </div>
 
-                    <div className="auth-error-slot">
-                        {error && <span className="auth-error">{error}</span>}
-                    </div>
+                    {error && (
+                        <div style={{ color: 'var(--error)', fontSize: '0.85rem', marginBottom: 'var(--space-sm)', textAlign: 'center' }}>
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? "Signing in..." : "Sign in"}
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-sm)' }} disabled={loading}>
+                        {loading ? "Authenticating..." : "Sign In"}
                     </button>
                 </form>
             </div>
-        </section>
+        </div>
     );
 };
 

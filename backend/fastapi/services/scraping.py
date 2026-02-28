@@ -20,7 +20,7 @@ def get_complete_student_data(usn, day, month, year):
     options.binary_location = BRAVE_PATH
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--headless") # Uncomment to hide browser
+    #options.add_argument("--headless") # Uncomment to hide browser
 
     driver = webdriver.Chrome(options=options)
     
