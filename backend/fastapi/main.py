@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from services.ai_service import AIService
 from services.data_normalizer import DataNormalizer
 
+
 load_dotenv()
 
 app = FastAPI()
@@ -56,6 +57,27 @@ def get_normalized_report(usn: str):
         return normalized_dict[usn]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/student/{usn}")
+def get_student_data(usn: str):
+    """Retrieves raw data for a specific student from the JSON file."""
+    try:
+        if not os.path.exists(SCRAPED_DATA_PATH):
+            raise HTTPException(status_code=404, detail="Scraped data file not found.")
+
+        with open(SCRAPED_DATA_PATH, "r") as f:
+            scraped_data = json.load(f)
+
+        if usn not in scraped_data:
+            raise HTTPException(status_code=404, detail=f"No record found for USN: {usn}")
+
+        return scraped_data[usn]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.get("/generate-remark/{usn}")

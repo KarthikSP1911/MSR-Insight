@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { generateReport } from "../controllers/report.controller.js";
+import { generateReport, getStudentData } from "../controllers/report.controller.js";
 import requireSession from "../middlewares/session.middleware.js";
 
 // GET /api/report          → uses hardcoded USN
@@ -8,5 +8,8 @@ const router = Router();
 
 router.get("/", requireSession, generateReport);
 router.get("/:usn", requireSession, generateReport);
+
+// GET /api/report/student/:usn
+router.get("/student/:usn", requireSession, getStudentData);
 
 export default router;

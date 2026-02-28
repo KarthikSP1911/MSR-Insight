@@ -7,7 +7,8 @@ const Home = () => {
     const [data, setData] = useState("");
 
     useEffect(() => {
-        axios.get("http://localhost:5000/api/fastapi")
+
+        axios.get(`http://localhost:5001/api/fastapi`)
             .then(res => setData(res.data.message))
             .catch(err => console.error(err));
     }, []);
