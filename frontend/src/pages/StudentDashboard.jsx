@@ -168,16 +168,6 @@ const StudentDashboard = () => {
 
             {/* Sidebar */}
             <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
-                <div className="sidebar-header">
-                    <div className="logo-container">
-                        <div className="logo-icon">
-                            <GraduationCap size={24} />
-                        </div>
-                        <span className="logo-text">
-                            Academic<span className="logo-accent">Hub</span>
-                        </span>
-                    </div>
-                </div>
                 
                 <nav className="sidebar-navigation">
                     <button 
@@ -564,8 +554,8 @@ const StudentDashboard = () => {
                                                 <defs>
                                                     {currentSem.map((_, index) => (
                                                         <linearGradient key={index} id={`cieGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor="#a855f7" stopOpacity={0.8}/>
-                                                            <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+                                                            <stop offset="0%" stopColor="var(--accent-secondary)" stopOpacity={0}/>
+                                                            <stop offset="100%" stopColor="#f97316" stopOpacity={0.6}/>
                                                         </linearGradient>
                                                     ))}
                                                 </defs>

@@ -93,6 +93,7 @@ function App() {
         <main className="content">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/report/:usn" element={<Report />} />
             <Route path="/proctor/:proctorId/report/:usn" element={<Report />} />
             <Route path="/student-login" element={<StudentLogin />} />
             <Route path="/student/dashboard" element={<StudentDashboard />} />

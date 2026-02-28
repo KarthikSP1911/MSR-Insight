@@ -10,8 +10,8 @@
   --accent-glow: rgba(255, 138, 0, 0.15);
 
   /* Legacy / Compatibility */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
@@ -130,7 +130,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 24px 0 0;
+  padding: 0;
 }
 
 .navbar .container {

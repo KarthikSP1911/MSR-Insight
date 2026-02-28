@@ -92,9 +92,9 @@
 }
 
 .student-card:hover .view-btn {
-    background: #8b5cf6;
+    background: #f97316;
     color: white;
-    border-color: #8b5cf6;
+    border-color: #f97316;
 }
 
 .loading-container,
@@ -112,7 +112,7 @@
     width: 40px;
     height: 40px;
     border: 3px solid rgba(139, 92, 246, 0.1);
-    border-top-color: #8b5cf6;
+    border-top-color: #f97316;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
