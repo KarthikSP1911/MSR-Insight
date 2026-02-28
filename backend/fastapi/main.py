@@ -58,6 +58,24 @@ def get_normalized_report(usn: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/report/student/{usn}")
+def get_student_report(usn: str):
+    """Retrieves raw scraping data directly from json file to match frontend expectations."""
+    try:
+        if not os.path.exists(SCRAPED_DATA_PATH):
+            raise HTTPException(status_code=404, detail="Scraped data file not found.")
+
+        with open(SCRAPED_DATA_PATH, "r") as f:
+            scraped_data = json.load(f)
+
+        if usn not in scraped_data:
+            raise HTTPException(status_code=404, detail=f"No record found for USN: {usn}")
+
+        return {"success": True, "data": scraped_data[usn]}
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Error decoding data file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 @app.get("/generate-remark/{usn}")
 def generate_remark_by_usn(usn: str):
     """Loads scraped data for the given USN, normalizes it, and returns AI-generated remarks."""

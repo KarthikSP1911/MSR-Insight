@@ -1,12 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { 
+    AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+    RadialBarChart, RadialBar, LineChart, Line, PieChart, Pie, Cell,
+    ComposedChart, Legend, CartesianGrid
+} from "recharts";
+import { 
+    LayoutDashboard, Target, History, LogOut, FileText, 
+    ExternalLink, Award, TrendingUp, TrendingDown, BookOpen, 
+    Calendar, GraduationCap, Trophy, Clock, BarChart3,
+    ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X
+} from "lucide-react";
+import "./StudentDashboard.css";
+
+const GRADE_COLORS = {
+    'O': '#8b5cf6',
+    'A+': '#3b82f6',
+    'A': '#10b981',
+    'B+': '#f59e0b',
+    'B': '#f97316',
+    'C': '#ef4444',
+};
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
     const [student, setStudent] = useState(null);
+    const [detailedData, setDetailedData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [activeTab, setActiveTab] = useState('overview');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -19,15 +42,23 @@ const StudentDashboard = () => {
             }
 
             try {
-                const response = await axios.get("http://localhost:5000/api/auth/profile", {
+                const response = await axios.get("http://localhost:5002/api/auth/profile", {
                     headers: { "x-session-id": sessionId },
                 });
 
                 if (response.data.success) {
                     setStudent(response.data.data);
                 }
+
+                const detailedResp = await axios.get(`http://localhost:5002/api/report/student/${usn}`, {
+                    headers: { "x-session-id": sessionId },
+                });
+                
+                if (detailedResp.data.success && detailedResp.data.data) {
+                    setDetailedData(detailedResp.data.data);
+                }
+                
             } catch (err) {
-                setError("Failed to load profile information.");
                 if (err.response?.status === 401) {
                     localStorage.clear();
                     navigate("/student-login");
@@ -45,21 +76,89 @@ const StudentDashboard = () => {
         navigate("/student-login");
     };
 
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false);
+    };
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        closeMobileMenu();
+    };
+
     if (loading) return (
-        <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
-            <p>Loading profile...</p>
+        <div className="dashboard-loading">
+            <div className="loading-spinner">
+                <div className="spinner-ring"></div>
+                <div className="spinner-ring"></div>
+                <div className="spinner-ring"></div>
+            </div>
+            <p className="loading-text">Loading your dashboard...</p>
         </div>
     );
 
+    // Derived Data
+    const currentSem = detailedData?.current_semester || [];
+    const examHistory = detailedData?.exam_history || [];
+    
+    const overallAttendance = currentSem.length 
+        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.attendance, 0) / currentSem.length) 
+        : 0;
+        
+    const overallCIE = currentSem.length 
+        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.cie, 0) / currentSem.length) 
+        : 0;
+
+    const sgpaTrendData = [...examHistory].reverse().map(sem => ({
+        name: sem.semester.split(' ')[0] + ' ' + (sem.semester.split(' ')[2]?.substring(2) || ''),
+        sgpa: parseFloat(sem.sgpa),
+        credits: parseInt(sem.credits_earned || 0)
+    }));
+
+    const totalCredits = examHistory.reduce((acc, sem) => acc + parseInt(sem.credits_earned || 0), 0);
+    const latestSGPA = examHistory.length > 0 ? parseFloat(examHistory[0].sgpa) : 0;
+    const prevSGPA = examHistory.length > 1 ? parseFloat(examHistory[1].sgpa) : 0;
+    const sgpaDiff = (latestSGPA - prevSGPA).toFixed(2);
+    const isImproved = prevSGPA === 0 || sgpaDiff >= 0;
+
+    // Attendance distribution for pie chart
+    const attendanceCategories = currentSem.reduce((acc, subject) => {
+        if (subject.attendance >= 85) acc.excellent++;
+        else if (subject.attendance >= 75) acc.good++;
+        else acc.needsImprovement++;
+        return acc;
+    }, { excellent: 0, good: 0, needsImprovement: 0 });
+
+    const attendancePieData = [
+        { name: 'Excellent (≥85%)', value: attendanceCategories.excellent, color: '#10b981' },
+        { name: 'Good (75-84%)', value: attendanceCategories.good, color: '#f59e0b' },
+        { name: 'Needs Work (<75%)', value: attendanceCategories.needsImprovement, color: '#ef4444' }
+    ].filter(item => item.value > 0);
+
+    // Grade distribution
+    const allGrades = examHistory.flatMap(sem => sem.courses?.map(c => c.grade) || []);
+    const gradeDistribution = allGrades.reduce((acc, grade) => {
+        acc[grade] = (acc[grade] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const gradeChartData = Object.entries(gradeDistribution)
+        .map(([grade, count]) => ({ grade, count, color: GRADE_COLORS[grade] || '#64748b' }))
+        .sort((a, b) => b.count - a.count);
+
     return (
-        <div className="container fade-in" style={{ padding: 'var(--space-xl) 0' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--space-xl)' }}>
-                <div>
-                    <h1 style={{ marginBottom: 'var(--space-xs)' }}>Student Dashboard</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>Welcome back, {student?.name || student?.usn}</p>
-                </div>
-                <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
-            </header>
+        <div className="student-dashboard-container">
+            {/* Mobile Menu Toggle Button */}
+            <button 
+                className="mobile-menu-toggle" 
+                onClick={toggleMobileMenu}
+                aria-label="Toggle menu"
+            >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
 
             {/* Mobile Overlay */}
             <div 
@@ -108,16 +207,20 @@ const StudentDashboard = () => {
                     </button>
                 </nav>
 
-                <div className="card">
-                    <h2 style={{ fontSize: '1.25rem', marginBottom: 'var(--space-lg)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: 'var(--space-xs)' }}>
-                        Report Status
-                    </h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        Your academic reports will appear here once they are finalized and published by your assigned proctor.
-                    </p>
-                    <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No reports available yet.</span>
+                <div className="sidebar-footer">
+                    <div className="user-profile-card">
+                        <div className="user-avatar">
+                            {detailedData?.name?.charAt(0) || 'U'}
+                        </div>
+                        <div className="user-info">
+                            <div className="user-name">{detailedData?.name}</div>
+                            <div className="user-usn">{detailedData?.usn}</div>
+                        </div>
                     </div>
+                    <button onClick={handleLogout} className="logout-button">
+                        <LogOut size={18} />
+                        <span>Sign Out</span>
+                    </button>
                 </div>
             </aside>
 

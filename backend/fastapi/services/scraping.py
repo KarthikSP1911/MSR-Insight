@@ -11,16 +11,19 @@ from bs4 import BeautifulSoup
 
 
 # --- CONFIGURATION ---
-#BRAVE_PATH = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
-BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
-JSON_STORAGE = "all_students_report.json"
+BRAVE_PATH = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+# BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+
+# Resolve path relative to this script so it always drops in the fastapi root directory
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+JSON_STORAGE = os.path.join(BASE_DIR, "all_students_report.json")
 
 def get_complete_student_data(usn, day, month, year):
     options = Options()
     options.binary_location = BRAVE_PATH
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    #options.add_argument("--headless") # Uncomment to hide browser
+    options.add_argument("--headless") # Uncomment to hide browser
 
     driver = webdriver.Chrome(options=options)
     
@@ -161,16 +164,18 @@ def parse_and_save_data(scraped_data):
             from .data_normalizer import DataNormalizer
         except (ImportError, ValueError):
             from data_normalizer import DataNormalizer
-        DataNormalizer.normalize_all_data(JSON_STORAGE, "normalized_data.json")
-        print("[+] Data normalization complete.")
+        
+        normalized_path = os.path.join(BASE_DIR, "normalized_data.json")
+        DataNormalizer.normalize_all_data(JSON_STORAGE, normalized_path)
+        print(f"[+] Data normalization complete. Saved to {normalized_path}")
     except Exception as e:
         print(f"[!] Normalization failed: {e}")
 
 #---Part done by Ajay----
 # --- EXECUTION ---
 if __name__ == "__main__":
-    MY_USN = "1MS23IS051"
-    DD, MM, YYYY = "19", "11", "2004"
+    MY_USN = "1MS24IS400"
+    DD, MM, YYYY = "20", "10", "2005"
 
     full_data = get_complete_student_data(MY_USN, DD, MM, YYYY)
     if full_data:

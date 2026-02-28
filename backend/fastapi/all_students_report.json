@@ -4,13 +4,13 @@
         "usn": "1MS24IS400",
         "class_details": "B.E-IS,  SEM 06,  SEC A",
         "cgpa": "9.21",
-        "last_updated": "2026-02-24 23:19:34",
+        "last_updated": "2026-02-28 22:31:05",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 100
             },
             {
                 "code": "23IS62",
@@ -52,7 +52,7 @@
                 "code": "23ISE644",
                 "name": "Cloud Computing",
                 "cie": 0,
-                "attendance": 80
+                "attendance": 89
             },
             {
                 "code": "23PHOE04",
@@ -67,6 +67,18 @@
                 "sgpa": "9.23",
                 "credits_earned": "21",
                 "courses": [
+                    {
+                        "code": "23IS35",
+                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS31(R)",
+                        "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
+                        "gpa": "8",
+                        "grade": "A"
+                    },
                     {
                         "code": "23IS32",
                         "name": "DIGITAL SYSTEMS AND COMPUTER ORGANIZATION",
@@ -98,18 +110,6 @@
                         "grade": "A+"
                     },
                     {
-                        "code": "23IS35",
-                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23IS31(R)",
-                        "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
-                        "gpa": "8",
-                        "grade": "A"
-                    },
-                    {
                         "code": "23ISAEC393",
                         "name": "NUMERICAL ANALYSIS WITH PYTHON",
                         "gpa": "9",
@@ -135,6 +135,12 @@
                 "credits_earned": "20",
                 "courses": [
                     {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
                         "code": "23IS43",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
                         "gpa": "9",
@@ -159,12 +165,6 @@
                         "grade": "A+"
                     },
                     {
-                        "code": "23IS42",
-                        "name": "MICROCONTROLLER",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23AM41",
                         "name": "ADDITIONAL MATHEMATICS-II",
                         "gpa": "0",
@@ -177,12 +177,6 @@
                         "grade": "O"
                     },
                     {
-                        "code": "23ISL47",
-                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
                         "code": "23ISL46",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
                         "gpa": "10",
@@ -191,6 +185,12 @@
                     {
                         "code": "23ISL48",
                         "name": "ADVANCED JAVA LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL47",
+                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
                         "gpa": "10",
                         "grade": "O"
                     },
