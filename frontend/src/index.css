@@ -33,7 +33,7 @@
 
   /* Layout */
   --nav-height: 64px;
-  --container-max: 1200px;
+  --container-max: 1360px;
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -109,7 +109,7 @@ p {
 .container {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 var(--space-md);
+  padding: 0 80px;
   width: 100%;
 }
 
@@ -121,20 +121,27 @@ p {
 /* Navigation */
 .navbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 0 32px;
-  height: var(--nav-height);
+  min-height: var(--nav-height);
   background: rgba(11, 15, 25, 0.9);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: none;
   position: sticky;
   top: 0;
   z-index: 100;
+  padding: 24px 0 0;
+}
+
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
 }
 
 .nav-logo a {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-primary);
   text-decoration: none;
@@ -158,12 +165,13 @@ p {
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   transition: all 0.2s ease;
-  height: var(--nav-height);
   display: flex;
   align-items: center;
   position: relative;
+  padding-bottom: 8px;
+  /* Allow slight space for active line indicator */
 }
 
 .nav-link:hover {
@@ -185,7 +193,7 @@ p {
 }
 
 .role-info {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-muted);
   font-weight: 500;
 }

@@ -31,52 +31,55 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="nav-logo">
-        <Link to="/">
-          Smart<span>Report</span>
-        </Link>
-      </div>
+      <div className="container">
+        <div className="nav-logo">
+          <Link to="/">
+            <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
+            Smart<span>Report</span>
+          </Link>
+        </div>
 
-      <div className="nav-actions">
-        {/* Home & Login Pages: Show simple entry links */}
-        {(isHome || isAuthPage) && !isReportPage && (
-          <>
-            <Link
-              to="/student-login"
-              className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}
-            >
-              Student Login
-            </Link>
-            <Link
-              to="/proctor-login"
-              className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}
-            >
-              Proctor Login
-            </Link>
-          </>
-        )}
+        <div className="nav-actions">
+          {/* Home & Login Pages: Show simple entry links */}
+          {(isHome || isAuthPage) && !isReportPage && (
+            <>
+              <Link
+                to="/student-login"
+                className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}
+              >
+                Student Login
+              </Link>
+              <Link
+                to="/proctor-login"
+                className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}
+              >
+                Proctor Login
+              </Link>
+            </>
+          )}
 
-        {/* Proctor Dashboard Context: Show ID and Logout */}
-        {isProctorView && !isReportPage && (
-          <>
-            <span className="role-info">Proctor: {proctorId}</span>
-            <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>
-              Logout
-            </button>
-          </>
-        )}
+          {/* Proctor Dashboard Context: Show ID and Logout */}
+          {isProctorView && !isReportPage && (
+            <>
+              <span className="role-info">Proctor: {proctorId}</span>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '1rem' }}>
+                Logout
+              </button>
+            </>
+          )}
 
-        {/* Student Dashboard Context: Show USN and Logout */}
-        {isStudentView && !isReportPage && (
-          <>
-            <span className="role-info">Student: {studentUsn}</span>
-            <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>
-              Logout
-            </button>
-          </>
-        )}
+          {/* Student Dashboard Context: Show USN and Logout */}
+          {isStudentView && !isReportPage && (
+            <>
+              <span className="role-info">Student: {studentUsn}</span>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '1rem' }}>
+                Logout
+              </button>
+            </>
+          )}
 
-        {/* Report Page: Navbar remains empty except for Logo (handled by conditional results above) */}
+          {/* Report Page: Navbar remains empty except for Logo (handled by conditional results above) */}
+        </div>
       </div>
     </nav>
   );
