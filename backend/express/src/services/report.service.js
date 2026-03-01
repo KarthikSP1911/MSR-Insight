@@ -12,4 +12,14 @@ const getRemarkByUSN = async (usn) => {
     return response.data;
 };
 
-export { getRemarkByUSN };
+/**
+ * Fetches the raw normalized dashboard data for a student from FastAPI.
+ * @param {string} usn - The student's USN
+ * @returns {Promise<Object>} - Student data (courses, grades, sgpa, cgpa)
+ */
+const getStudentReport = async (usn) => {
+    const response = await axios.get(`${FASTAPI_BASE_URL}/api/report/student/${usn}`);
+    return response.data?.data;
+};
+
+export { getRemarkByUSN, getStudentReport };

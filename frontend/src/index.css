@@ -10,8 +10,8 @@
   --accent-glow: rgba(255, 138, 0, 0.15);
 
   /* Legacy / Compatibility */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  --primary: #f97316;
+  --primary-hover: #ea580c;
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
@@ -63,6 +63,8 @@ body {
   min-height: 100vh;
   background-color: var(--bg-primary);
   overflow-x: hidden;
+  font-size: 15px;
+  /* Added base font size increase */
 }
 
 #root {
@@ -73,6 +75,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-top: var(--nav-height);
 }
 
 /* Typography Hierarchy */
@@ -88,17 +91,20 @@ h6 {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
+  /* Increased from 2.5rem */
   letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: 1.75rem;
+  font-size: 2rem;
+  /* Increased from 1.75rem */
   letter-spacing: -0.01em;
 }
 
 h3 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  /* Increased from 1.25rem */
 }
 
 p {
@@ -123,14 +129,16 @@ p {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: var(--nav-height);
+  height: var(--nav-height);
+  width: 100%;
   background: rgba(11, 15, 25, 0.9);
   backdrop-filter: blur(12px);
-  border-bottom: none;
-  position: sticky;
+  border-bottom: 1px solid var(--border-subtle);
+  position: fixed;
   top: 0;
-  z-index: 100;
-  padding: 24px 0 0;
+  left: 0;
+  z-index: 999;
+  padding: 0 32px;
 }
 
 .navbar .container {
@@ -138,10 +146,13 @@ p {
   justify-content: space-between;
   align-items: center;
   height: 100%;
+  max-width: 100%;
+  padding: 0;
 }
 
 .nav-logo a {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
+  /* Increased from 1.5rem */
   font-weight: 800;
   color: var(--text-primary);
   text-decoration: none;
@@ -165,7 +176,8 @@ p {
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  /* Increased from 1.05rem */
   transition: all 0.2s ease;
   display: flex;
   align-items: center;

@@ -136,7 +136,7 @@ const Report = () => {
     if (loading) {
         return (
             <div className="report-viewer-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'center', color: '#8b5cf6' }}>
+                <div style={{ textAlign: 'center', color: '#f97316' }}>
                     <div className="spinner" />
                     <p style={{ marginTop: '1rem', fontSize: '1rem' }}>Generating report for <strong>{USN}</strong>...</p>
                 </div>
@@ -152,9 +152,9 @@ const Report = () => {
                     <button
                         className="btn btn-secondary"
                         style={{ marginTop: '1rem' }}
-                        onClick={() => navigate(`/proctor/${proctorId}/student/${USN}`)}
+                        onClick={() => navigate(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
                     >
-                        ← Back to Student Profile
+                        ← Back to {proctorId ? 'Student Profile' : 'Dashboard'}
                     </button>
                 </div>
             </div>
@@ -172,9 +172,9 @@ const Report = () => {
             }}>
                 <button
                     className="back-nav-btn"
-                    onClick={() => navigate(`/proctor/${proctorId}/student/${USN}`)}
+                    onClick={() => navigate(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
                 >
-                    ← Back to Student
+                    ← Back to {proctorId ? 'Student' : 'Dashboard'}
                 </button>
             </div>
 
