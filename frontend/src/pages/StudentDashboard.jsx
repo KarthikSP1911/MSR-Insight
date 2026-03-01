@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { 
-    AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+import {
+    AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     RadialBarChart, RadialBar, LineChart, Line, PieChart, Pie, Cell,
     ComposedChart, Legend, CartesianGrid
 } from "recharts";
-import { 
-    LayoutDashboard, Target, History, LogOut, FileText, 
-    ExternalLink, Award, TrendingUp, TrendingDown, BookOpen, 
+import {
+    LayoutDashboard, Target, History, LogOut, FileText,
+    ExternalLink, Award, TrendingUp, TrendingDown, BookOpen,
     Calendar, GraduationCap, Trophy, Clock, BarChart3,
     ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X
 } from "lucide-react";
@@ -28,7 +28,7 @@ const StudentDashboard = () => {
     const [student, setStudent] = useState(null);
     const [detailedData, setDetailedData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState('performance');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ const StudentDashboard = () => {
             }
 
             try {
-                const response = await axios.get("http://localhost:5002/api/auth/profile", {
+                const response = await axios.get("http://localhost:5000/api/auth/profile", {
                     headers: { "x-session-id": sessionId },
                 });
 
@@ -50,14 +50,14 @@ const StudentDashboard = () => {
                     setStudent(response.data.data);
                 }
 
-                const detailedResp = await axios.get(`http://localhost:5002/api/report/student/${usn}`, {
+                const detailedResp = await axios.get(`http://localhost:5000/api/report/student/${usn}`, {
                     headers: { "x-session-id": sessionId },
                 });
-                
+
                 if (detailedResp.data.success && detailedResp.data.data) {
                     setDetailedData(detailedResp.data.data);
                 }
-                
+
             } catch (err) {
                 if (err.response?.status === 401) {
                     localStorage.clear();
@@ -103,13 +103,13 @@ const StudentDashboard = () => {
     // Derived Data
     const currentSem = detailedData?.current_semester || [];
     const examHistory = detailedData?.exam_history || [];
-    
-    const overallAttendance = currentSem.length 
-        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.attendance, 0) / currentSem.length) 
+
+    const overallAttendance = currentSem.length
+        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.attendance, 0) / currentSem.length)
         : 0;
-        
-    const overallCIE = currentSem.length 
-        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.cie, 0) / currentSem.length) 
+
+    const overallCIE = currentSem.length
+        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.cie, 0) / currentSem.length)
         : 0;
 
     const sgpaTrendData = [...examHistory].reverse().map(sem => ({
@@ -144,7 +144,7 @@ const StudentDashboard = () => {
         acc[grade] = (acc[grade] || 0) + 1;
         return acc;
     }, {});
-    
+
     const gradeChartData = Object.entries(gradeDistribution)
         .map(([grade, count]) => ({ grade, count, color: GRADE_COLORS[grade] || '#64748b' }))
         .sort((a, b) => b.count - a.count);
@@ -152,8 +152,8 @@ const StudentDashboard = () => {
     return (
         <div className="student-dashboard-container">
             {/* Mobile Menu Toggle Button */}
-            <button 
-                className="mobile-menu-toggle" 
+            <button
+                className="mobile-menu-toggle"
                 onClick={toggleMobileMenu}
                 aria-label="Toggle menu"
             >
@@ -161,262 +161,45 @@ const StudentDashboard = () => {
             </button>
 
             {/* Mobile Overlay */}
-            <div 
+            <div
                 className={`mobile-overlay ${isMobileMenuOpen ? 'active' : ''}`}
                 onClick={closeMobileMenu}
             ></div>
 
             {/* Sidebar */}
             <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
-                
+
                 <nav className="sidebar-navigation">
-                    <button 
-                        className={`nav-button ${activeTab === 'overview' ? 'active' : ''}`} 
-                        onClick={() => handleTabChange('overview')}
-                    >
-                        <LayoutDashboard size={20} />
-                        <span>Overview</span>
-                    </button>
-                    <button 
-                        className={`nav-button ${activeTab === 'performance' ? 'active' : ''}`} 
+                    <button
+                        className={`nav-button ${activeTab === 'performance' ? 'active' : ''}`}
                         onClick={() => handleTabChange('performance')}
                     >
                         <Target size={20} />
                         <span>Current Semester</span>
                     </button>
-                    <button 
-                        className={`nav-button ${activeTab === 'analytics' ? 'active' : ''}`} 
+                    <button
+                        className={`nav-button ${activeTab === 'analytics' ? 'active' : ''}`}
                         onClick={() => handleTabChange('analytics')}
                     >
                         <BarChart3 size={20} />
                         <span>Analytics</span>
                     </button>
-                    <button 
-                        className={`nav-button ${activeTab === 'history' ? 'active' : ''}`} 
+                    <button
+                        className={`nav-button ${activeTab === 'history' ? 'active' : ''}`}
                         onClick={() => handleTabChange('history')}
                     >
                         <History size={20} />
                         <span>Exam History</span>
                     </button>
-                    <button 
-                        className={`nav-button ${activeTab === 'reports' ? 'active' : ''}`} 
-                        onClick={() => handleTabChange('reports')}
-                    >
-                        <FileText size={20} />
-                        <span>Reports</span>
-                    </button>
                 </nav>
 
-                <div className="sidebar-footer">
-                    <div className="user-profile-card">
-                        <div className="user-avatar">
-                            {detailedData?.name?.charAt(0) || 'U'}
-                        </div>
-                        <div className="user-info">
-                            <div className="user-name">{detailedData?.name}</div>
-                            <div className="user-usn">{detailedData?.usn}</div>
-                        </div>
-                    </div>
-                    <button onClick={handleLogout} className="logout-button">
-                        <LogOut size={18} />
-                        <span>Sign Out</span>
-                    </button>
-                </div>
+
             </aside>
 
             {/* Main Content */}
             <main className="dashboard-main-content">
                 <div className="content-wrapper">
-                    
-                    {/* OVERVIEW TAB */}
-                    {activeTab === 'overview' && (
-                        <div className="tab-content">
-                            <div className="page-header">
-                                <div className="header-content">
-                                    <h1 className="page-title">
-                                        Welcome back, <span className="highlight">{student?.name?.split(' ')[0]}</span>! 👋
-                                    </h1>
-                                    <p className="page-subtitle">Here's your academic performance at a glance</p>
-                                </div>
-                                <div className="semester-badge">
-                                    <div className="status-dot"></div>
-                                    <span>Semester ODD Feb 2025</span>
-                                </div>
-                            </div>
 
-                            {/* Stats Cards Row */}
-                            <div className="stats-grid">
-                                <div className="stat-card cgpa-card">
-                                    <div className="stat-header">
-                                        <div className="stat-icon cgpa-icon">
-                                            <Trophy size={28} />
-                                        </div>
-                                        {prevSGPA !== 0 && (
-                                            <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
-                                                {isImproved ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                                <span>{Math.abs(sgpaDiff)}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="stat-content">
-                                        <div className="stat-label">Cumulative GPA</div>
-                                        <div className="stat-value cgpa-value">
-                                            {detailedData?.cgpa || latestSGPA || 'N/A'}
-                                        </div>
-                                        <div className="stat-subtitle">Out of 10.0</div>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon attendance-icon">
-                                        <Calendar size={24} />
-                                    </div>
-                                    <div className="stat-content">
-                                        <div className="stat-label">Average Attendance</div>
-                                        <div className="stat-value">{overallAttendance}%</div>
-                                        <div className="progress-bar">
-                                            <div 
-                                                className="progress-fill attendance-progress" 
-                                                style={{width: `${overallAttendance}%`}}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon cie-icon">
-                                        <BookOpen size={24} />
-                                    </div>
-                                    <div className="stat-content">
-                                        <div className="stat-label">Average CIE Score</div>
-                                        <div className="stat-value">{overallCIE}<span className="stat-max">/50</span></div>
-                                        <div className="progress-bar">
-                                            <div 
-                                                className="progress-fill cie-progress" 
-                                                style={{width: `${(overallCIE/50)*100}%`}}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="stat-card">
-                                    <div className="stat-icon credits-icon">
-                                        <Award size={24} />
-                                    </div>
-                                    <div className="stat-content">
-                                        <div className="stat-label">Credits Earned</div>
-                                        <div className="stat-value">{totalCredits}<span className="stat-max">/160</span></div>
-                                        <div className="progress-bar">
-                                            <div 
-                                                className="progress-fill credits-progress" 
-                                                style={{width: `${(totalCredits/160)*100}%`}}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Charts Row */}
-                            <div className="charts-grid">
-                                {/* SGPA Trend */}
-                                {examHistory.length > 0 && (
-                                    <div className="chart-card wide-chart">
-                                        <div className="chart-header">
-                                            <div>
-                                                <h3 className="chart-title">SGPA Performance Trend</h3>
-                                                <p className="chart-subtitle">Your semester-wise academic progress</p>
-                                            </div>
-                                        </div>
-                                        <div className="chart-body">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={sgpaTrendData}>
-                                                    <defs>
-                                                        <linearGradient id="sgpaGradient" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                    <XAxis 
-                                                        dataKey="name" 
-                                                        stroke="#64748b" 
-                                                        style={{ fontSize: '12px' }}
-                                                    />
-                                                    <YAxis 
-                                                        domain={[0, 10]} 
-                                                        stroke="#64748b"
-                                                        style={{ fontSize: '12px' }}
-                                                    />
-                                                    <Tooltip 
-                                                        contentStyle={{ 
-                                                            backgroundColor: '#1e293b', 
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '12px',
-                                                            boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
-                                                        }}
-                                                        itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                                                    />
-                                                    <Area 
-                                                        type="monotone" 
-                                                        dataKey="sgpa" 
-                                                        stroke="#8b5cf6" 
-                                                        strokeWidth={3}
-                                                        fill="url(#sgpaGradient)"
-                                                        activeDot={false}
-                                                    />
-                                                </AreaChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Attendance Distribution */}
-                                {attendancePieData.length > 0 && (
-                                    <div className="chart-card">
-                                        <div className="chart-header">
-                                            <div>
-                                                <h3 className="chart-title">Attendance Overview</h3>
-                                                <p className="chart-subtitle">Subject-wise distribution</p>
-                                            </div>
-                                        </div>
-                                        <div className="chart-body">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={attendancePieData}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={90}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {attendancePieData.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip 
-                                                        contentStyle={{ 
-                                                            backgroundColor: '#1e293b', 
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            borderRadius: '12px'
-                                                        }}
-                                                        itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                                                    />
-                                                    <Legend 
-                                                        verticalAlign="bottom" 
-                                                        height={36}
-                                                        iconType="circle"
-                                                        wrapperStyle={{ fontSize: '12px' }}
-                                                    />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* CURRENT SEMESTER PERFORMANCE TAB */}
                     {activeTab === 'performance' && (
@@ -428,92 +211,101 @@ const StudentDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Two Separate Charts Side by Side */}
-                            <div className="charts-row">
+                            {/* Single Column Layout for Current Semester */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
                                 {/* Attendance Pie Chart */}
-                                <div className="chart-card half-width">
+                                <div className="chart-card">
                                     <div className="chart-header">
                                         <div>
                                             <h3 className="chart-title">Attendance Overview</h3>
                                             <p className="chart-subtitle">Subject-wise attendance distribution</p>
                                         </div>
                                     </div>
-                                    <div className="chart-body medium-chart">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <RadialBarChart 
-                                                cx="50%" 
-                                                cy="45%" 
-                                                innerRadius="30%" 
-                                                outerRadius="100%" 
-                                                barSize={12} 
-                                                data={currentSem.map((entry, index) => {
-                                                    const pieColors = ['#f43f5e', '#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#14b8a6'];
-                                                    return {
-                                                        ...entry,
-                                                        fill: pieColors[index % pieColors.length]
-                                                    };
-                                                })}
-                                            >
-                                                <RadialBar
-                                                    minAngle={15}
-                                                    background={{ fill: 'rgba(255,255,255,0.05)' }}
-                                                    clockWise
-                                                    dataKey="attendance"
-                                                    cornerRadius={10}
-                                                    activeShape={false}
-                                                />
-                                                <Tooltip 
-                                                    cursor={{ fill: 'transparent' }}
-                                                    contentStyle={{ 
-                                                        backgroundColor: '#1e293b', 
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        borderRadius: '12px',
-                                                        color: '#ffffff'
-                                                    }}
-                                                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                                                    formatter={(value) => [`${value}%`, '']}
-                                                    separator=""
-                                                    labelFormatter={(label, payload) => {
-                                                        return payload?.[0]?.payload?.name || '';
-                                                    }}
-                                                />
-                                                <Legend 
-                                                    iconSize={10}
-                                                    verticalAlign="bottom"
-                                                    wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                                                    formatter={(value, entry) => {
-                                                        const payloadName = entry.payload?.name || value;
-                                                        const maxLength = 20;
-                                                        return typeof payloadName === 'string' && payloadName.length > maxLength 
-                                                            ? payloadName.substring(0, maxLength) + '...' 
-                                                            : payloadName;
-                                                    }}
-                                                />
-                                            </RadialBarChart>
-                                        </ResponsiveContainer>
+                                    <div className="chart-body" style={{ display: 'flex', flexDirection: 'row', gap: '32px', height: '380px', width: '100%', alignItems: 'center' }}>
+                                        <div style={{ flex: '1', height: '100%', minWidth: 0 }}>
+                                            <ResponsiveContainer width="100%" height={380}>
+                                                <RadialBarChart
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="20%"
+                                                    outerRadius="100%"
+                                                    barSize={10}
+                                                    data={currentSem.map((entry, index) => {
+                                                        const pieColors = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'];
+                                                        return {
+                                                            ...entry,
+                                                            fill: pieColors[index % pieColors.length]
+                                                        };
+                                                    })}
+                                                >
+                                                    <RadialBar
+                                                        minAngle={15}
+                                                        background={{ fill: 'rgba(255,255,255,0.03)' }}
+                                                        clockWise
+                                                        dataKey="attendance"
+                                                        cornerRadius={10}
+                                                        activeShape={false}
+                                                    />
+                                                    <Tooltip
+                                                        cursor={{ fill: 'transparent' }}
+                                                        contentStyle={{
+                                                            backgroundColor: '#1e293b',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            color: '#ffffff'
+                                                        }}
+                                                        itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                                                        formatter={(value) => [`${value}%`, '']}
+                                                        separator=""
+                                                        labelFormatter={(label, payload) => {
+                                                            return payload?.[0]?.payload?.name || '';
+                                                        }}
+                                                    />
+                                                </RadialBarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', minWidth: 0 }}>
+                                            {currentSem.map((subject, index) => {
+                                                const pieColors = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'];
+                                                const color = pieColors[index % pieColors.length];
+                                                const maxLength = 36;
+                                                const displayName = subject.name && subject.name.length > maxLength
+                                                    ? subject.name.substring(0, maxLength) + '...'
+                                                    : (subject.name || 'Subject');
+
+                                                return (
+                                                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: color, flexShrink: 0 }}></div>
+                                                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                            {displayName}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* CIE Marks Chart */}
-                                <div className="chart-card half-width">
+                                <div className="chart-card">
                                     <div className="chart-header">
                                         <div>
                                             <h3 className="chart-title">Internal Marks (CIE)</h3>
                                             <p className="chart-subtitle">Subject-wise CIE scores out of 50</p>
                                         </div>
                                     </div>
-                                    <div className="chart-body medium-chart">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart 
+                                    <div className="chart-body" style={{ height: '380px', width: '100%', minHeight: '380px' }}>
+                                        <ResponsiveContainer width="100%" height={380}>
+                                            <BarChart
                                                 data={currentSem.map(subject => ({
                                                     ...subject,
                                                     code: subject.code || subject.name.substring(0, 6)
                                                 }))}
-                                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                                margin={{ top: 20, right: 0, left: -20, bottom: 20 }}
                                             >
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                <XAxis 
-                                                    dataKey="code" 
+                                                <XAxis
+                                                    dataKey="code"
                                                     stroke="#64748b"
                                                     style={{ fontSize: '11px' }}
                                                     angle={-45}
@@ -521,15 +313,15 @@ const StudentDashboard = () => {
                                                     height={80}
                                                     interval={0}
                                                 />
-                                                <YAxis 
+                                                <YAxis
                                                     domain={[0, 50]}
                                                     stroke="#64748b"
                                                     style={{ fontSize: '12px' }}
                                                 />
-                                                <Tooltip 
+                                                <Tooltip
                                                     cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
-                                                    contentStyle={{ 
-                                                        backgroundColor: '#1e293b', 
+                                                    contentStyle={{
+                                                        backgroundColor: '#1e293b',
                                                         border: '1px solid rgba(255,255,255,0.1)',
                                                         borderRadius: '12px',
                                                         color: '#ffffff'
@@ -539,13 +331,13 @@ const StudentDashboard = () => {
                                                     formatter={(value, name, props) => [`${value}/50`, props.payload.name]}
                                                     labelFormatter={(label) => ''}
                                                 />
-                                                <Bar 
-                                                    dataKey="cie" 
+                                                <Bar
+                                                    dataKey="cie"
                                                     radius={[8, 8, 0, 0]}
                                                     barSize={35}
                                                 >
                                                     {currentSem.map((entry, index) => (
-                                                        <Cell 
+                                                        <Cell
                                                             key={`cell-${index}`}
                                                             fill={`url(#cieGradient${index})`}
                                                         />
@@ -554,8 +346,8 @@ const StudentDashboard = () => {
                                                 <defs>
                                                     {currentSem.map((_, index) => (
                                                         <linearGradient key={index} id={`cieGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor="var(--accent-secondary)" stopOpacity={0}/>
-                                                            <stop offset="100%" stopColor="#f97316" stopOpacity={0.6}/>
+                                                            <stop offset="0%" stopColor="var(--accent-secondary)" stopOpacity={0} />
+                                                            <stop offset="100%" stopColor="#f97316" stopOpacity={0.6} />
                                                         </linearGradient>
                                                     ))}
                                                 </defs>
@@ -563,68 +355,52 @@ const StudentDashboard = () => {
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Subject Cards Grid */}
-                            <div className="subjects-grid">
-                                {currentSem.map((subject, idx) => (
-                                    <div key={idx} className="subject-card">
-                                        <div className="subject-header">
-                                            <h4 className="subject-name">{subject.name}</h4>
-                                            <div className={`attendance-badge ${
-                                                subject.attendance >= 85 ? 'excellent' : 
-                                                subject.attendance >= 75 ? 'good' : 'warning'
-                                            }`}>
-                                                {subject.attendance >= 85 ? <CheckCircle2 size={14} /> : 
-                                                 subject.attendance >= 75 ? <AlertCircle size={14} /> : 
-                                                 <XCircle size={14} />}
-                                                <span>{subject.attendance}%</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="subject-stats-dual">
-                                            <div className="stat-item">
-                                                <div className="stat-item-label">Attendance</div>
-                                                <div className="stat-item-value-large">{subject.attendance}<span>%</span></div>
-                                                <div className="mini-progress">
-                                                    <div 
-                                                        className="mini-progress-fill attendance-fill"
-                                                        style={{width: `${subject.attendance}%`}}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="stat-divider"></div>
-                                            
-                                            <div className="stat-item">
-                                                <div className="stat-item-label">CIE Score</div>
-                                                <div className="stat-item-value-large">{subject.cie}<span>/50</span></div>
-                                                <div className="mini-progress">
-                                                    <div 
-                                                        className="mini-progress-fill cie-fill"
-                                                        style={{width: `${(subject.cie/50)*100}%`}}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="subject-footer">
-                                            <div className="performance-indicator">
-                                                <div className="indicator-label">Overall Performance</div>
-                                                <div className="indicator-dots">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <div 
-                                                            key={i} 
-                                                            className={`indicator-dot ${
-                                                                i < Math.ceil(((subject.attendance + (subject.cie * 2)) / 150) * 5) ? 'active' : ''
-                                                            }`}
-                                                        ></div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                {/* Subjects Data Table */}
+                                <div className="dashboard-table-container">
+                                    <table className="dashboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Subject Name</th>
+                                                <th>Attendance</th>
+                                                <th>CIE Score</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {currentSem.map((subject, idx) => {
+                                                const attendanceLevel = subject.attendance >= 85 ? 'success' : subject.attendance >= 75 ? 'warning' : 'error';
+                                                const ciePercentage = (subject.cie / 50) * 100;
+                                                const cieLevel = ciePercentage >= 80 ? 'success' : ciePercentage >= 60 ? 'warning' : 'error';
+
+                                                let status = "Excellent";
+                                                if (attendanceLevel === 'error' || cieLevel === 'error') status = "Needs Work";
+                                                else if (attendanceLevel === 'warning' || cieLevel === 'warning') status = "Good";
+
+                                                return (
+                                                    <tr key={idx}>
+                                                        <td style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{subject.code || '-'}</td>
+                                                        <td style={{ fontWeight: 500 }}>{subject.name}</td>
+                                                        <td>
+                                                            <span className={`pill ${attendanceLevel}`}>
+                                                                {subject.attendance}%
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span className={`pill ${cieLevel}`}>
+                                                                {subject.cie} / 50
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{status}</span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -639,86 +415,85 @@ const StudentDashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Attendance vs CIE Comparison */}
-                            {currentSem.length > 0 && (
-                                <div className="chart-card full-width-chart">
-                                    <div className="chart-header">
-                                        <div>
-                                            <h3 className="chart-title">Attendance vs Internal Marks Correlation</h3>
-                                            <p className="chart-subtitle">Analyzing the relationship between attendance and performance</p>
+                            <div className="charts-grid">
+                                {/* Attendance vs CIE Comparison */}
+                                {currentSem.length > 0 && (
+                                    <div className="chart-card wide-chart">
+                                        <div className="chart-header">
+                                            <div>
+                                                <h3 className="chart-title">Attendance vs Internal Marks Correlation</h3>
+                                                <p className="chart-subtitle">Analyzing the relationship between attendance and performance</p>
+                                            </div>
+                                            <div className="chart-legend">
+                                                <div className="legend-item">
+                                                    <div className="legend-color attendance-color"></div>
+                                                    <span>Attendance %</span>
+                                                </div>
+                                                <div className="legend-item">
+                                                    <div className="legend-color cie-color"></div>
+                                                    <span>CIE Score</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="chart-legend">
-                                            <div className="legend-item">
-                                                <div className="legend-color attendance-color"></div>
-                                                <span>Attendance %</span>
-                                            </div>
-                                            <div className="legend-item">
-                                                <div className="legend-color cie-color"></div>
-                                                <span>CIE Score</span>
-                                            </div>
+                                        <div className="chart-body large-chart">
+                                            <ResponsiveContainer width="100%" height={400}>
+                                                <BarChart
+                                                    data={currentSem.map(subject => ({
+                                                        ...subject,
+                                                        shortName: subject.code || (subject.name ? subject.name.substring(0, 8) : 'SUB'),
+                                                        ciePercentage: ((subject.cie || 0) / 50) * 100
+                                                    }))}
+                                                    margin={{ top: 20, right: 30, bottom: 40, left: 20 }}
+                                                >
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                                    <XAxis
+                                                        dataKey="shortName"
+                                                        stroke="#94a3b8"
+                                                        style={{ fontSize: '11px' }}
+                                                        textAnchor="middle"
+                                                    />
+                                                    <YAxis
+                                                        stroke="#94a3b8"
+                                                        style={{ fontSize: '12px' }}
+                                                        domain={[0, 100]}
+                                                        label={{ value: 'Percentage %', angle: -90, position: 'insideLeft', style: { fill: '#94a3b8', fontSize: '12px' } }}
+                                                    />
+                                                    <Tooltip
+                                                        cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
+                                                        contentStyle={{
+                                                            backgroundColor: '#1e293b',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            borderRadius: '12px',
+                                                            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                                                            color: '#ffffff'
+                                                        }}
+                                                        itemStyle={{ color: '#ffffff' }}
+                                                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                                                        formatter={(value, name, props) => {
+                                                            if (name === 'attendance') return [`${value}%`, 'Attendance'];
+                                                            if (name === 'ciePercentage') return [`${props.payload.cie}/50`, 'CIE Score'];
+                                                            return [value, name];
+                                                        }}
+                                                    />
+                                                    <Bar
+                                                        dataKey="attendance"
+                                                        fill="#3b82f6"
+                                                        radius={[4, 4, 0, 0]}
+                                                        barSize={20}
+                                                        name="attendance"
+                                                    />
+                                                    <Bar
+                                                        dataKey="ciePercentage"
+                                                        fill="#a855f7"
+                                                        radius={[4, 4, 0, 0]}
+                                                        barSize={20}
+                                                        name="ciePercentage"
+                                                    />
+                                                </BarChart>
+                                            </ResponsiveContainer>
                                         </div>
                                     </div>
-                                    <div className="chart-body large-chart">
-                                        <ResponsiveContainer width="100%" height={400}>
-                                            <BarChart 
-                                                data={currentSem.map(subject => ({
-                                                    ...subject,
-                                                    shortName: subject.code || (subject.name ? subject.name.substring(0, 8) : 'SUB'),
-                                                    ciePercentage: ((subject.cie || 0) / 50) * 100
-                                                }))} 
-                                                margin={{ top: 20, right: 30, bottom: 40, left: 20 }}
-                                            >
-                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                <XAxis 
-                                                    dataKey="shortName" 
-                                                    stroke="#94a3b8"
-                                                    style={{ fontSize: '11px' }}
-                                                    textAnchor="middle"
-                                                />
-                                                <YAxis 
-                                                    stroke="#94a3b8"
-                                                    style={{ fontSize: '12px' }}
-                                                    domain={[0, 100]}
-                                                    label={{ value: 'Percentage %', angle: -90, position: 'insideLeft', style: { fill: '#94a3b8', fontSize: '12px' } }}
-                                                />
-                                                <Tooltip 
-                                                    cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
-                                                    contentStyle={{ 
-                                                        backgroundColor: '#1e293b', 
-                                                        border: '1px solid rgba(255,255,255,0.1)',
-                                                        borderRadius: '12px',
-                                                        boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
-                                                        color: '#ffffff'
-                                                    }}
-                                                    itemStyle={{ color: '#ffffff' }}
-                                                    labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                                                    formatter={(value, name, props) => {
-                                                        if (name === 'attendance') return [`${value}%`, 'Attendance'];
-                                                        if (name === 'ciePercentage') return [`${props.payload.cie}/50`, 'CIE Score'];
-                                                        return [value, name];
-                                                    }}
-                                                />
-                                                <Bar 
-                                                    dataKey="attendance" 
-                                                    fill="#3b82f6" 
-                                                    radius={[4, 4, 0, 0]}
-                                                    barSize={20}
-                                                    name="attendance"
-                                                />
-                                                <Bar 
-                                                    dataKey="ciePercentage" 
-                                                    fill="#a855f7" 
-                                                    radius={[4, 4, 0, 0]}
-                                                    barSize={20}
-                                                    name="ciePercentage"
-                                                />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="analytics-grid">
+                                )}
                                 {/* Grade Distribution */}
                                 {gradeChartData.length > 0 && (
                                     <div className="chart-card">
@@ -734,10 +509,10 @@ const StudentDashboard = () => {
                                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                     <XAxis dataKey="grade" stroke="#64748b" />
                                                     <YAxis stroke="#64748b" />
-                                                    <Tooltip 
+                                                    <Tooltip
                                                         cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
-                                                        contentStyle={{ 
-                                                            backgroundColor: '#1e293b', 
+                                                        contentStyle={{
+                                                            backgroundColor: '#1e293b',
                                                             border: '1px solid rgba(255,255,255,0.1)',
                                                             borderRadius: '12px',
                                                             color: '#ffffff'
@@ -769,10 +544,10 @@ const StudentDashboard = () => {
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '12px' }} />
                                                 <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
-                                                <Tooltip 
+                                                <Tooltip
                                                     cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
-                                                    contentStyle={{ 
-                                                        backgroundColor: '#1e293b', 
+                                                    contentStyle={{
+                                                        backgroundColor: '#1e293b',
                                                         border: '1px solid rgba(255,255,255,0.1)',
                                                         borderRadius: '12px',
                                                         color: '#ffffff'
@@ -786,59 +561,59 @@ const StudentDashboard = () => {
                                 </div>
 
                                 {/* Performance Insights */}
-                                <div className="insights-card wide-insights">
+                                <div className="chart-card wide-chart">
                                     <div className="chart-header">
                                         <div>
                                             <h3 className="chart-title">Performance Insights</h3>
                                             <p className="chart-subtitle">Key observations from your data</p>
                                         </div>
                                     </div>
-                                    <div className="insights-list">
-                                        <div className="insight-item">
-                                            <div className="insight-icon success">
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                                        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                            <div style={{ color: 'var(--success)' }}>
                                                 <TrendingUp size={20} />
                                             </div>
-                                            <div className="insight-content">
-                                                <div className="insight-title">Academic Standing</div>
-                                                <div className="insight-text">
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '4px' }}>Academic Standing</div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                                                     Your CGPA of {detailedData?.cgpa || latestSGPA} is {detailedData?.cgpa >= 9 ? 'outstanding' : detailedData?.cgpa >= 8 ? 'excellent' : detailedData?.cgpa >= 7 ? 'very good' : 'good'}. {isImproved && sgpaDiff > 0 ? `You've improved by ${sgpaDiff} from last semester!` : ''}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="insight-item">
-                                            <div className={`insight-icon ${overallAttendance >= 85 ? 'success' : overallAttendance >= 75 ? 'warning' : 'danger'}`}>
+                                        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                            <div style={{ color: overallAttendance >= 85 ? 'var(--success)' : overallAttendance >= 75 ? 'var(--warning)' : 'var(--error)' }}>
                                                 <Calendar size={20} />
                                             </div>
-                                            <div className="insight-content">
-                                                <div className="insight-title">Attendance Analysis</div>
-                                                <div className="insight-text">
-                                                    {overallAttendance >= 85 
-                                                        ? 'Excellent attendance! You\'re well above the 75% requirement.' 
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '4px' }}>Attendance Analysis</div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                                                    {overallAttendance >= 85
+                                                        ? 'Excellent attendance! You\'re well above the 75% requirement.'
                                                         : overallAttendance >= 75
-                                                        ? 'Your attendance is adequate but try to aim for 85% for better academic standing.'
-                                                        : 'Warning: Your attendance is below 75%. This may affect your eligibility for exams.'}
+                                                            ? 'Your attendance is adequate but try to aim for 85% for better academic standing.'
+                                                            : 'Warning: Your attendance is below 75%. This may affect your eligibility for exams.'}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="insight-item">
-                                            <div className="insight-icon info">
+                                        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                            <div style={{ color: '#3b82f6' }}>
                                                 <BookOpen size={20} />
                                             </div>
-                                            <div className="insight-content">
-                                                <div className="insight-title">CIE Performance</div>
-                                                <div className="insight-text">
-                                                    Average CIE score of {overallCIE}/50 ({Math.round((overallCIE/50)*100)}%). {overallCIE >= 40 ? 'Strong performance in internals!' : overallCIE >= 30 ? 'Good progress, aim for higher scores.' : 'Focus on improving internal assessments.'}
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '4px' }}>CIE Performance</div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                                                    Average CIE score of {overallCIE}/50 ({Math.round((overallCIE / 50) * 100)}%). {overallCIE >= 40 ? 'Strong performance in internals!' : overallCIE >= 30 ? 'Good progress, aim for higher scores.' : 'Focus on improving internal assessments.'}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="insight-item">
-                                            <div className="insight-icon info">
+                                        <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                            <div style={{ color: '#8b5cf6' }}>
                                                 <Award size={20} />
                                             </div>
-                                            <div className="insight-content">
-                                                <div className="insight-title">Credits Progress</div>
-                                                <div className="insight-text">
-                                                    {totalCredits} out of 160 credits earned ({Math.round((totalCredits/160)*100)}%). {totalCredits >= 120 ? 'You\'re in the final stretch!' : totalCredits >= 80 ? 'Halfway through your degree!' : 'Keep up the good work!'}
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '4px' }}>Credits Progress</div>
+                                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                                                    {totalCredits} out of 160 credits earned ({Math.round((totalCredits / 160) * 100)}%). {totalCredits >= 120 ? 'You\'re in the final stretch!' : totalCredits >= 80 ? 'Halfway through your degree!' : 'Keep up the good work!'}
                                                 </div>
                                             </div>
                                         </div>
@@ -859,61 +634,62 @@ const StudentDashboard = () => {
                             </div>
 
                             {examHistory.length === 0 ? (
-                                <div className="empty-state">
-                                    <History size={64} />
-                                    <h3>No exam history available</h3>
-                                    <p>Your previous semester records will appear here</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                                    <History size={48} color="var(--text-muted)" style={{ marginBottom: '16px' }} />
+                                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>No exam history available</h3>
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Your previous semester records will appear here.</p>
                                 </div>
                             ) : (
                                 <div className="history-grid">
                                     {examHistory.map((sem, idx) => (
-                                        <div key={idx} className="semester-card">
-                                            <div className="semester-header">
-                                                <div className="semester-info">
-                                                    <div className="semester-badge">Semester {idx + 1}</div>
-                                                    <h3 className="semester-title">{sem.semester}</h3>
+                                        <div key={idx} className="chart-card">
+                                            <div className="chart-header" style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+                                                <div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                                        <span className="pill" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>Semester {idx + 1}</span>
+                                                        <h3 className="chart-title" style={{ margin: 0, fontSize: '18px' }}>{sem.semester}</h3>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                                                        <Award size={14} /> <span>{sem.credits_earned} Credits Earned</span>
+                                                    </div>
                                                 </div>
-                                                <div className="semester-sgpa">
-                                                    <div className="sgpa-label">SGPA</div>
-                                                    <div className="sgpa-value">{sem.sgpa}</div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="courses-table">
-                                                <div className="table-header">
-                                                    <div className="col-code">Code</div>
-                                                    <div className="col-name">Course Name</div>
-                                                    <div className="col-grade">Grade</div>
-                                                </div>
-                                                <div className="table-body">
-                                                    {sem.courses?.map((course, cIdx) => (
-                                                        <div key={cIdx} className="table-row">
-                                                            <div className="col-code">
-                                                                <span className="code-badge">{course.code}</span>
-                                                            </div>
-                                                            <div className="col-name">{course.name}</div>
-                                                            <div className="col-grade">
-                                                                <span 
-                                                                    className="grade-badge"
-                                                                    style={{ 
-                                                                        backgroundColor: `${GRADE_COLORS[course.grade] || '#64748b'}20`,
-                                                                        color: GRADE_COLORS[course.grade] || '#64748b',
-                                                                        borderColor: GRADE_COLORS[course.grade] || '#64748b'
-                                                                    }}
-                                                                >
-                                                                    {course.grade}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>SGPA</div>
+                                                    <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)' }}>{sem.sgpa}</div>
                                                 </div>
                                             </div>
-                                            
-                                            <div className="semester-footer">
-                                                <div className="footer-stat">
-                                                    <Award size={16} />
-                                                    <span>{sem.credits_earned} Credits</span>
-                                                </div>
+
+                                            <div className="dashboard-table-container" style={{ border: 'none', borderRadius: '0', background: 'transparent' }}>
+                                                <table className="dashboard-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style={{ padding: '12px 0' }}>Code</th>
+                                                            <th style={{ padding: '12px 0' }}>Course Name</th>
+                                                            <th style={{ padding: '12px 0', textAlign: 'right' }}>Grade</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {sem.courses?.map((course, cIdx) => (
+                                                            <tr key={cIdx}>
+                                                                <td style={{ padding: '12px 0', color: 'var(--text-muted)' }}>{course.code}</td>
+                                                                <td style={{ padding: '12px 0', fontWeight: '500' }}>{course.name}</td>
+                                                                <td style={{ padding: '12px 0', textAlign: 'right' }}>
+                                                                    <span
+                                                                        className="pill"
+                                                                        style={{
+                                                                            backgroundColor: `${GRADE_COLORS[course.grade] || '#64748b'}15`,
+                                                                            color: GRADE_COLORS[course.grade] || '#94a3b8',
+                                                                            borderColor: `${GRADE_COLORS[course.grade] || '#64748b'}30`,
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    >
+                                                                        {course.grade}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     ))}
@@ -922,46 +698,7 @@ const StudentDashboard = () => {
                         </div>
                     )}
 
-                    {/* REPORTS TAB */}
-                    {activeTab === 'reports' && (
-                        <div className="tab-content">
-                            <div className="reports-container">
-                                <div className="reports-card">
-                                    <div className="reports-icon">
-                                        <FileText size={64} />
-                                    </div>
-                                    <h2 className="reports-title">Generate Official Report</h2>
-                                    <p className="reports-description">
-                                        Create a comprehensive PDF report containing your complete academic history, 
-                                        including all semesters, grades, and performance metrics. Perfect for job 
-                                        applications and official documentation.
-                                    </p>
-                                    <button 
-                                        onClick={() => window.open(`/report/${student.usn}`, '_self')}
-                                        className="generate-report-button"
-                                    >
-                                        <Download size={20} />
-                                        <span>Generate PDF Report</span>
-                                        <ExternalLink size={18} />
-                                    </button>
-                                    <div className="reports-features">
-                                        <div className="feature-item">
-                                            <CheckCircle2 size={16} />
-                                            <span>Complete academic history</span>
-                                        </div>
-                                        <div className="feature-item">
-                                            <CheckCircle2 size={16} />
-                                            <span>Professional formatting</span>
-                                        </div>
-                                        <div className="feature-item">
-                                            <CheckCircle2 size={16} />
-                                            <span>Download instantly</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+
                 </div>
             </main>
         </div>
