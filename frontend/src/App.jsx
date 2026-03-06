@@ -29,13 +29,15 @@ function Navbar() {
   const proctorId = location.pathname.split('/')[2];
   const studentUsn = localStorage.getItem("studentUsn");
 
+  const isStudentDashboard = isStudentView && !isReportPage;
+
   return (
-    <nav className="navbar">
-      <div className="container">
+    <nav className="navbar" style={isStudentDashboard ? { borderBottom: '1px solid var(--border-subtle)' } : {}}>
+      <div className="container" style={isStudentDashboard ? { maxWidth: '100%', padding: '0 32px' } : {}}>
         <div className="nav-logo">
-          <Link to="/">
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
-            Smart<span>Report</span>
+            <span style={{ color: 'var(--text-primary)' }}>Smart Report</span>
           </Link>
         </div>
 
@@ -69,13 +71,15 @@ function Navbar() {
           )}
 
           {/* Student Dashboard Context: Show USN and Logout */}
-          {isStudentView && !isReportPage && (
-            <>
-              <span className="role-info">Student: {studentUsn}</span>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '1rem' }}>
+          {isStudentDashboard && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <span className="role-info" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Student: <strong style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{studentUsn}</strong>
+              </span>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.25rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
                 Logout
               </button>
-            </>
+            </div>
           )}
 
           {/* Report Page: Navbar remains empty except for Logo (handled by conditional results above) */}

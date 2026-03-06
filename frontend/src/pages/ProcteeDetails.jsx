@@ -52,7 +52,7 @@ const ProcteeDetails = () => {
 
     if (loading) {
         return (
-            <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
+            <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)', textAlign: 'center' }}>
                 <p>Fetching student profile...</p>
             </div>
         );
@@ -60,7 +60,7 @@ const ProcteeDetails = () => {
 
     if (error || !student) {
         return (
-            <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
+            <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)', textAlign: 'center' }}>
                 <p style={{ color: 'var(--error)', marginBottom: 'var(--space-md)' }}>⚠️ {error || "Student not found"}</p>
                 <button className="btn btn-primary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>Back to Dashboard</button>
             </div>
@@ -70,7 +70,7 @@ const ProcteeDetails = () => {
     const details = student.details || {};
 
     return (
-        <div className="container fade-in" style={{ padding: 'var(--space-lg) 0' }}>
+        <div className="container fade-in" style={{ paddingTop: 'var(--space-lg)', paddingBottom: 'var(--space-lg)' }}>
             {/* Back Button Placement: Aligned with container, above student name */}
             <button
                 style={{

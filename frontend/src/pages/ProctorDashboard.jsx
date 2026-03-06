@@ -71,15 +71,14 @@ const ProctorDashboard = () => {
   }
 
   return (
-    <div className="container fade-in" style={{ padding: 'var(--space-xl) 0' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'var(--space-xl)' }}>
+    <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)' }}>
+      <header style={{ marginBottom: 'var(--space-xl)' }}>
         <div>
           <h1 style={{ marginBottom: 'var(--space-xs)' }}>Proctor Dashboard</h1>
           <p style={{ color: 'var(--text-secondary)' }}>
             Managing {students.length} assigned students
           </p>
         </div>
-        <button className="btn btn-secondary" onClick={handleLogout}>Log out</button>
       </header>
 
       <div className="dashboard-grid">

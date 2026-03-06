@@ -14,7 +14,7 @@ const Home = () => {
 
     return (
         <div className="container fade-in">
-            <header className="hero" style={{ padding: '6rem 0 8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4rem', flexDirection: 'row' }}>
+            <header className="hero" style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4rem', flexDirection: 'row' }}>
                 <div style={{ flex: '1', textAlign: 'left' }}>
                     <h1 style={{ fontSize: '3.5rem', marginBottom: '1.25rem', fontWeight: '800', lineHeight: '1.2' }}>
                         Academic Performance Dashboard
@@ -31,12 +31,12 @@ const Home = () => {
                         </Link>
                     </div>
                 </div>
-                <div style={{ flex: '1.2', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ flex: '1.2', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                     <img
                         src={heroImg}
                         alt="AI Academic Reporting Dashboard Illustration"
                         style={{
-                            maxWidth: '120%',
+                            maxWidth: '100%',
                             height: 'auto',
                             maxHeight: '600px',
                             opacity: 0.85,
@@ -44,7 +44,7 @@ const Home = () => {
                             maskImage: 'radial-gradient(ellipse at center, black 45%, transparent 75%)',
                             WebkitMaskImage: 'radial-gradient(ellipse at center, black 45%, transparent 75%)',
                             objectFit: 'cover',
-                            transform: 'translateX(23%) scale(1.16)'
+                            transform: 'translateX(12%)'
                         }}
                     />
                 </div>
