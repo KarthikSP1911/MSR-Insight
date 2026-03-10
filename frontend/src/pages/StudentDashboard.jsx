@@ -10,7 +10,7 @@ import {
     LayoutDashboard, Target, History, LogOut, FileText,
     ExternalLink, Award, TrendingUp, TrendingDown, BookOpen,
     Calendar, GraduationCap, Trophy, Clock, BarChart3,
-    ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X
+    ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X, RefreshCw
 } from "lucide-react";
 import "./StudentDashboard.css";
 
@@ -30,6 +30,13 @@ const StudentDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('performance');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+
+    const showToast = (message, type = "info") => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: "", type: "info" }), 3000);
+    };
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -42,7 +49,7 @@ const StudentDashboard = () => {
             }
 
             try {
-                const response = await axios.get("http://localhost:5000/api/auth/profile", {
+                const response = await axios.get("http://localhost:5002/api/auth/profile", {
                     headers: { "x-session-id": sessionId },
                 });
 
@@ -50,7 +57,7 @@ const StudentDashboard = () => {
                     setStudent(response.data.data);
                 }
 
-                const detailedResp = await axios.get(`http://localhost:5000/api/report/student/${usn}`, {
+                const detailedResp = await axios.get(`http://localhost:5002/api/report/student/${usn}`, {
                     headers: { "x-session-id": sessionId },
                 });
 
@@ -87,6 +94,30 @@ const StudentDashboard = () => {
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         closeMobileMenu();
+    };
+
+    const handleUpdate = async () => {
+        setIsUpdating(true);
+        try {
+            const sessionId = localStorage.getItem("studentSessionId");
+            const usn = localStorage.getItem("studentUsn");
+
+            const updateResp = await axios.post("http://localhost:5002/api/report/update", { usn }, {
+                headers: { "x-session-id": sessionId },
+            });
+
+            if (updateResp.data.success && updateResp.data.data) {
+                setDetailedData(updateResp.data.data);
+                showToast("Dashboard updated successfully!", "success");
+            } else {
+                showToast("Update finished, but no new data received.", "warning");
+            }
+        } catch (err) {
+            console.error("Failed to update report:", err);
+            showToast("Failed to run update in background. Please try again later.", "error");
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     if (loading) return (
@@ -151,6 +182,36 @@ const StudentDashboard = () => {
 
     return (
         <div className="student-dashboard-container">
+            {/* Custom Toast Notification */}
+            {toast.show && (
+                <div style={{
+                    position: 'fixed',
+                    top: '24px',
+                    right: '24px',
+                    zIndex: 9999,
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    background: toast.type === 'success' ? '#10b981' : toast.type === 'error' ? '#ef4444' : '#f59e0b',
+                    color: '#ffffff',
+                    fontWeight: 500,
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                    animation: 'slideInRight 0.3s ease-out forwards'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                        <span>{toast.message}</span>
+                    </div>
+                </div>
+            )}
+            <style>
+                {`
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                `}
+            </style>
+
             {/* Mobile Menu Toggle Button */}
             <button
                 className="mobile-menu-toggle"
@@ -191,6 +252,22 @@ const StudentDashboard = () => {
                         <History size={20} />
                         <span>Exam History</span>
                     </button>
+                    <button
+                        className="nav-button"
+                        onClick={handleUpdate}
+                        disabled={isUpdating}
+                        style={{ opacity: isUpdating ? 0.7 : 1, cursor: isUpdating ? 'not-allowed' : 'pointer' }}
+                    >
+                        <RefreshCw size={20} className={isUpdating ? "spinning" : ""} style={isUpdating ? { animation: 'spin 2s linear infinite' } : {}} />
+                        <span>{isUpdating ? "Updating Data..." : "Update Dashboard"}</span>
+                    </button>
+                    <style>
+                        {`
+                        @keyframes spin {
+                            100% { transform: rotate(360deg); }
+                        }
+                        `}
+                    </style>
                 </nav>
 
 

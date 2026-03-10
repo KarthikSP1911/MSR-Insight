@@ -22,4 +22,18 @@ const getStudentReport = async (usn) => {
     return response.data?.data;
 };
 
-export { getRemarkByUSN, getStudentReport };
+/**
+ * Triggers a background scrape on FastAPI to refresh the student's data.
+ * @param {string} usn - The student's USN
+ * @param {string} dob - The student's Date of Birth (YYYY-MM-DD)
+ * @returns {Promise<Object>} - The updated student data
+ */
+const triggerScrape = async (usn, dob) => {
+    const response = await axios.post(`${FASTAPI_BASE_URL}/api/scrape`, {
+        usn,
+        dob
+    });
+    return response.data?.data;
+};
+
+export { getRemarkByUSN, getStudentReport, triggerScrape };

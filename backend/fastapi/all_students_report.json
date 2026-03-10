@@ -4,7 +4,7 @@
         "usn": "1MS24IS400",
         "class_details": "B.E-IS,  SEM 06,  SEC A",
         "cgpa": "9.21",
-        "last_updated": "2026-02-28 22:31:05",
+        "last_updated": "2026-03-10 18:45:26",
         "current_semester": [
             {
                 "code": "23AL61",
@@ -40,19 +40,19 @@
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 100
             },
             {
                 "code": "23ISE633",
                 "name": "Block chain essentials and DApps",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 89
             },
             {
                 "code": "23ISE644",
                 "name": "Cloud Computing",
                 "cie": 0,
-                "attendance": 89
+                "attendance": 92
             },
             {
                 "code": "23PHOE04",
@@ -67,12 +67,6 @@
                 "sgpa": "9.23",
                 "credits_earned": "21",
                 "courses": [
-                    {
-                        "code": "23IS35",
-                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
                     {
                         "code": "23IS31(R)",
                         "name": "LAPLACE TRANSFORMS AND VECTOR SPACE",
@@ -110,6 +104,12 @@
                         "grade": "A+"
                     },
                     {
+                        "code": "23IS35",
+                        "name": "DISCRETE MATHEMATICAL STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
                         "code": "23ISAEC393",
                         "name": "NUMERICAL ANALYSIS WITH PYTHON",
                         "gpa": "9",
@@ -135,12 +135,6 @@
                 "credits_earned": "20",
                 "courses": [
                     {
-                        "code": "23IS42",
-                        "name": "MICROCONTROLLER",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23IS43",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
                         "gpa": "9",
@@ -165,6 +159,12 @@
                         "grade": "A+"
                     },
                     {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
                         "code": "23AM41",
                         "name": "ADDITIONAL MATHEMATICS-II",
                         "gpa": "0",
@@ -177,12 +177,6 @@
                         "grade": "O"
                     },
                     {
-                        "code": "23ISL46",
-                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
                         "code": "23ISL48",
                         "name": "ADVANCED JAVA LAB",
                         "gpa": "10",
@@ -191,6 +185,12 @@
                     {
                         "code": "23ISL47",
                         "name": "DATABASE MANAGEMENT SYSTEMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL46",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
                         "gpa": "10",
                         "grade": "O"
                     },
@@ -209,31 +209,31 @@
         "usn": "1MS23IS051",
         "class_details": "B.E-IS,  SEM 06,  SEC B",
         "cgpa": "9.39",
-        "last_updated": "2026-02-24 23:21:53",
+        "last_updated": "2026-03-10 19:03:31",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
                 "cie": 0,
-                "attendance": 63
+                "attendance": 69
             },
             {
                 "code": "23IS62",
                 "name": "Machine Learning",
                 "cie": 0,
-                "attendance": 67
+                "attendance": 73
             },
             {
                 "code": "23ISL65",
                 "name": "Machine Learning Lab",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 60
             },
             {
                 "code": "23ISL66",
                 "name": "DevOps Lab",
                 "cie": 0,
-                "attendance": 50
+                "attendance": 67
             },
             {
                 "code": "23ISP67",
@@ -245,7 +245,7 @@
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 100
             },
             {
                 "code": "23ISE633",
@@ -257,7 +257,7 @@
                 "code": "23ISE641",
                 "name": "Business Analytics",
                 "cie": 0,
-                "attendance": 0
+                "attendance": 43
             },
             {
                 "code": "23PHOE04",
@@ -272,6 +272,18 @@
                 "sgpa": "9.25",
                 "credits_earned": "20",
                 "courses": [
+                    {
+                        "code": "23AECP17",
+                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23HSCP15",
+                        "name": "COMMUNICATIVE ENGLISH",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
                     {
                         "code": "23PYC12",
                         "name": "ENGINEERING PHYSICS",
@@ -295,18 +307,6 @@
                         "name": "PRINCIPLES OF PROGRAMMING USING C",
                         "gpa": "10",
                         "grade": "O"
-                    },
-                    {
-                        "code": "23AECP17",
-                        "name": "A SCIENTIFIC APPROACH TO HEALTH",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23HSCP15",
-                        "name": "COMMUNICATIVE ENGLISH",
-                        "gpa": "9",
-                        "grade": "A+"
                     },
                     {
                         "code": "23ESC133",
@@ -334,6 +334,18 @@
                 "credits_earned": "20",
                 "courses": [
                     {
+                        "code": "23HSCC25",
+                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23HSCC26",
+                        "name": "CONSTITUTION OF INDIA",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
                         "code": "23MAC21",
                         "name": "NUMERICAL TECHNIQUES AND DIFFERENTIAL EQUATIONS",
                         "gpa": "10",
@@ -350,18 +362,6 @@
                         "name": "ENGINEERING CHEMISTRY",
                         "gpa": "10",
                         "grade": "O"
-                    },
-                    {
-                        "code": "23HSCC25",
-                        "name": "PROFESSIONAL WRITING SKILLS IN ENGLISH",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "23HSCC26",
-                        "name": "CONSTITUTION OF INDIA",
-                        "gpa": "9",
-                        "grade": "A+"
                     },
                     {
                         "code": "23ESC231",
@@ -492,12 +492,6 @@
                         "grade": "O"
                     },
                     {
-                        "code": "23ISL48",
-                        "name": "ADVANCED JAVA LAB",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
                         "code": "23ISL47",
                         "name": "DATABASE MANAGEMENT SYSTEMS LAB",
                         "gpa": "10",
@@ -506,6 +500,12 @@
                     {
                         "code": "23ISL46",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23ISL48",
+                        "name": "ADVANCED JAVA LAB",
                         "gpa": "10",
                         "grade": "O"
                     },

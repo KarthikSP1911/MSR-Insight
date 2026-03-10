@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from services.ai_service import AIService
 from services.data_normalizer import DataNormalizer
+from services.scraping import get_complete_student_data, parse_and_save_data
 
 load_dotenv()
 
@@ -36,6 +37,11 @@ class SubjectItem(BaseModel):
 
 class RemarkRequest(BaseModel):
     subjects: list[SubjectItem]
+
+
+class ScrapeRequest(BaseModel):
+    usn: str
+    dob: str  # Format: YYYY-MM-DD
 
 
 @app.get("/")
@@ -76,6 +82,57 @@ def get_student_report(usn: str):
         raise HTTPException(status_code=500, detail="Error decoding data file")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/scrape")
+def trigger_scrape(request: ScrapeRequest):
+    """Triggers the Selenium scraper for a given USN and DOB."""
+    try:
+        # Standardize USN to uppercase
+        request.usn = request.usn.upper()
+        
+        # DOB is expected in YYYY-MM-DD format
+        parts = request.dob.split("-")
+        if len(parts) != 3:
+            raise HTTPException(status_code=400, detail="Invalid DOB format. Expected YYYY-MM-DD.")
+            
+        year, month, day = parts
+        # Remove leading zeros if necessary, or keep as is. The scraper uses string formats.
+        # The frontend sends YYYY-MM-DD where MM and DD might have leading zeros.
+        # Let's clean them to match what the portal expects (e.g. '08' -> '8' for some dropdowns).
+        # Wait, the scraper script does: day = day, month = month, year = year directly.
+        # But wait, does MSRIT portal expect "02" or "2"? Let's assume the frontend passes correctly 
+        # as a standard date picker or string. We'll strip leading zero for day and month just in case 
+        # it expects pure numbers as dropdown values for some months. Wait, the frontend sends 1-31 as "01" or "1"?
+        # Actually in scraping.py, DD, MM, YYYY = "20", "10", "2005" are passed.
+        # So strings are fine. We will strip leading zero from day as most dropdowns use '1' not '01'.
+        # For month, let's keep it as is, or remove leading 0 depending on the portal. Let's just pass them.
+        day = str(int(day))
+        month = str(int(month))
+        year = str(int(year))
+
+        full_data = get_complete_student_data(request.usn, day, month, year)
+        
+        if not full_data:
+            raise HTTPException(status_code=500, detail="Failed to scrape data. Check credentials or portal status.")
+
+        parse_and_save_data(full_data)
+        
+        # After saving, return the latest data from the JSON file
+        with open(SCRAPED_DATA_PATH, "r") as f:
+            scraped_data = json.load(f)
+            
+        if request.usn not in scraped_data:
+             raise HTTPException(status_code=404, detail="Scrape successful but data not found in DB immediately.")
+             
+        return {"success": True, "message": "Scraping completed successfully", "data": scraped_data[request.usn]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Scraping error: {str(e)}")
+
+
 @app.get("/generate-remark/{usn}")
 def generate_remark_by_usn(usn: str):
     """Loads scraped data for the given USN, normalizes it, and returns AI-generated remarks."""
