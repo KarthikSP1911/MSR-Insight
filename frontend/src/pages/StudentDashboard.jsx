@@ -136,11 +136,27 @@ const StudentDashboard = () => {
     const examHistory = detailedData?.exam_history || [];
 
     const overallAttendance = currentSem.length
-        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.attendance, 0) / currentSem.length)
+        ? Math.round(currentSem.reduce((acc, curr) => {
+            const att = curr.attendance_details;
+            const total = att?.present_classes + att?.absent_classes;
+            if (total === 0) return acc;
+            return acc + ((att?.present_classes / total) * 100);
+        }, 0) / currentSem.filter(c => (c.attendance_details?.present_classes + c.attendance_details?.absent_classes) > 0).length || 1)
         : 0;
 
     const overallCIE = currentSem.length
-        ? Math.round(currentSem.reduce((acc, curr) => acc + curr.cie, 0) / currentSem.length)
+        ? Math.round(currentSem.reduce((acc, curr) => {
+            const getMark = (name) => curr.cie_details?.tests?.find(t => t.test_name === name)?.marks_obtained || 0;
+            const t1 = getMark("T 1");
+            const t2 = getMark("T 2");
+            const aq1 = getMark("A/Q 1");
+            const aq2 = getMark("A/Q 2");
+            
+            // Average of T1 and T2 (out of 30), plus aq1+aq2 (each out of 10)
+            const testAvg = (t1 > 0 && t2 > 0) ? Math.round((t1 + t2) / 2) : Math.max(t1, t2);
+            const finalMarks = testAvg + aq1 + aq2;
+            return acc + finalMarks;
+        }, 0) / currentSem.length)
         : 0;
 
     const sgpaTrendData = [...examHistory].reverse().map(sem => ({
@@ -157,9 +173,15 @@ const StudentDashboard = () => {
 
     // Attendance distribution for pie chart
     const attendanceCategories = currentSem.reduce((acc, subject) => {
-        if (subject.attendance >= 85) acc.excellent++;
-        else if (subject.attendance >= 75) acc.good++;
-        else acc.needsImprovement++;
+        const att = subject.attendance_details;
+        const total = att?.present_classes + att?.absent_classes;
+        const percentage = total > 0 ? (att?.present_classes / total) * 100 : 0;
+        
+        if (total > 0) {
+            if (percentage >= 85) acc.excellent++;
+            else if (percentage >= 75) acc.good++;
+            else acc.needsImprovement++;
+        }
         return acc;
     }, { excellent: 0, good: 0, needsImprovement: 0 });
 
@@ -319,7 +341,11 @@ const StudentDashboard = () => {
                                                         minAngle={15}
                                                         background={{ fill: 'rgba(255,255,255,0.03)' }}
                                                         clockWise
-                                                        dataKey="attendance"
+                                                        dataKey={(data) => {
+                                                            const att = data.attendance_details;
+                                                            const total = att?.present_classes + att?.absent_classes;
+                                                            return total > 0 ? Math.round((att.present_classes / total) * 100) : 0;
+                                                        }}
                                                         cornerRadius={10}
                                                         activeShape={false}
                                                     />
@@ -374,10 +400,21 @@ const StudentDashboard = () => {
                                     <div className="chart-body" style={{ height: '380px', width: '100%', minHeight: '380px' }}>
                                         <ResponsiveContainer width="100%" height={380}>
                                             <BarChart
-                                                data={currentSem.map(subject => ({
-                                                    ...subject,
-                                                    code: subject.code || subject.name.substring(0, 6)
-                                                }))}
+                                                data={currentSem.map(subject => {
+                                                    const getMark = (name) => subject.cie_details?.tests?.find(t => t.test_name === name)?.marks_obtained || 0;
+                                                    const t1 = getMark("T 1");
+                                                    const t2 = getMark("T 2");
+                                                    const aq1 = getMark("A/Q 1");
+                                                    const aq2 = getMark("A/Q 2");
+                                                    const testAvg = (t1 > 0 && t2 > 0) ? Math.round((t1 + t2) / 2) : Math.max(t1, t2);
+                                                    const maxCieObtained = testAvg + aq1 + aq2;
+
+                                                    return {
+                                                        ...subject,
+                                                        code: subject.code || subject.name.substring(0, 6),
+                                                        maxCieObtained
+                                                    };
+                                                })}
                                                 margin={{ top: 20, right: 0, left: -20, bottom: 20 }}
                                             >
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -385,13 +422,12 @@ const StudentDashboard = () => {
                                                     dataKey="code"
                                                     stroke="#64748b"
                                                     style={{ fontSize: '11px' }}
-                                                    angle={-45}
-                                                    textAnchor="end"
-                                                    height={80}
                                                     interval={0}
+                                                    height={30}
                                                 />
                                                 <YAxis
                                                     domain={[0, 50]}
+                                                    ticks={[0, 10, 20, 30, 40, 50]}
                                                     stroke="#64748b"
                                                     style={{ fontSize: '12px' }}
                                                 />
@@ -409,7 +445,7 @@ const StudentDashboard = () => {
                                                     labelFormatter={(label) => ''}
                                                 />
                                                 <Bar
-                                                    dataKey="cie"
+                                                    dataKey="maxCieObtained"
                                                     radius={[8, 8, 0, 0]}
                                                     barSize={35}
                                                 >
@@ -423,8 +459,8 @@ const StudentDashboard = () => {
                                                 <defs>
                                                     {currentSem.map((_, index) => (
                                                         <linearGradient key={index} id={`cieGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor="var(--accent-secondary)" stopOpacity={0} />
-                                                            <stop offset="100%" stopColor="#f97316" stopOpacity={0.6} />
+                                                            <stop offset="0%" stopColor="#fbbf24" stopOpacity={1} />
+                                                            <stop offset="100%" stopColor="#f97316" stopOpacity={0.8} />
                                                         </linearGradient>
                                                     ))}
                                                 </defs>
@@ -447,8 +483,20 @@ const StudentDashboard = () => {
                                         </thead>
                                         <tbody>
                                             {currentSem.map((subject, idx) => {
-                                                const attendanceLevel = subject.attendance >= 85 ? 'success' : subject.attendance >= 75 ? 'warning' : 'error';
-                                                const ciePercentage = (subject.cie / 50) * 100;
+                                                const att = subject.attendance_details;
+                                                const totalAtt = att?.present_classes + att?.absent_classes;
+                                                const attPercentage = totalAtt > 0 ? Math.round((att.present_classes / totalAtt) * 100) : 0;
+                                                const attendanceLevel = attPercentage >= 85 ? 'success' : attPercentage >= 75 ? 'warning' : 'error';
+                                                
+                                                const getMark = (name) => subject.cie_details?.tests?.find(t => t.test_name === name)?.marks_obtained || 0;
+                                                const t1 = getMark("T 1");
+                                                const t2 = getMark("T 2");
+                                                const aq1 = getMark("A/Q 1");
+                                                const aq2 = getMark("A/Q 2");
+                                                const testAvg = (t1 > 0 && t2 > 0) ? Math.round((t1 + t2) / 2) : Math.max(t1, t2);
+                                                const maxCieObtained = testAvg + aq1 + aq2;
+                                                
+                                                const ciePercentage = (maxCieObtained / 50) * 100;
                                                 const cieLevel = ciePercentage >= 80 ? 'success' : ciePercentage >= 60 ? 'warning' : 'error';
 
                                                 let status = "Excellent";
@@ -461,12 +509,12 @@ const StudentDashboard = () => {
                                                         <td style={{ fontWeight: 500 }}>{subject.name}</td>
                                                         <td>
                                                             <span className={`pill ${attendanceLevel}`}>
-                                                                {subject.attendance}%
+                                                                {attPercentage}%
                                                             </span>
                                                         </td>
                                                         <td>
                                                             <span className={`pill ${cieLevel}`}>
-                                                                {subject.cie} / 50
+                                                                {maxCieObtained} / 50
                                                             </span>
                                                         </td>
                                                         <td>
@@ -515,11 +563,27 @@ const StudentDashboard = () => {
                                         <div className="chart-body large-chart">
                                             <ResponsiveContainer width="100%" height={400}>
                                                 <BarChart
-                                                    data={currentSem.map(subject => ({
-                                                        ...subject,
-                                                        shortName: subject.code || (subject.name ? subject.name.substring(0, 8) : 'SUB'),
-                                                        ciePercentage: ((subject.cie || 0) / 50) * 100
-                                                    }))}
+                                                    data={currentSem.map(subject => {
+                                                        const att = subject.attendance_details;
+                                                        const totalAtt = att?.present_classes + att?.absent_classes;
+                                                        const attPercentage = totalAtt > 0 ? Math.round((att.present_classes / totalAtt) * 100) : 0;
+                                                        
+                                                        const getMark = (name) => subject.cie_details?.tests?.find(t => t.test_name === name)?.marks_obtained || 0;
+                                                        const t1 = getMark("T 1");
+                                                        const t2 = getMark("T 2");
+                                                        const aq1 = getMark("A/Q 1");
+                                                        const aq2 = getMark("A/Q 2");
+                                                        const testAvg = (t1 > 0 && t2 > 0) ? Math.round((t1 + t2) / 2) : Math.max(t1, t2);
+                                                        const maxCieObtained = testAvg + aq1 + aq2;
+                                                        
+                                                        return {
+                                                            ...subject,
+                                                            shortName: subject.code || (subject.name ? subject.name.substring(0, 8) : 'SUB'),
+                                                            calculatedAttendance: attPercentage,
+                                                            calculatedCie: maxCieObtained,
+                                                            ciePercentage: (maxCieObtained / 50) * 100
+                                                        };
+                                                    })}
                                                     margin={{ top: 20, right: 30, bottom: 40, left: 20 }}
                                                 >
                                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -547,17 +611,17 @@ const StudentDashboard = () => {
                                                         itemStyle={{ color: '#ffffff' }}
                                                         labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                                                         formatter={(value, name, props) => {
-                                                            if (name === 'attendance') return [`${value}%`, 'Attendance'];
-                                                            if (name === 'ciePercentage') return [`${props.payload.cie}/50`, 'CIE Score'];
+                                                            if (name === 'calculatedAttendance') return [`${value}%`, 'Attendance'];
+                                                            if (name === 'ciePercentage') return [`${props.payload.calculatedCie}/50`, 'CIE Score'];
                                                             return [value, name];
                                                         }}
                                                     />
                                                     <Bar
-                                                        dataKey="attendance"
+                                                        dataKey="calculatedAttendance"
                                                         fill="#3b82f6"
                                                         radius={[4, 4, 0, 0]}
                                                         barSize={20}
-                                                        name="attendance"
+                                                        name="calculatedAttendance"
                                                     />
                                                     <Bar
                                                         dataKey="ciePercentage"
