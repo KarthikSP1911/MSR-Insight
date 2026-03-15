@@ -1,5 +1,5 @@
 import proctorRepository from "../repositories/proctor.repository.js";
-import axios from "axios";
+import { getNormalizedReport } from "../services/report.service.js";
 import fs from "fs/promises";
 import path from "path";
 
@@ -20,7 +20,7 @@ class ProctorController {
             let scrapedData = {};
             try {
                 // Adjusting path to point to fastapi directory
-                const filePath = path.join(process.cwd(), '../fastapi/all_students_report.json');
+                const filePath = path.join(process.cwd(), '../fastapi/data/all_students_report.json');
                 const fileContent = await fs.readFile(filePath, 'utf-8');
                 scrapedData = JSON.parse(fileContent);
             } catch (err) {
@@ -66,17 +66,14 @@ class ProctorController {
                 });
             }
 
-            // Fetch full details from FastAPI
+            // Fetch full details from FastAPI using the centralized report service
             let details = {};
             try {
-                // FastAPI expects USN in uppercase as keys in all_students_report.json
                 const normalizedUsn = student.usn.toUpperCase();
-                const response = await axios.get(`http://localhost:8000/get-normalized-report/${normalizedUsn}`);
-                if (response.data) {
-                    details = response.data;
-                }
+                details = await getNormalizedReport(normalizedUsn);
             } catch (err) {
-                console.error("Failed to fetch details from FastAPI", err.message);
+                console.error(`[ProctorController] Failed to fetch details from AI service for USN ${student.usn}:`, err.message);
+                // We continue even if AI service fails, but student details will be empty
             }
 
             return res.status(200).json({

@@ -8,8 +8,8 @@ import requireSession from "../middlewares/session.middleware.js";
 const router = Router();
 
 router.post("/update", requireSession, triggerReportUpdate);
-router.get("/", requireSession, generateReport);
-router.get("/:usn", requireSession, generateReport);
 router.get("/student/:usn", requireSession, getStudentDashboardReport);
+router.get("/:usn", requireSession, generateReport);
+router.get("/", requireSession, generateReport);
 
 export default router;
