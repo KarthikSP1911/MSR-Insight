@@ -38,18 +38,24 @@ class AIService:
             raise ValueError("Input must contain a 'subjects' key.")
 
         subjects = data["subjects"]
-        if not isinstance(subjects, list) or len(subjects) == 0:
-            raise ValueError("'subjects' must be a non-empty list.")
+        if not isinstance(subjects, list):
+            raise ValueError("'subjects' must be a list.")
+        
+        if len(subjects) == 0:
+            raise ValueError("'subjects' list cannot be empty.")
 
         for subject in subjects:
-            required_fields = {
-                "code": str,
-                "name": str,
-                "marks": (int, float),
-                "attendance": (int, float)
-            }
-            for field, expected_type in required_fields.items():
-                if field not in subject:
-                    raise ValueError(f"Subject item missing required field: '{field}'")
-                if not isinstance(subject[field], expected_type):
-                    raise ValueError(f"Field '{field}' in subject must be of type {expected_type}")
+            # Ensure required fields exist with fallback types
+            subject["code"] = str(subject.get("code", "N/A"))
+            subject["name"] = str(subject.get("name", "Unknown"))
+            
+            # Coerce marks and attendance to float, default to 0.0 if missing/invalid
+            try:
+                subject["marks"] = float(subject.get("marks", 0))
+            except (ValueError, TypeError):
+                subject["marks"] = 0.0
+                
+            try:
+                subject["attendance"] = float(subject.get("attendance", 0))
+            except (ValueError, TypeError):
+                subject["attendance"] = 0.0
