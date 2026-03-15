@@ -4,61 +4,597 @@
         "usn": "1MS24IS400",
         "class_details": "B.E-IS,  SEM 06,  SEC A",
         "cgpa": "9.21",
-        "last_updated": "2026-02-28 22:31:05",
+        "last_updated": "2026-03-14 11:13:39",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
-                "cie": 0,
-                "attendance": 100
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 9,
+                    "absent_classes": 0,
+                    "still_to_go": 32,
+                    "classes": {
+                        "present_dates": [
+                            "09-02-2026",
+                            "16-02-2026",
+                            "23-02-2026",
+                            "11-02-2026",
+                            "18-02-2026",
+                            "25-02-2026",
+                            "12-02-2026",
+                            "19-02-2026",
+                            "26-02-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 25
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 25
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 9
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 8
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23IS62",
                 "name": "Machine Learning",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 0,
+                    "absent_classes": 0,
+                    "still_to_go": 53,
+                    "classes": {
+                        "present_dates": [],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISL65",
                 "name": "Machine Learning Lab",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 0,
+                    "absent_classes": 0,
+                    "still_to_go": 13,
+                    "classes": {
+                        "present_dates": [],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISL66",
                 "name": "DevOps Lab",
-                "cie": 0,
-                "attendance": 100
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 4,
+                    "absent_classes": 0,
+                    "still_to_go": 9,
+                    "classes": {
+                        "present_dates": [
+                            "24-02-2026",
+                            "03-03-2026",
+                            "17-02-2026",
+                            "10-03-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISP67",
                 "name": "Mini Project",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 0,
+                    "absent_classes": 0,
+                    "still_to_go": 0,
+                    "classes": {
+                        "present_dates": [],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 4,
+                    "absent_classes": 0,
+                    "still_to_go": 9,
+                    "classes": {
+                        "present_dates": [
+                            "14-02-2026",
+                            "21-02-2026",
+                            "07-03-2026",
+                            "28-02-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 30
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 29
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 10
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 9
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISE633",
                 "name": "Block chain essentials and DApps",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 9,
+                    "absent_classes": 1,
+                    "still_to_go": 27,
+                    "classes": {
+                        "present_dates": [
+                            "11-02-2026",
+                            "25-02-2026",
+                            "11-03-2026",
+                            "12-02-2026",
+                            "26-02-2026",
+                            "05-03-2026",
+                            "13-02-2026",
+                            "27-02-2026",
+                            "06-03-2026"
+                        ],
+                        "absent_dates": [
+                            "04-03-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISE644",
                 "name": "Cloud Computing",
-                "cie": 0,
-                "attendance": 89
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 13,
+                    "absent_classes": 1,
+                    "still_to_go": 26,
+                    "classes": {
+                        "present_dates": [
+                            "10-02-2026",
+                            "17-02-2026",
+                            "24-02-2026",
+                            "03-03-2026",
+                            "10-03-2026",
+                            "18-02-2026",
+                            "25-02-2026",
+                            "04-03-2026",
+                            "11-03-2026",
+                            "13-02-2026",
+                            "20-02-2026",
+                            "27-02-2026",
+                            "06-03-2026"
+                        ],
+                        "absent_dates": [
+                            "11-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23PHOE04",
                 "name": "Biophysics",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 1,
+                    "absent_classes": 0,
+                    "still_to_go": 40,
+                    "classes": {
+                        "present_dates": [
+                            "09-02-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             }
         ],
         "exam_history": [
@@ -67,6 +603,24 @@
                 "sgpa": "9.23",
                 "credits_earned": "21",
                 "courses": [
+                    {
+                        "code": "23IS33",
+                        "name": "DATA STRUCTURES",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23UHV38",
+                        "name": "UNIVERSAL HUMAN VALUE",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
+                        "code": "23IS34",
+                        "name": "OPERATING SYSTEMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
                     {
                         "code": "23IS35",
                         "name": "DISCRETE MATHEMATICAL STRUCTURES",
@@ -90,24 +644,6 @@
                         "name": "ADDITIONAL MATHEMATICS-I",
                         "gpa": "0",
                         "grade": "Pass"
-                    },
-                    {
-                        "code": "23IS33",
-                        "name": "DATA STRUCTURES",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23UHV38",
-                        "name": "UNIVERSAL HUMAN VALUE",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "23IS34",
-                        "name": "OPERATING SYSTEMS",
-                        "gpa": "9",
-                        "grade": "A+"
                     },
                     {
                         "code": "23ISAEC393",
@@ -135,18 +671,6 @@
                 "credits_earned": "20",
                 "courses": [
                     {
-                        "code": "23IS42",
-                        "name": "MICROCONTROLLER",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
-                        "code": "23IS43",
-                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
-                        "gpa": "9",
-                        "grade": "A+"
-                    },
-                    {
                         "code": "23IS44",
                         "name": "DATABASE MANAGEMENT SYSTEMS",
                         "gpa": "9",
@@ -165,6 +689,18 @@
                         "grade": "A+"
                     },
                     {
+                        "code": "23IS42",
+                        "name": "MICROCONTROLLER",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
+                        "code": "23IS43",
+                        "name": "DESIGN AND ANALYSIS OF ALGORITHMS",
+                        "gpa": "9",
+                        "grade": "A+"
+                    },
+                    {
                         "code": "23AM41",
                         "name": "ADDITIONAL MATHEMATICS-II",
                         "gpa": "0",
@@ -177,6 +713,12 @@
                         "grade": "O"
                     },
                     {
+                        "code": "23ISL47",
+                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
+                        "gpa": "10",
+                        "grade": "O"
+                    },
+                    {
                         "code": "23ISL46",
                         "name": "DESIGN AND ANALYSIS OF ALGORITHMS LAB",
                         "gpa": "10",
@@ -185,12 +727,6 @@
                     {
                         "code": "23ISL48",
                         "name": "ADVANCED JAVA LAB",
-                        "gpa": "10",
-                        "grade": "O"
-                    },
-                    {
-                        "code": "23ISL47",
-                        "name": "DATABASE MANAGEMENT SYSTEMS LAB",
                         "gpa": "10",
                         "grade": "O"
                     },
@@ -209,61 +745,621 @@
         "usn": "1MS23IS051",
         "class_details": "B.E-IS,  SEM 06,  SEC B",
         "cgpa": "9.39",
-        "last_updated": "2026-02-24 23:21:53",
+        "last_updated": "2026-03-14 11:40:15",
         "current_semester": [
             {
                 "code": "23AL61",
                 "name": "Management & Entrepreneurship",
-                "cie": 0,
-                "attendance": 63
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 9,
+                    "absent_classes": 4,
+                    "still_to_go": 32,
+                    "classes": {
+                        "present_dates": [
+                            "16-02-2026",
+                            "16-02-2026",
+                            "18-02-2026",
+                            "25-02-2026",
+                            "12-02-2026",
+                            "19-02-2026",
+                            "26-02-2026",
+                            "19-02-2026",
+                            "24-02-2026",
+                            "25-02-2026"
+                        ],
+                        "absent_dates": [
+                            "09-02-2026",
+                            "23-02-2026",
+                            "11-02-2026",
+                            "26-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 29
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 25
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23IS62",
                 "name": "Machine Learning",
-                "cie": 0,
-                "attendance": 67
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 10,
+                    "absent_classes": 6,
+                    "still_to_go": 35,
+                    "classes": {
+                        "present_dates": [
+                            "09-03-2026",
+                            "16-02-2026",
+                            "11-02-2026",
+                            "18-02-2026",
+                            "11-03-2026",
+                            "27-02-2026",
+                            "13-02-2026",
+                            "20-02-2026",
+                            "12-02-2026",
+                            "05-03-2026"
+                        ],
+                        "absent_dates": [
+                            "09-02-2026",
+                            "23-02-2026",
+                            "04-03-2026",
+                            "19-02-2026",
+                            "26-02-2026",
+                            "12-03-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISL65",
                 "name": "Machine Learning Lab",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 3,
+                    "absent_classes": 2,
+                    "still_to_go": 8,
+                    "classes": {
+                        "present_dates": [
+                            "24-02-2026",
+                            "10-03-2026",
+                            "03-03-2026"
+                        ],
+                        "absent_dates": [
+                            "10-02-2026",
+                            "17-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISL66",
                 "name": "DevOps Lab",
-                "cie": 0,
-                "attendance": 50
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 2,
+                    "absent_classes": 1,
+                    "still_to_go": 10,
+                    "classes": {
+                        "present_dates": [
+                            "16-02-2026",
+                            "09-03-2026"
+                        ],
+                        "absent_dates": [
+                            "23-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISP67",
                 "name": "Mini Project",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 0,
+                    "absent_classes": 0,
+                    "still_to_go": 0,
+                    "classes": {
+                        "present_dates": [],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23IS68",
                 "name": "Technical Skill Enhancement Course",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 3,
+                    "absent_classes": 0,
+                    "still_to_go": 10,
+                    "classes": {
+                        "present_dates": [
+                            "28-02-2026",
+                            "14-02-2026",
+                            "21-02-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISE633",
                 "name": "Block chain essentials and DApps",
-                "cie": 0,
-                "attendance": 60
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 3,
+                    "absent_classes": 2,
+                    "still_to_go": 34,
+                    "classes": {
+                        "present_dates": [
+                            "18-02-2026",
+                            "12-02-2026",
+                            "20-02-2026"
+                        ],
+                        "absent_dates": [
+                            "11-02-2026",
+                            "13-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23ISE641",
                 "name": "Business Analytics",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 7,
+                    "absent_classes": 6,
+                    "still_to_go": 26,
+                    "classes": {
+                        "present_dates": [
+                            "24-02-2026",
+                            "03-03-2026",
+                            "04-03-2026",
+                            "18-02-2026",
+                            "25-02-2026",
+                            "20-02-2026",
+                            "06-03-2026"
+                        ],
+                        "absent_dates": [
+                            "10-02-2026",
+                            "17-02-2026",
+                            "10-03-2026",
+                            "11-03-2026",
+                            "13-02-2026",
+                            "27-02-2026"
+                        ]
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             },
             {
                 "code": "23PHOE04",
                 "name": "Biophysics",
-                "cie": 0,
-                "attendance": 0
+                "eligibility": "-",
+                "attendance_details": {
+                    "present_classes": 1,
+                    "absent_classes": 0,
+                    "still_to_go": 40,
+                    "classes": {
+                        "present_dates": [
+                            "09-02-2026"
+                        ],
+                        "absent_dates": []
+                    }
+                },
+                "cie_details": {
+                    "tests": [
+                        {
+                            "test_name": "T 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "T 4",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 1",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 2",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        },
+                        {
+                            "test_name": "A/Q 3",
+                            "class_average": 0,
+                            "max_marks": 0,
+                            "marks_obtained": 0
+                        }
+                    ]
+                }
             }
         ],
         "exam_history": [
