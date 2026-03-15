@@ -1,16 +1,14 @@
-import os
 import time
 from groq import Groq
-
+from config.settings import settings
 
 class GroqLLMProvider:
     def __init__(self):
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
+        if not settings.GROQ_API_KEY:
             raise ValueError("GROQ_API_KEY not set in environment")
 
-        self.client = Groq(api_key=api_key)
-        self.model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        self.client = Groq(api_key=settings.GROQ_API_KEY)
+        self.model = settings.GROQ_MODEL
 
     def generate(self, prompt: str) -> dict:
         try:
@@ -27,7 +25,6 @@ class GroqLLMProvider:
             )
 
             generation_time = int((time.time() - start_time) * 1000)
-
             text = completion.choices[0].message.content.strip()
 
             return {
@@ -36,6 +33,5 @@ class GroqLLMProvider:
                 "model": self.model,
                 "generation_time_ms": generation_time
             }
-
         except Exception as e:
             raise RuntimeError(f"LLM generation failed: {str(e)}")
