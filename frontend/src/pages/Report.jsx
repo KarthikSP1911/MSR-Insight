@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TiptapEditor from '../components/Editor';
 import html2pdf from 'html2pdf.js';
 import './Report.css';
+import { FASTAPI_BASE_URL } from '../config/api.config';
 
-const FASTAPI_BASE = 'http://localhost:8000';
+
 
 // Derive a grade label from marks score
 const getGrade = (score) => {
@@ -40,7 +41,7 @@ const Report = () => {
         const fetchReport = async () => {
             try {
                 setLoading(true);
-                const res = await fetch(`${FASTAPI_BASE}/generate-remark/${USN}`);
+                const res = await fetch(`${FASTAPI_BASE_URL}/generate-remark/${USN}`);
                 if (!res.ok) {
                     const err = await res.json();
                     throw new Error(err.detail || 'Failed to fetch report');
@@ -51,15 +52,19 @@ const Report = () => {
                 setStudentDetail(data.student_detail);
 
                 // We need the subjects; call the normalized endpoint separately
-                const normRes = await fetch(`${FASTAPI_BASE}/get-normalized-report/${USN}`);
+                const normRes = await fetch(`${FASTAPI_BASE_URL}/get-normalized-report/${USN}`);
                 const normData = await normRes.json();
                 const subjects = normData.subjects || [];
-                setMarksData(subjects.map(s => ({
-                    subject: s.name,
-                    attendance: s.attendance,
-                    score: s.marks,
-                    grade: getGrade(s.marks),
-                })));
+                setMarksData(subjects.map(s => {
+                    const marksVal = s.marks ?? 0;
+                    const attendanceVal = s.attendance ?? 0;
+                    return {
+                        subject: s.name || 'Unknown',
+                        attendance: attendanceVal,
+                        score: marksVal,
+                        grade: getGrade(marksVal),
+                    };
+                }));
 
                 // Set system remarks from AI
                 const remarkHtml = data.ai_remark

@@ -2,7 +2,7 @@
 set "ROOT=%~dp0"
 
 echo Starting FastAPI Backend...
-start "FastAPI Backend" cmd /k "cd /d %ROOT%backend\fastapi && call venv\Scripts\activate && uvicorn main:app --reload --port 8000"
+start "FastAPI Backend" cmd /k "cd /d %ROOT%backend\fastapi && call venv\Scripts\activate && python main.py"
 
 echo Starting Express Backend...
 start "Express Backend" cmd /k "cd /d %ROOT%backend\express && node server.js"
