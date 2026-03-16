@@ -4,3 +4,7 @@ groq
 python-dotenv
 pydantic
 pydantic-settings
+selenium
+beautifulsoup4
+requests
+urllib3

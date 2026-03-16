@@ -23,8 +23,14 @@ const initDb = async () => {
                 name TEXT NOT NULL,
                 class_details TEXT,
                 cgpa NUMERIC(4,2),
-                last_updated TIMESTAMP
+                last_updated TIMESTAMP,
+                exam_history JSONB
             );
+        `);
+
+        // Ensure the column exists if the table was already created
+        await client.query(`
+            ALTER TABLE students ADD COLUMN IF NOT EXISTS exam_history JSONB;
         `);
 
         await client.query(`
