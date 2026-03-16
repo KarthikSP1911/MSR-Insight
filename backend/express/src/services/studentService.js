@@ -12,7 +12,7 @@ class StudentService {
 
         // 1. Check if the student exists in the `students` table
         const studentResult = await pool.query(
-            'SELECT usn, name, class_details, cgpa, last_updated FROM students WHERE UPPER(usn) = $1',
+            'SELECT usn, name, class_details, cgpa, last_updated, exam_history FROM students WHERE UPPER(usn) = $1',
             [normalizedUsn]
         );
 
@@ -104,7 +104,7 @@ class StudentService {
                 ? student.last_updated.toISOString().replace('T', ' ').substring(0, 19)
                 : null,
             current_semester: currentSemSubjects,
-            exam_history: examHistory,
+            exam_history: student.exam_history || [],
         };
     }
 
@@ -113,7 +113,8 @@ class StudentService {
      * Returns data in the same shape the frontend expects.
      */
     async _getExamHistory(usn) {
-        // Get all semesters for this student
+        // This method is now legacy as exam_history is stored as JSONB in students table.
+        // Keeping it for potential backward compatibility or if needed by other services.
         const semestersResult = await pool.query(
             `SELECT id, semester_label, sgpa, credits_earned
              FROM exam_history_semesters
@@ -128,7 +129,6 @@ class StudentService {
 
         const semesterIds = semestersResult.rows.map(s => s.id);
 
-        // Get all courses across all semesters
         const coursesResult = await pool.query(
             `SELECT semester_id, course_code, course_name, gpa, grade
              FROM exam_history_courses
@@ -137,7 +137,6 @@ class StudentService {
             [semesterIds]
         );
 
-        // Group courses by semester_id
         const coursesMap = {};
         for (const course of coursesResult.rows) {
             const sid = course.semester_id;
@@ -150,7 +149,6 @@ class StudentService {
             });
         }
 
-        // Build the exam_history array matching the expected format
         return semestersResult.rows.map(sem => ({
             semester: sem.semester_label,
             sgpa: sem.sgpa ? String(sem.sgpa) : "0",
@@ -193,22 +191,24 @@ class StudentService {
             try {
                 await client.query('BEGIN');
 
-                // 1. Upsert student
+                // 1. Upsert student (including exam_history as JSONB)
                 await client.query(`
-                    INSERT INTO students (usn, name, class_details, cgpa, last_updated)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO students (usn, name, class_details, cgpa, last_updated, exam_history)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     ON CONFLICT (usn)
                     DO UPDATE SET
                         name = EXCLUDED.name,
                         class_details = EXCLUDED.class_details,
                         cgpa = EXCLUDED.cgpa,
-                        last_updated = EXCLUDED.last_updated;
+                        last_updated = EXCLUDED.last_updated,
+                        exam_history = EXCLUDED.exam_history;
                 `, [
                     student.usn,
                     student.name,
                     student.class_details,
                     isNaN(parseFloat(student.cgpa)) ? null : parseFloat(student.cgpa),
-                    student.last_updated
+                    student.last_updated,
+                    JSON.stringify(student.exam_history || [])
                 ]);
 
                 // 2. Derive semester from class_details
@@ -269,49 +269,8 @@ class StudentService {
                     }
                 }
 
-                // 5. Process exam_history — upsert semesters and courses
-                if (student.exam_history && Array.isArray(student.exam_history)) {
-                    for (const sem of student.exam_history) {
-                        // Upsert the semester record
-                        const semResult = await client.query(`
-                            INSERT INTO exam_history_semesters (usn, semester_label, sgpa, credits_earned)
-                            VALUES ($1, $2, $3, $4)
-                            ON CONFLICT (usn, semester_label)
-                            DO UPDATE SET
-                                sgpa = EXCLUDED.sgpa,
-                                credits_earned = EXCLUDED.credits_earned
-                            RETURNING id;
-                        `, [
-                            student.usn,
-                            sem.semester,
-                            isNaN(parseFloat(sem.sgpa)) ? null : parseFloat(sem.sgpa),
-                            isNaN(parseInt(sem.credits_earned)) ? null : parseInt(sem.credits_earned)
-                        ]);
-
-                        const semesterId = semResult.rows[0].id;
-
-                        // Upsert courses for this semester
-                        if (sem.courses && Array.isArray(sem.courses)) {
-                            for (const course of sem.courses) {
-                                await client.query(`
-                                    INSERT INTO exam_history_courses (semester_id, course_code, course_name, gpa, grade)
-                                    VALUES ($1, $2, $3, $4, $5)
-                                    ON CONFLICT (semester_id, course_code)
-                                    DO UPDATE SET
-                                        course_name = EXCLUDED.course_name,
-                                        gpa = EXCLUDED.gpa,
-                                        grade = EXCLUDED.grade;
-                                `, [
-                                    semesterId,
-                                    course.code,
-                                    course.name,
-                                    isNaN(parseFloat(course.gpa)) ? null : parseFloat(course.gpa),
-                                    course.grade
-                                ]);
-                            }
-                        }
-                    }
-                }
+                // 5. Logic to sync exam_history to separate tables is now removed 
+                // as it's stored as JSONB in the students table in step 1.
 
                 await client.query('COMMIT');
                 results.success.push(usn);

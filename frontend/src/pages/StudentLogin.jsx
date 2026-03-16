@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api.config";
+
 
 const CustomSelect = ({ value, onChange, options, placeholder }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -88,7 +90,7 @@ const StudentLogin = () => {
         const formattedDate = `${year}-${String(monthIndex).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
         try {
-            const response = await axios.post("http://localhost:5002/api/auth/login", {
+            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
                 usn,
                 dob: formattedDate,
             });

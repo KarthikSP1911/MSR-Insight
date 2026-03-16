@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { FASTAPI_BASE_URL } from '../config/api.config';
+
 import heroImg from '../assets/hero_academic_v2.png';
 
 const Home = () => {
     const [data, setData] = useState("");
 
     useEffect(() => {
-        axios.get("http://localhost:8000/")
+        axios.get(`${FASTAPI_BASE_URL}/`)
             .then(res => setData(res.data.message))
             .catch(err => console.error(err));
     }, []);

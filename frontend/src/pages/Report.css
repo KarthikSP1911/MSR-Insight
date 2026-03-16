@@ -368,7 +368,8 @@
 .editable-remarks-container h4 {
     font-size: 0.75rem;
     /* Reduced from 0.78rem */
-    color: #475569;
+    color: #000000;
+    /* Changed from #475569 to black */
     margin-bottom: 4px;
     /* Reduced from 6px */
     text-transform: uppercase;
@@ -377,30 +378,39 @@
 }
 
 .tiptap-editor-container {
-    border: 2px solid #666;
+    border: 2px solid #334155;
     border-radius: 8px;
     overflow: hidden;
-    background: #f8fafc;
+    background: #ffffff;
     transition: all 0.2s ease;
 }
 
 .tiptap-editor-container:focus-within {
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
-
-
 
 .tiptap-content {
     padding: 10px;
     min-height: 80px;
-    /* Reduced from 100px */
     outline: none;
     font-size: 0.85rem;
-    /* Reduced from 0.9rem */
     line-height: 1.5;
-    /* Slightly tighter leading */
+}
+
+/* Specific targeting for TipTap's internal classes */
+.tiptap-content .ProseMirror {
+    color: #000000 !important;
+    outline: none;
+}
+
+.tiptap-content .ProseMirror p {
+    color: #000000 !important;
+    margin: 0 0 8px 0;
+}
+
+.tiptap-content .ProseMirror p:last-child {
+    margin-bottom: 0;
 }
 
 .tiptap-content ul {

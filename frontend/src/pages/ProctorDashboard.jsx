@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api.config";
+
 
 const ProctorDashboard = () => {
   const { proctorId } = useParams();
@@ -20,7 +22,7 @@ const ProctorDashboard = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:5000/api/proctor/${proctorId}/dashboard`, {
+        const response = await axios.get(`${API_BASE_URL}/api/proctor/${proctorId}/dashboard`, {
           headers: { "x-session-id": sessionId }
         });
 

@@ -13,6 +13,8 @@ import {
     ChevronDown, Download, AlertCircle, CheckCircle2, XCircle, Menu, X, RefreshCw
 } from "lucide-react";
 import "./StudentDashboard.css";
+import { API_BASE_URL } from "../config/api.config";
+
 
 const GRADE_COLORS = {
     'O': '#8b5cf6',
@@ -49,7 +51,7 @@ const StudentDashboard = () => {
             }
 
             try {
-                const response = await axios.get("http://localhost:5002/api/auth/profile", {
+                const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
                     headers: { "x-session-id": sessionId },
                 });
 
@@ -57,18 +59,27 @@ const StudentDashboard = () => {
                     setStudent(response.data.data);
                 }
 
-                const detailedResp = await axios.get(`http://localhost:5002/api/report/student/${usn}`, {
+                const detailedResp = await axios.get(`${API_BASE_URL}/api/report/student/${usn}`, {
                     headers: { "x-session-id": sessionId },
                 });
 
                 if (detailedResp.data.success && detailedResp.data.data) {
                     setDetailedData(detailedResp.data.data);
+
+                    // Notify user about data source
+                    if (detailedResp.data.source === "scraper") {
+                        showToast("Fresh data scraped and saved to database!", "success");
+                    } else if (detailedResp.data.source === "database") {
+                        // Data loaded from PostgreSQL cache — no notification needed
+                    }
                 }
 
             } catch (err) {
                 if (err.response?.status === 401) {
                     localStorage.clear();
                     navigate("/student-login");
+                } else if (err.response?.status === 503) {
+                    showToast("Scraping service is unavailable. Please try again later.", "error");
                 }
             } finally {
                 setLoading(false);
@@ -102,7 +113,7 @@ const StudentDashboard = () => {
             const sessionId = localStorage.getItem("studentSessionId");
             const usn = localStorage.getItem("studentUsn");
 
-            const updateResp = await axios.post("http://localhost:5002/api/report/update", { usn }, {
+            const updateResp = await axios.post(`${API_BASE_URL}/api/report/update`, { usn }, {
                 headers: { "x-session-id": sessionId },
             });
 
