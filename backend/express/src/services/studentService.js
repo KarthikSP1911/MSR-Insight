@@ -237,10 +237,10 @@ class StudentService {
                             semester,
                             subject.code,
                             subject.name,
-                            subject.attendance?.present ?? 0,
-                            subject.attendance?.absent ?? 0,
-                            subject.attendance?.remaining ?? 0,
-                            subject.attendance?.percentage ?? 0
+                            subject.attendance_details?.present ?? 0,
+                            subject.attendance_details?.absent ?? 0,
+                            subject.attendance_details?.remaining ?? 0,
+                            subject.attendance_details?.percentage ?? (subject.attendance ?? 0)
                         ]);
 
                         const studentSubjectId = subjectResult.rows[0].id;
