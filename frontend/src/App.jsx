@@ -6,6 +6,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ProctorLogin from "./pages/ProctorLogin";
 import ProctorDashboard from "./pages/ProctorDashboard";
 import ProcteeDetails from "./pages/ProcteeDetails";
+import AdminPanel from "./pages/AdminPanel";
 import "./App.css";
 
 function Navbar() {
@@ -17,6 +18,7 @@ function Navbar() {
   const isProctorView = location.pathname.startsWith("/proctor/") && !location.pathname.includes("login") && !isReportPage;
   const isStudentView = location.pathname.startsWith("/student/") && !location.pathname.includes("login");
   const isAuthPage = location.pathname.includes("login");
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   const handleLogout = () => {
     localStorage.clear();
@@ -43,7 +45,7 @@ function Navbar() {
 
         <div className="nav-actions">
           {/* Home & Login Pages: Show simple entry links */}
-          {(isHome || isAuthPage) && !isReportPage && (
+          {(isHome || isAuthPage) && !isReportPage && !isAdminPage && (
             <>
               <Link
                 to="/student-login"
@@ -104,6 +106,7 @@ function App() {
             <Route path="/proctor-login" element={<ProctorLogin />} />
             <Route path="/proctor/:proctorId/dashboard" element={<ProctorDashboard />} />
             <Route path="/proctor/:proctorId/student/:usn" element={<ProcteeDetails />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Routes>
         </main>
       </div>

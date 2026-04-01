@@ -14,9 +14,14 @@ from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
 from config.settings import settings
 
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+# BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+# BRAVE_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 def get_complete_student_data(usn, day, month, year):
     options = Options()
@@ -28,7 +33,7 @@ def get_complete_student_data(usn, day, month, year):
     options.add_argument("--blink-settings=imagesEnabled=false")
     options.page_load_strategy = 'eager'
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     
     try:
         print(f"[*] Accessing portal for USN: {usn}...")
