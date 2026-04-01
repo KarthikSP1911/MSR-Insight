@@ -19,11 +19,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+# BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+# BRAVE_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 def get_complete_student_data(usn, day, month, year):
     options = Options()
-    options.binary_location = CHROME_PATH
+    options.binary_location = BRAVE_PATH
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api.config";
+import DOBSelector from "../components/DOBSelector";
 import "./AdminPanel.css";
 
 const ADMIN_PASSWORD = "admin123";
@@ -143,9 +144,11 @@ function ProctorCard({
               onDelete(proctor);
             }}
           >
-            🗑
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
           </button>
-          <span className={`expand-icon ${expanded ? "rotated" : ""}`}>▼</span>
+          <span className={`expand-icon ${expanded ? "rotated" : ""}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
       </div>
 
@@ -157,7 +160,12 @@ function ProctorCard({
               className="add-student-btn"
               onClick={() => setShowAddStudent(!showAddStudent)}
             >
-              {showAddStudent ? "✕ Cancel" : "+ Add Student"}
+              {showAddStudent ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              )}
+              {showAddStudent ? "Cancel" : "Add Student"}
             </button>
           </div>
 
@@ -171,12 +179,7 @@ function ProctorCard({
                 required
                 autoFocus
               />
-              <input
-                type="text"
-                placeholder="DOB (optional, for new)"
-                value={newStudentDob}
-                onChange={(e) => setNewStudentDob(e.target.value)}
-              />
+              <DOBSelector value={newStudentDob} onChange={setNewStudentDob} />
               <button
                 type="submit"
                 className="btn btn-primary btn-sm"
@@ -210,7 +213,8 @@ function ProctorCard({
                     onClick={() => handleRemoveStudent(s.usn)}
                     title="Remove from proctor"
                   >
-                    ✕ Remove
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px', display: 'inline-block', verticalAlign: 'middle' }}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    Remove
                   </button>
                 </div>
               ))}
@@ -378,7 +382,9 @@ export default function AdminPanel() {
     return (
       <div className="admin-gate">
         <form className="admin-gate-card" onSubmit={handleLogin}>
-          <div className="gate-icon">🔒</div>
+          <div className="gate-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
           <h2>Admin Access</h2>
           <p>Enter the admin password to continue</p>
           {authError && <div className="gate-error">{authError}</div>}
@@ -404,7 +410,9 @@ export default function AdminPanel() {
       {/* Header */}
       <div className="admin-header">
         <h1>
-          <span className="accent">⚡</span> Admin Panel
+          <span className="accent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </span> Admin Panel
         </h1>
         <div className="admin-header-actions">
           <button className="admin-logout-btn" onClick={handleLogout}>
@@ -416,21 +424,27 @@ export default function AdminPanel() {
       {/* Stats */}
       <div className="admin-stats">
         <div className="stat-card">
-          <div className="stat-icon orange">👨‍🏫</div>
+          <div className="stat-icon orange">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
           <div>
             <div className="stat-value">{proctors.length}</div>
             <div className="stat-label">Total Proctors</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon green">🎓</div>
+          <div className="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
           <div>
             <div className="stat-value">{totalStudents}</div>
             <div className="stat-label">Assigned Students</div>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon blue">📋</div>
+          <div className="stat-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+          </div>
           <div>
             <div className="stat-value">{unassignedCount}</div>
             <div className="stat-label">Unassigned Students</div>
@@ -441,10 +455,15 @@ export default function AdminPanel() {
       {/* Proctor Management Section */}
       <div className="admin-section">
         <div className="admin-section-header">
-          <h2>👥 Proctor Management</h2>
+          <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Proctor Management
+          </h2>
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
             <div className="admin-search">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </span>
               <input
                 type="text"
                 placeholder="Search proctors..."
