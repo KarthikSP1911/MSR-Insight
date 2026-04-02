@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api.config";
+import CustomDropdown from "../components/CustomDropdown";
 import "./ProctorDashboard.css";
 
 /**
@@ -62,17 +63,44 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
-      const matchesSearch = 
+      const matchesSearch =
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.usn.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesSemester = semesterFilter === "All" || (student.semester && student.semester === semesterFilter);
       const matchesSection = sectionFilter === "All" || (student.section && student.section === sectionFilter);
-      const matchesStatus = statusFilter === "All"; 
+      const matchesStatus = statusFilter === "All";
 
       return matchesSearch && matchesSemester && matchesSection && matchesStatus;
     });
   }, [students, searchTerm, semesterFilter, sectionFilter, statusFilter]);
+
+  const semesterOptions = [
+    { value: "All", label: "Semester" },
+    { value: "Sem 01", label: "Sem 01" },
+    { value: "Sem 02", label: "Sem 02" },
+    { value: "Sem 03", label: "Sem 03" },
+    { value: "Sem 04", label: "Sem 04" },
+    { value: "Sem 05", label: "Sem 05" },
+    { value: "Sem 06", label: "Sem 06" },
+    { value: "Sem 07", label: "Sem 07" },
+    { value: "Sem 08", label: "Sem 08" },
+  ];
+
+  const sectionOptions = [
+    { value: "All", label: "Section" },
+    { value: "Sec A", label: "Sec A" },
+    { value: "Sec B", label: "Sec B" },
+    { value: "Sec C", label: "Sec C" },
+  ];
+
+  const statusOptions = [
+    { value: "All", label: "Performance Status" },
+    { value: "Excellent", label: "Excellent" },
+    { value: "Good", label: "Good" },
+    { value: "Average", label: "Average" },
+    { value: "At Risk", label: "At Risk" },
+  ];
 
   if (loading) {
     return (
@@ -96,44 +124,38 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
     <div className="proctor-dashboard fade-in">
       <section className="filter-bar">
         <div className="filter-item search-box">
-          <span className="search-icon">🔍</span>
+          <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
           <input 
             type="text" 
-            placeholder="Search by Name or USN" 
+            placeholder="Search by student name or USN..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="filter-item">
-          <select value={semesterFilter} onChange={(e) => setSemesterFilter(e.target.value)}>
-            <option value="All">Semester</option>
-            <option value="Sem 01">Sem 01</option>
-            <option value="Sem 02">Sem 02</option>
-            <option value="Sem 03">Sem 03</option>
-            <option value="Sem 04">Sem 04</option>
-            <option value="Sem 05">Sem 05</option>
-            <option value="Sem 06">Sem 06</option>
-            <option value="Sem 07">Sem 07</option>
-            <option value="Sem 08">Sem 08</option>
-          </select>
-        </div>
-        <div className="filter-item">
-          <select value={sectionFilter} onChange={(e) => setSectionFilter(e.target.value)}>
-            <option value="All">Section</option>
-            <option value="Sec A">Sec A</option>
-            <option value="Sec B">Sec B</option>
-            <option value="Sec C">Sec C</option>
-          </select>
-        </div>
-        <div className="filter-item">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">Performance Status</option>
-            <option value="Excellent">Excellent</option>
-            <option value="Good">Good</option>
-            <option value="Average">Average</option>
-            <option value="At Risk">At Risk</option>
-          </select>
-        </div>
+
+        <CustomDropdown 
+          options={semesterOptions} 
+          value={semesterFilter} 
+          onChange={setSemesterFilter} 
+          placeholder="Semester"
+        />
+
+        <CustomDropdown 
+          options={sectionOptions} 
+          value={sectionFilter} 
+          onChange={setSectionFilter} 
+          placeholder="Section"
+        />
+
+        <CustomDropdown 
+          options={statusOptions} 
+          value={statusFilter} 
+          onChange={setStatusFilter} 
+          placeholder="Performance Status"
+        />
       </section>
 
       <div className="proctees-grid grid-container">

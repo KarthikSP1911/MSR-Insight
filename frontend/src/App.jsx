@@ -8,6 +8,7 @@ import ProctorLogin from "./pages/ProctorLogin";
 import ProctorDashboard from "./pages/ProctorDashboard";
 import ProcteeDetails from "./pages/ProcteeDetails";
 import AdminPanel from "./pages/AdminPanel";
+import CustomDropdown from "./components/CustomDropdown";
 import "./App.css";
 
 function Navbar({ academicYear, setAcademicYear }) {
@@ -33,11 +34,16 @@ function Navbar({ academicYear, setAcademicYear }) {
   const proctorId = pathParts[1] === 'proctor' ? pathParts[2] : null;
   const studentUsn = localStorage.getItem("studentUsn");
 
+  const academicYearOptions = [
+    { value: "2027", label: "2027" },
+    { value: "2028", label: "2028" },
+  ];
+
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
     <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: '#0D1117' } : {}}>
-      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 40px' } : {}}>
+      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 160px' } : {}}>
         <div className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
             <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
@@ -72,26 +78,18 @@ function Navbar({ academicYear, setAcademicYear }) {
           {/* Proctor Dashboard Context: Show ID and Logout */}
           {isProctorView && !isReportPage && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <div className="navbar-academic-setup" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Academic Year:</span>
-                <select 
-                  value={academicYear} 
-                  onChange={(e) => setAcademicYear(e.target.value)}
-                  style={{ 
-                    background: 'var(--bg-card)', 
-                    color: 'var(--text-primary)', 
-                    border: '1px solid var(--border-subtle)', 
-                    borderRadius: '6px', 
-                    padding: '4px 8px',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="2027">2027</option>
-                  <option value="2028">2028</option>
-                </select>
+              <div className="navbar-academic-setup" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Academic Year:</span>
+                <div style={{ width: '140px' }}>
+                  <CustomDropdown 
+                    options={academicYearOptions} 
+                    value={academicYear} 
+                    onChange={setAcademicYear} 
+                    placeholder="2027"
+                  />
+                </div>
               </div>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.25rem', fontSize: '0.95rem', background: '#2D3748', border: 'none' }}>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.5rem', fontSize: '0.95rem', background: '#2D3748', border: 'none', marginLeft: '8px' }}>
                 Logout
               </button>
             </div>
