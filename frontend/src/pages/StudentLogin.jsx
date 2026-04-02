@@ -86,8 +86,9 @@ const StudentLogin = () => {
         setError("");
         setLoading(true);
 
-        const monthIndex = months.indexOf(month) + 1;
-        const formattedDate = `${year}-${String(monthIndex).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const monthIndex = String(months.indexOf(month) + 1).padStart(2, "0");
+        const formattedDay = String(day).padStart(2, "0");
+        const formattedDate = `${formattedDay}-${monthIndex}-${year}`;
 
         try {
             const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {

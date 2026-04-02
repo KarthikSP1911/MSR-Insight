@@ -3,7 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api.config";
 
-
+/**
+ * ProcteeDetails: Displays detailed student profile information to the proctor.
+ * Integrated with the new JSONB-centric schema.
+ */
 const ProcteeDetails = () => {
     const { proctorId, usn } = useParams();
     const navigate = useNavigate();
@@ -44,7 +47,7 @@ const ProcteeDetails = () => {
         if (proctorId && usn) {
             fetchStudentDetails();
         }
-    }, [proctorId, usn]);
+    }, [proctorId, usn, navigate]);
 
     const handleGenerateReport = () => {
         if (student?.usn) {
@@ -73,7 +76,6 @@ const ProcteeDetails = () => {
 
     return (
         <div className="container fade-in" style={{ paddingTop: 'var(--space-lg)', paddingBottom: 'var(--space-lg)' }}>
-            {/* Back Button Placement: Aligned with container, above student name */}
             <button
                 style={{
                     display: 'inline-flex',
@@ -84,7 +86,7 @@ const ProcteeDetails = () => {
                     textDecoration: 'none',
                     fontSize: '0.9rem',
                     background: 'transparent',
-                    border: '1px solid var(--border-bright)',
+                    border: '1px solid var(--border-subtle)',
                     padding: '8px 16px',
                     borderRadius: 'var(--radius-sm)',
                     cursor: 'pointer',
@@ -95,7 +97,6 @@ const ProcteeDetails = () => {
                 ← Back to Dashboard
             </button>
 
-            {/* Header: Student Name (Left) | Generate Report (Right) */}
             <header style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -107,11 +108,11 @@ const ProcteeDetails = () => {
                 border: '1px solid var(--border-subtle)'
             }}>
                 <div>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '4px', fontWeight: '800' }}>
-                        {details.name || student.usn}
+                    <h1 style={{ fontSize: '2.5rem', marginBottom: '4px', fontWeight: '800', color: 'white' }}>
+                        {student.name || student.usn}
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-                        USN: <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{student.usn}</span>
+                        USN: <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>{student.usn}</span>
                         {' • '}
                         {details.class_details || "Student Profile Active"}
                     </p>
@@ -121,13 +122,11 @@ const ProcteeDetails = () => {
                 </button>
             </header>
 
-            {/* Two-Column Grid Layout */}
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
                 gap: '24px'
             }}>
-                {/* Personal Information Card */}
                 <div className="card" style={{ padding: 'var(--space-lg)' }}>
                     <h2 style={{
                         fontSize: '1.25rem',
@@ -142,26 +141,25 @@ const ProcteeDetails = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                         <div>
                             <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Name</span>
-                            <span style={{ fontWeight: '500', fontSize: '1.1rem' }}>{details.name || "Not Available"}</span>
+                            <span style={{ fontWeight: '500', fontSize: '1.1rem', color: 'white' }}>{student.name || "Not Available"}</span>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
                             <div>
                                 <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>USN</span>
-                                <span style={{ fontWeight: '500' }}>{student.usn}</span>
+                                <span style={{ fontWeight: '500', color: 'white' }}>{student.usn}</span>
                             </div>
                             <div>
                                 <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date of Birth</span>
-                                <span style={{ fontWeight: '500' }}>{student.dob}</span>
+                                <span style={{ fontWeight: '500', color: 'white' }}>{student.dob || 'N/A'}</span>
                             </div>
                         </div>
                         <div>
-                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Class Details</span>
-                            <span style={{ fontWeight: '500' }}>{details.class_details || "Not Available"}</span>
+                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>
+                            <span style={{ fontWeight: '500', color: 'white' }}>{student.email || "Not Available"}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Academic Status Card */}
                 <div className="card" style={{ padding: 'var(--space-lg)' }}>
                     <h2 style={{
                         fontSize: '1.25rem',
@@ -185,8 +183,8 @@ const ProcteeDetails = () => {
                         }}>
                             <div>
                                 <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current CGPA</span>
-                                <span style={{ color: details.cgpa ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: '2.5rem', fontWeight: '700' }}>
-                                    {details.cgpa || "—"}
+                                <span style={{ color: 'white', fontSize: '2.5rem', fontWeight: '700' }}>
+                                    {details.cgpa || "N/A"}
                                 </span>
                             </div>
                             <div style={{ textAlign: 'right' }}>
@@ -195,25 +193,25 @@ const ProcteeDetails = () => {
                                     color: details.cgpa >= 5 ? 'var(--success)' : 'var(--warning)',
                                     fontWeight: '600'
                                 }}>
-                                    {details.cgpa ? (details.cgpa >= 5 ? 'Good Standing' : 'Needs Regularity') : '—'}
+                                    {details.cgpa ? (details.cgpa >= 5 ? 'Good Standing' : 'Needs Regularity') : 'Profile Incomplete'}
                                 </span>
                             </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
                             <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700' }}>{(details.current_semester || []).length}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Registered Courses</span>
+                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700', color: 'white' }}>{(details.current_semester || []).length}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Courses</span>
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700' }}>{(details.exam_history || []).length}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Academic Terms</span>
+                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700', color: 'white' }}>{(details.exam_history || []).length}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Completed Semesters</span>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>Information Currency</span>
-                            <span style={{ color: 'var(--text-secondary)' }}>Updated: {details.last_updated || "—"}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>Last Scraped</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>{details.last_updated || "Never"}</span>
                         </div>
                     </div>
                 </div>
