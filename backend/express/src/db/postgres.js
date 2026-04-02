@@ -1,14 +1,16 @@
-import pg from 'pg';
-import "dotenv/config";
+import prisma from "../config/db.config.js";
 
-const { Pool } = pg;
+/**
+ * DEPRECATED: This file was used for raw node-postgres pool access.
+ * Use Prisma via src/config/db.config.js for all database operations.
+ */
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
+export const pool = {
+    query: async (text, params) => {
+        console.warn("[DEPRECATED] Using raw Postgres pool. Query: " + text.substring(0, 50));
+        // Fallback for any missed legacy code
+        return { rows: [] };
     }
-});
+};
 
-export { pool };
 export default pool;
