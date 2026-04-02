@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Report from "./pages/Report";
@@ -7,9 +8,10 @@ import ProctorLogin from "./pages/ProctorLogin";
 import ProctorDashboard from "./pages/ProctorDashboard";
 import ProcteeDetails from "./pages/ProcteeDetails";
 import AdminPanel from "./pages/AdminPanel";
+import CustomDropdown from "./components/CustomDropdown";
 import "./App.css";
 
-function Navbar() {
+function Navbar({ academicYear, setAcademicYear }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,19 +30,30 @@ function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   // Proctor ID extracted from URL if available
-  const proctorId = location.pathname.split('/')[2];
+  const pathParts = location.pathname.split('/');
+  const proctorId = pathParts[1] === 'proctor' ? pathParts[2] : null;
   const studentUsn = localStorage.getItem("studentUsn");
+
+  const academicYearOptions = [
+    { value: "2027", label: "2027" },
+    { value: "2028", label: "2028" },
+  ];
 
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
-    <nav className="navbar" style={isStudentDashboard ? { borderBottom: '1px solid var(--border-subtle)' } : {}}>
-      <div className="container" style={isStudentDashboard ? { maxWidth: '100%', padding: '0 32px' } : {}}>
-        <div className="nav-logo">
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: '#0D1117' } : {}}>
+      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 160px' } : {}}>
+        <div className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
             <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
-            <span style={{ color: 'var(--text-primary)' }}>Smart Report</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem' }}>Smart Report</span>
           </Link>
+          {isProctorView && !isReportPage && proctorId && (
+            <div style={{ marginLeft: '16px', paddingLeft: '16px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              Proctor: <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{proctorId}</span>
+            </div>
+          )}
         </div>
 
         <div className="nav-actions">
@@ -64,12 +77,22 @@ function Navbar() {
 
           {/* Proctor Dashboard Context: Show ID and Logout */}
           {isProctorView && !isReportPage && (
-            <>
-              <span className="role-info">Proctor: {proctorId}</span>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1rem', fontSize: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <div className="navbar-academic-setup" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Academic Year:</span>
+                <div style={{ width: '140px' }}>
+                  <CustomDropdown 
+                    options={academicYearOptions} 
+                    value={academicYear} 
+                    onChange={setAcademicYear} 
+                    placeholder="2027"
+                  />
+                </div>
+              </div>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.5rem', fontSize: '0.95rem', background: '#2D3748', border: 'none', marginLeft: '8px' }}>
                 Logout
               </button>
-            </>
+            </div>
           )}
 
           {/* Student Dashboard Context: Show USN and Logout */}
@@ -78,13 +101,11 @@ function Navbar() {
               <span className="role-info" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Student: <strong style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{studentUsn}</strong>
               </span>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.25rem', fontSize: '0.95rem', display: 'flex', alignItems: 'center' }}>
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.25rem', fontSize: '0.95rem' }}>
                 Logout
               </button>
             </div>
           )}
-
-          {/* Report Page: Navbar remains empty except for Logo (handled by conditional results above) */}
         </div>
       </div>
     </nav>
@@ -92,25 +113,48 @@ function Navbar() {
 }
 
 function App() {
+  const [academicYear, setAcademicYear] = useState("2027");
+
   return (
     <Router>
-      <div className="app-wrapper">
-        <Navbar />
-        <main className="content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/report/:usn" element={<Report />} />
-            <Route path="/proctor/:proctorId/report/:usn" element={<Report />} />
-            <Route path="/student-login" element={<StudentLogin />} />
-            <Route path="/student/dashboard" element={<StudentDashboard />} />
-            <Route path="/proctor-login" element={<ProctorLogin />} />
-            <Route path="/proctor/:proctorId/dashboard" element={<ProctorDashboard />} />
-            <Route path="/proctor/:proctorId/student/:usn" element={<ProcteeDetails />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-        </main>
-      </div>
+      <AppContent academicYear={academicYear} setAcademicYear={setAcademicYear} />
     </Router>
+  );
+}
+
+function AppContent({ academicYear, setAcademicYear }) {
+  const location = useLocation();
+  const isReportPage = location.pathname.includes("/report/");
+
+  // Manage body scroll to prevent dual-scrollbar (inset) issue
+  useEffect(() => {
+    if (isReportPage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isReportPage]);
+
+  return (
+    <div className="app-wrapper" style={{ paddingTop: isReportPage ? '0' : 'var(--nav-height)' }}>
+      {!isReportPage && <Navbar academicYear={academicYear} setAcademicYear={setAcademicYear} />}
+      <main className="content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/report/:usn" element={<Report />} />
+          <Route path="/proctor/:proctorId/report/:usn" element={<Report />} />
+          <Route path="/student-login" element={<StudentLogin />} />
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/proctor-login" element={<ProctorLogin />} />
+          <Route path="/proctor/:proctorId/dashboard" element={<ProctorDashboard academicYear={academicYear} setAcademicYear={setAcademicYear} />} />
+          <Route path="/proctor/:proctorId/student/:usn" element={<ProcteeDetails />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 

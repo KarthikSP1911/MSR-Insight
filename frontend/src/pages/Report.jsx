@@ -194,47 +194,53 @@ const Report = () => {
 
     return (
         <div className="report-viewer-page">
-            <div style={{
-                position: 'fixed',
-                top: 'calc(var(--nav-height) + 20px)',
-                left: '20px',
-                zIndex: 100
-            }}>
-                <button
-                    className="back-nav-btn"
-                    onClick={() => navigate(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
-                >
-                    ← Back to {proctorId ? 'Student' : 'Dashboard'}
-                </button>
-            </div>
+            {/* Professional Toolbar */}
+            <header className="report-toolbar">
+                <div className="toolbar-left">
+                    <button
+                        className="toolbar-btn back-btn"
+                        onClick={() => navigate(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
+                        title="Back"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12" />
+                            <polyline points="12 19 5 12 12 5" />
+                        </svg>
+                        <span>Back</span>
+                    </button>
+                    <div className="toolbar-divider"></div>
+                    <div className="report-title">
+                        <span className="title-text">Report_{USN}</span>
+                        <span className="file-ext">.pdf</span>
+                    </div>
+                </div>
 
-            <div className="report-action-bottom" style={{
-                position: 'fixed',
-                bottom: '40px',
-                right: '40px',
-                zIndex: 1000
-            }}>
-                <button
-                    className="generate-report-btn generate-btn"
-                    onClick={handleDownload}
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px', marginRight: '8px' }}>
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    Generate Report
-                </button>
-            </div>
+                <div className="toolbar-center">
+                    <div className="zoom-widget">
+                        <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
+                        <span className="zoom-percent">{Math.round(zoom * 100)}%</span>
+                        <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
+                        <div className="toolbar-divider"></div>
+                        <button className="text-btn reset-btn" onClick={handleResetZoom}>Reset</button>
+                    </div>
+                </div>
 
-            <div className="zoom-controls">
-                <button onClick={handleZoomOut} title="Zoom Out">−</button>
-                <span className="zoom-level">{Math.round(zoom * 100)}%</span>
-                <button onClick={handleZoomIn} title="Zoom In">+</button>
-                <button onClick={handleResetZoom} className="reset-btn">Reset</button>
-            </div>
+                <div className="toolbar-right">
+                    <button
+                        className="btn btn-primary generate-btn"
+                        onClick={handleDownload}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Download PDF
+                    </button>
+                </div>
+            </header>
 
-            <div className="scroll-container">
+            <div className="document-canvas">
                 <div className="sheet-scroll-frame">
                     <div
                         className="a4-sheet-wrapper"

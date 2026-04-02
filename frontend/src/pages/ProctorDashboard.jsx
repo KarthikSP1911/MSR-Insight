@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api.config";
+import CustomDropdown from "../components/CustomDropdown";
+import "./ProctorDashboard.css";
 
 /**
  * ProctorDashboard: Displays the list of students assigned to a proctor.
- * Integrated with the new proctor_student_map schema and academic year support.
+ * Refactored with plain CSS Grid for scalability and a dense, professional look.
  */
-const ProctorDashboard = () => {
+const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
   const { proctorId } = useParams();
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [academicYear, setAcademicYear] = useState("2027"); // Matches DB format
+
+  // Filtering states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [semesterFilter, setSemesterFilter] = useState("All");
+  const [sectionFilter, setSectionFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -26,7 +33,6 @@ const ProctorDashboard = () => {
           return;
         }
 
-        // Fetch students for the selected academic year
         const response = await axios.get(`${API_BASE_URL}/api/proctor/${proctorId}/dashboard?academicYear=${academicYear}`, {
           headers: { "x-session-id": sessionId }
         });
@@ -55,93 +61,142 @@ const ProctorDashboard = () => {
     navigate(`/proctor/${proctorId}/student/${usn.toUpperCase()}`);
   };
 
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const matchesSearch =
+        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.usn.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesSemester = semesterFilter === "All" || (student.semester && student.semester === semesterFilter);
+      const matchesSection = sectionFilter === "All" || (student.section && student.section === sectionFilter);
+      const matchesStatus = statusFilter === "All";
+
+      return matchesSearch && matchesSemester && matchesSection && matchesStatus;
+    });
+  }, [students, searchTerm, semesterFilter, sectionFilter, statusFilter]);
+
+  const semesterOptions = [
+    { value: "All", label: "Semester" },
+    { value: "Sem 01", label: "Sem 01" },
+    { value: "Sem 02", label: "Sem 02" },
+    { value: "Sem 03", label: "Sem 03" },
+    { value: "Sem 04", label: "Sem 04" },
+    { value: "Sem 05", label: "Sem 05" },
+    { value: "Sem 06", label: "Sem 06" },
+    { value: "Sem 07", label: "Sem 07" },
+    { value: "Sem 08", label: "Sem 08" },
+  ];
+
+  const sectionOptions = [
+    { value: "All", label: "Section" },
+    { value: "Sec A", label: "Sec A" },
+    { value: "Sec B", label: "Sec B" },
+    { value: "Sec C", label: "Sec C" },
+  ];
+
+  const statusOptions = [
+    { value: "All", label: "Performance Status" },
+    { value: "Excellent", label: "Excellent" },
+    { value: "Good", label: "Good" },
+    { value: "Average", label: "Average" },
+    { value: "At Risk", label: "At Risk" },
+  ];
+
   if (loading) {
     return (
-      <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
-        <p>Loading assigned students for {academicYear}...</p>
+      <div className="loading-container fade-in">
+        <div className="spinner"></div>
+        <p>Fetching assigned students for {academicYear}...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container fade-in" style={{ padding: 'var(--space-xl) 0', textAlign: 'center' }}>
-        <p style={{ color: 'var(--error)', marginBottom: 'var(--space-md)' }}>⚠️ {error}</p>
-        <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry</button>
+      <div className="error-container fade-in">
+        <p className="error-msg">⚠️ {error}</p>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry Connection</button>
       </div>
     );
   }
 
   return (
-    <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)' }}>
-      <header style={{ marginBottom: 'var(--space-xl)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <h1 style={{ marginBottom: 'var(--space-xs)' }}>Proctor Dashboard</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Managing {students.length} assigned students for {academicYear}
-          </p>
+    <div className="proctor-dashboard fade-in">
+      <section className="filter-bar">
+        <div className="filter-item search-box">
+          <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            placeholder="Search by student name or USN..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-             <select 
-                value={academicYear} 
-                onChange={(e) => setAcademicYear(e.target.value)}
-                style={{ 
-                    background: 'var(--bg-secondary)', 
-                    color: 'white', 
-                    border: '1px solid var(--border-subtle)', 
-                    padding: '8px 12px', 
-                    borderRadius: 'var(--radius-sm)',
-                    outline: 'none'
-                }}
-            >
-                <option value="2027">2027</option>
-                <option value="2028">2028</option>
-            </select>
-        </div>
-      </header>
 
-      <div className="dashboard-grid">
-        {students.map((student) => (
+        <CustomDropdown 
+          options={semesterOptions} 
+          value={semesterFilter} 
+          onChange={setSemesterFilter} 
+          placeholder="Semester"
+        />
+
+        <CustomDropdown 
+          options={sectionOptions} 
+          value={sectionFilter} 
+          onChange={setSectionFilter} 
+          placeholder="Section"
+        />
+
+        <CustomDropdown 
+          options={statusOptions} 
+          value={statusFilter} 
+          onChange={setStatusFilter} 
+          placeholder="Performance Status"
+        />
+      </section>
+
+      <div className="proctees-grid grid-container">
+        {filteredStudents.map((student) => (
           <div
             key={student.usn}
-            className="card"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              cursor: 'pointer',
-              height: '100%',
-              transition: 'transform 0.2s ease, border-color 0.2s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-subtle)'}
+            className="student-card"
             onClick={() => handleStudentClick(student.usn)}
           >
-            <div style={{ flex: 1 }}>
-              <h2 style={{ marginBottom: 'var(--space-md)', fontSize: '1.5rem' }}>{student.name}</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>USN</span>
-                  <span style={{ fontWeight: '600' }}>{student.usn}</span>
+            <div className="card-content">
+              <h2 className="student-name">{student.name}</h2>
+              <div className="student-info">
+                <div className="info-row">
+                  <span className="info-label">USN</span>
+                  <span className="info-value">{student.usn}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Semester</span>
-                  <span style={{ fontWeight: '600' }}>{student.semester || 'N/A'}</span>
+                <div className="info-row">
+                  <span className="info-label">Semester</span>
+                  <span className="info-value">{student.semester || 'N/A'}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Section</span>
-                  <span style={{ fontWeight: '600' }}>{student.section || 'N/A'}</span>
+                <div className="info-row">
+                  <span className="info-label">Section</span>
+                  <span className="info-value">{student.section || 'N/A'}</span>
                 </div>
               </div>
             </div>
-            <button className="btn btn-primary" style={{ width: '100%' }}>
+            <button className="view-btn">
               View Full Profile
             </button>
           </div>
         ))}
 
-        {students.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 'var(--space-xl)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-            <p style={{ color: 'var(--text-secondary)' }}>No students assigned to your dashboard for {academicYear}.</p>
+        {filteredStudents.length === 0 && (
+          <div className="no-results">
+            <p>No students match your current filters.</p>
+            <button onClick={() => {
+              setSearchTerm("");
+              setSemesterFilter("All");
+              setSectionFilter("All");
+              setStatusFilter("All");
+            }}>Clear All Filters</button>
           </div>
         )}
       </div>
@@ -150,3 +205,4 @@ const ProctorDashboard = () => {
 };
 
 export default ProctorDashboard;
+
