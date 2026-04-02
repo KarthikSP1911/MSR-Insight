@@ -13,9 +13,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from bs4 import BeautifulSoup
 from config.settings import settings
-
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from services.normalization_service import DataNormalizer
+from services.sync_service import SyncService
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -104,7 +105,8 @@ def get_complete_student_data(usn, day, month, year):
         try: driver.quit()
         except: pass
 
-def parse_and_save_data(scraped_data):
+def parse_and_process_data(scraped_data):
+    """Parses raw HTML, normalizes it, and syncs directly to database (via Express)."""
     soup_dash = BeautifulSoup(scraped_data['dashboard'], "html.parser")
     name = soup_dash.find("h3").get_text(strip=True) if soup_dash.find("h3") else "Unknown"
     usn = soup_dash.find("h2").get_text(strip=True) if soup_dash.find("h2") else "Unknown"
@@ -180,31 +182,18 @@ def parse_and_save_data(scraped_data):
         }
         semester_history.append(sem_data)
 
-    student_record = {"name": name, "usn": usn, "class_details": class_info, "cgpa": final_cgpa, "last_updated": time.strftime("%Y-%m-%d %H:%M:%S"), "current_semester": current_semester_data, "exam_history": semester_history}
-
-    database = {}
-    if os.path.exists(settings.SCRAPED_DATA_PATH):
-        with open(settings.SCRAPED_DATA_PATH, "r") as f:
-            try: database = json.load(f)
-            except: pass
-
-    database[usn] = student_record
-    os.makedirs(os.path.dirname(settings.SCRAPED_DATA_PATH), exist_ok=True)
-    with open(settings.SCRAPED_DATA_PATH, "w") as f:
-        json.dump(database, f, indent=4)
+    student_record = {
+        "name": name, 
+        "usn": usn, 
+        "class_details": class_info, 
+        "cgpa": final_cgpa, 
+        "last_updated": time.strftime("%Y-%m-%d %H:%M:%S"), 
+        "current_semester": current_semester_data, 
+        "exam_history": semester_history
+    }
     
-    print(f"[+] Data saved for {name} ({usn})")
-
-    try:
-        from services.normalization_service import DataNormalizer
-        from services.sync_service import SyncService
-        DataNormalizer.normalize_all_data(settings.SCRAPED_DATA_PATH, settings.NORMALIZED_DATA_PATH)
-        SyncService.sync_to_express(settings.NORMALIZED_DATA_PATH)
-    except Exception as e:
-        print(f"[!] Downstream tasks failed: {e}")
-
-if __name__ == "__main__":
-    MY_USN = "1MS23IS051"
-    DD, MM, YYYY = "19", "11", "2004"
-    data = get_complete_student_data(MY_USN, DD, MM, YYYY)
-    if data: parse_and_save_data(data)
+    # NEW logic: Normalize and push over API directly
+    normalized = DataNormalizer.normalize_student_record(student_record)
+    SyncService.sync_to_express(normalized)
+    
+    return normalized

@@ -13,7 +13,12 @@ class AuthService {
     }
 
     const normalizedUSN = usn.toUpperCase();
-    await userRepository.create({ usn: normalizedUSN, dob });
+    await userRepository.create({
+      usn: normalizedUSN,
+      dob, // Standardized as DD-MM-YYYY in backend/frontend
+      current_year: 1,
+      details: {},
+    });
 
     const sessionId = randomUUID();
     await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
@@ -22,31 +27,47 @@ class AuthService {
     return { usn: normalizedUSN, sessionId };
   }
 
+  /**
+   * Refactored Student Login:
+   * Uses userRepository.findByCredentials to handle both USN and DOB in a single query.
+   */
   async login(usn, dob) {
-    const user = await userRepository.findByUSN(usn);
+    if (!usn || !dob) {
+      throw new Error("USN and Date of Birth are required");
+    }
 
-    if (!user || user.dob !== dob) {
+    // Single query check for both USN and DOB
+    const user = await userRepository.findByCredentials(usn, dob);
+
+    if (!user) {
+      console.warn(`[Student Auth] Failed attempt for ${usn} with DOB ${dob}`);
       throw new Error("Invalid USN or Date of Birth");
     }
 
     const normalizedUSN = user.usn.toUpperCase();
 
-    // Check for existing session
-    const existingSessionId = await redisClient.get(`usn:${normalizedUSN}`);
-    if (existingSessionId) {
-      await redisClient.expire(`session:${existingSessionId}`, 2592000);
-      return { usn: normalizedUSN, sessionId: existingSessionId };
-    }
-
+    // Handle sessions as before
     const sessionId = randomUUID();
-    // Store prefixed identity to distinguish between Student and Proctor
     await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
     await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
 
-    return { usn: normalizedUSN, sessionId };
+    // Trigger background scrape to update JSONB details if needed/on login
+    try {
+      const { triggerScrape } = await import("./report.service.js");
+      // Fire and forget scrape in background
+      triggerScrape(normalizedUSN, dob).catch(e => console.error("[Login Scrape Error]", e.message));
+    } catch (e) {
+       console.error("[Login Scrape Import Error]", e);
+    }
+
+    return { 
+      usn: normalizedUSN, 
+      sessionId, 
+      needsSync: !user.details || Object.keys(user.details).length === 0 
+    };
   }
 
-  async proctorRegister(proctorId, password, name) {
+  async proctorRegister(proctorId, password, name, phone, email) {
     const normalizedId = proctorId.toUpperCase();
     const existing = await proctorRepository.findByProctorId(normalizedId);
     if (existing) {
@@ -58,9 +79,11 @@ class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     return await proctorRepository.create({
-      proctorId: normalizedId,
-      password: hashedPassword,
+      proctor_id: normalizedId,
+      password_hash: hashedPassword,
       name,
+      phone,
+      email,
     });
   }
 
@@ -71,21 +94,14 @@ class AuthService {
     const proctor = await proctorRepository.findByProctorId(normalizedId);
 
     if (!proctor) {
-      console.warn(`[Auth] Proctor not found: ${normalizedId}`);
       const err = new Error("Proctor not found");
       err.statusCode = 404;
       throw err;
     }
 
-    let passwordValid = false;
-    if (proctor.password.startsWith("$2b$") || proctor.password.startsWith("$2a$")) {
-      passwordValid = await bcrypt.compare(password, proctor.password);
-    } else {
-      passwordValid = proctor.password === password;
-    }
+    const passwordValid = await bcrypt.compare(password, proctor.password_hash);
 
     if (!passwordValid) {
-      console.warn(`[Auth] Invalid password for proctor: ${normalizedId}`);
       const err = new Error("Invalid Proctor ID or Password");
       err.statusCode = 401;
       throw err;
@@ -94,7 +110,6 @@ class AuthService {
     const existingSessionId = await redisClient.get(`proctor:${normalizedId}`);
     if (existingSessionId) {
       await redisClient.expire(`session:${existingSessionId}`, 2592000);
-      console.log(`[Auth] Reusing existing session for proctor: ${normalizedId}`);
       return { proctorId: normalizedId, sessionId: existingSessionId };
     }
 
@@ -102,19 +117,17 @@ class AuthService {
     await redisClient.set(`session:${sessionId}`, `proctor:${normalizedId}`, { EX: 2592000 });
     await redisClient.set(`proctor:${normalizedId}`, sessionId, { EX: 2592000 });
 
-    console.log(`[Auth] New session created for proctor: ${normalizedId}`);
     return { proctorId: normalizedId, sessionId };
   }
 
   async logout(sessionId) {
     const identity = await redisClient.get(`session:${sessionId}`);
     if (identity) {
-      if (identity.startsWith("student:")) {
-        const usn = identity.split(":")[1];
-        await redisClient.del(`usn:${usn}`);
-      } else if (identity.startsWith("proctor:")) {
-        const pId = identity.split(":")[1];
-        await redisClient.del(`proctor:${pId}`);
+      const [role, id] = identity.split(":");
+      if (role === 'student') {
+        await redisClient.del(`usn:${id}`);
+      } else if (role === 'proctor') {
+        await redisClient.del(`proctor:${id}`);
       }
     }
     await redisClient.del(`session:${sessionId}`);
@@ -128,25 +141,16 @@ class AuthService {
       throw err;
     }
 
-    if (identity.startsWith("student:")) {
-      const usn = identity.split(":")[1];
-      const user = await userRepository.findByUSN(usn);
-      if (!user) {
-        const err = new Error("Student not found");
-        err.statusCode = 404;
-        throw err;
-      }
+    const [role, id] = identity.split(":");
+
+    if (role === 'student') {
+      const user = await userRepository.findByUSN(id);
+      if (!user) throw new Error("Student not found");
       return { ...user, role: 'student' };
-    } else if (identity.startsWith("proctor:")) {
-      const pId = identity.split(":")[1];
-      const proctor = await proctorRepository.findByProctorId(pId);
-      if (!proctor) {
-        const err = new Error("Proctor not found");
-        err.statusCode = 404;
-        throw err;
-      }
-      // Don't return password
-      const { password, ...proctorData } = proctor;
+    } else if (role === 'proctor') {
+      const proctor = await proctorRepository.findByProctorId(id);
+      if (!proctor) throw new Error("Proctor not found");
+      const { password_hash, ...proctorData } = proctor;
       return { ...proctorData, role: 'proctor' };
     }
 

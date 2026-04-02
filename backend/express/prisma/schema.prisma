@@ -9,22 +9,51 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String   @id @default(uuid())
-  usn       String   @unique
-  dob       String
-  proctorId String?
-  proctor   Proctor? @relation(fields: [proctorId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Student {
+  usn          String               @id
+  name         String
+  dob          String?
+  phone        String?
+  email        String?
+  current_year Int
+  details      Json                 // For backward compatibility / performance metrics
+  parents      Parent[]
+  proctor_maps ProctorStudentMap[]
+
+  @@map("students")
 }
 
 model Proctor {
-  id        String   @id @default(uuid())
-  proctorId String   @unique
-  password  String
-  name      String?
-  students  User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  proctor_id    String               @id
+  name          String
+  phone         String
+  email         String
+  password_hash String
+  student_maps  ProctorStudentMap[]
+
+  @@map("proctors")
+}
+
+model Parent {
+  usn      String
+  relation String
+  name     String
+  phone    String
+  email    String
+  student  Student @relation(fields: [usn], references: [usn])
+
+  @@id([usn, relation])
+  @@map("parents")
+}
+
+model ProctorStudentMap {
+  id            Int     @id @default(autoincrement())
+  proctor_id    String
+  student_id    String
+  academic_year String
+  proctor       Proctor @relation(fields: [proctor_id], references: [proctor_id])
+  student       Student @relation(fields: [student_id], references: [usn])
+
+  @@unique([student_id, academic_year])
+  @@map("proctor_student_map")
 }

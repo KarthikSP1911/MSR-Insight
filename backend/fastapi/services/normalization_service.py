@@ -64,6 +64,10 @@ class DataNormalizer:
             absent = int(att_details.get("absent_classes", 0))
             remaining = int(att_details.get("still_to_go", 0))
             
+            classes_details = att_details.get("classes", {})
+            present_dates = classes_details.get("present_dates", [])
+            absent_dates = classes_details.get("absent_dates", [])
+            
             total = present + absent
             percentage = round((present / total * 100)) if total > 0 else 0
             
@@ -71,7 +75,9 @@ class DataNormalizer:
                 "present": present,
                 "absent": absent,
                 "remaining": remaining,
-                "percentage": percentage
+                "percentage": percentage,
+                "present_dates": present_dates,
+                "absent_dates": absent_dates
             }
             
             # Assessments

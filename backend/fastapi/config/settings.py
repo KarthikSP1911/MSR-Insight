@@ -18,7 +18,7 @@ class Settings:
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     
     # URLs
-    EXPRESS_API_URL: str = os.getenv("EXPRESS_API_URL", "http://localhost:5000/api/students/sync")
+    EXPRESS_API_URL: str = os.getenv("EXPRESS_API_URL", "http://localhost:5001/api/students/sync")
     
     # Data paths
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
