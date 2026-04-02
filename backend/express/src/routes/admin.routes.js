@@ -16,4 +16,7 @@ router.delete("/proctors/:proctorId/students/:usn", adminController.removeStuden
 // Unassigned students
 router.get("/students/unassigned", adminController.listUnassignedStudents);
 
+// Stats
+router.get("/stats", adminController.getStats);
+
 export default router;

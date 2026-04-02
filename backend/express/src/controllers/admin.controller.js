@@ -1,34 +1,34 @@
 import prisma from "../config/db.config.js";
 import bcrypt from "bcrypt";
+import studentService from "../services/studentService.js";
 
 class AdminController {
   /**
    * GET /api/admin/proctors
-   * List all proctors with their student counts
+   * List all proctors with their current student counts
    */
   async listProctors(req, res, next) {
     try {
+      const academicYear = req.query.academicYear || "2027";
+      console.log(`[AdminController] Listing proctors for year: ${academicYear}`);
+      
       const proctors = await prisma.proctor.findMany({
         include: {
-          students: {
-            select: {
-              id: true,
-              usn: true,
-              dob: true,
-            },
+          student_maps: {
+            where: { academic_year: academicYear },
           },
         },
-        orderBy: { createdAt: "desc" },
       });
 
       const result = proctors.map((p) => ({
-        id: p.id,
-        proctorId: p.proctorId,
+        proctorId: p.proctor_id,
         name: p.name,
-        studentCount: p.students.length,
-        createdAt: p.createdAt,
+        phone: p.phone,
+        email: p.email,
+        studentCount: p.student_maps.length,
       }));
 
+      console.log(`[AdminController] Found ${proctors.length} proctors`);
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);
@@ -38,11 +38,10 @@ class AdminController {
   /**
    * POST /api/admin/proctors
    * Add a new proctor
-   * Body: { proctorId, password, name? }
    */
   async addProctor(req, res, next) {
     try {
-      const { proctorId, password, name } = req.body;
+      const { proctorId, password, name, phone, email } = req.body;
 
       if (!proctorId || !password) {
         return res.status(400).json({
@@ -52,35 +51,30 @@ class AdminController {
       }
 
       const normalizedId = proctorId.toUpperCase();
-
-      // Check for duplicates
-      const existing = await prisma.proctor.findUnique({
-        where: { proctorId: normalizedId },
-      });
-
-      if (existing) {
-        return res.status(409).json({
-          success: false,
-          message: "Proctor with this ID already exists",
-        });
-      }
-
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const proctor = await prisma.proctor.create({
-        data: {
-          proctorId: normalizedId,
-          password: hashedPassword,
+      const proctor = await prisma.proctor.upsert({
+        where: { proctor_id: normalizedId },
+        update: {
+          password_hash: hashedPassword,
           name: name || null,
+          phone: phone || null,
+          email: email || null,
+        },
+        create: {
+          proctor_id: normalizedId,
+          password_hash: hashedPassword,
+          name: name || null,
+          phone: phone || null,
+          email: email || null,
         },
       });
 
       return res.status(201).json({
         success: true,
-        message: "Proctor added successfully",
+        message: "Proctor added/updated successfully",
         data: {
-          id: proctor.id,
-          proctorId: proctor.proctorId,
+          proctorId: proctor.proctor_id,
           name: proctor.name,
         },
       });
@@ -91,38 +85,24 @@ class AdminController {
 
   /**
    * DELETE /api/admin/proctors/:proctorId
-   * Remove a proctor (unlinks all students first)
    */
   async removeProctor(req, res, next) {
     try {
       const { proctorId } = req.params;
       const normalizedId = proctorId.toUpperCase();
 
-      const proctor = await prisma.proctor.findUnique({
-        where: { proctorId: normalizedId },
+      // Delete the mapping first (Prisma cascades should be preferred but manual delete ensures logic)
+      await prisma.proctorStudentMap.deleteMany({
+        where: { proctor_id: normalizedId },
       });
 
-      if (!proctor) {
-        return res.status(404).json({
-          success: false,
-          message: "Proctor not found",
-        });
-      }
-
-      // Unlink all students from this proctor first
-      await prisma.user.updateMany({
-        where: { proctorId: proctor.id },
-        data: { proctorId: null },
-      });
-
-      // Delete the proctor
       await prisma.proctor.delete({
-        where: { proctorId: normalizedId },
+        where: { proctor_id: normalizedId },
       });
 
       return res.status(200).json({
         success: true,
-        message: "Proctor removed successfully",
+        message: "Proctor and assignments removed successfully",
       });
     } catch (error) {
       next(error);
@@ -131,24 +111,22 @@ class AdminController {
 
   /**
    * GET /api/admin/proctors/:proctorId/students
-   * List students assigned to a proctor
    */
   async listProctorStudents(req, res, next) {
     try {
       const { proctorId } = req.params;
+      const academicYear = req.query.academicYear || "2027";
       const normalizedId = proctorId.toUpperCase();
 
       const proctor = await prisma.proctor.findUnique({
-        where: { proctorId: normalizedId },
+        where: { proctor_id: normalizedId },
         include: {
-          students: {
-            select: {
-              id: true,
-              usn: true,
-              dob: true,
-              createdAt: true,
+          student_maps: {
+            where: { academic_year: academicYear },
+            include: {
+              student: true,
             },
-            orderBy: { usn: "asc" },
+            orderBy: { student_id: "asc" },
           },
         },
       });
@@ -163,9 +141,14 @@ class AdminController {
       return res.status(200).json({
         success: true,
         data: {
-          proctorId: proctor.proctorId,
+          proctorId: proctor.proctor_id,
           name: proctor.name,
-          students: proctor.students,
+          students: proctor.student_maps.map((m) => ({
+            usn: m.student.usn,
+            name: m.student.name,
+            dob: m.student.dob,
+            academicYear: m.academic_year,
+          })),
         },
       });
     } catch (error) {
@@ -176,13 +159,11 @@ class AdminController {
   /**
    * POST /api/admin/proctors/:proctorId/students
    * Assign a student to a proctor
-   * Body: { usn, dob? }
-   * If student doesn't exist and dob is provided, auto-creates the student
    */
   async assignStudent(req, res, next) {
     try {
       const { proctorId } = req.params;
-      const { usn, dob } = req.body;
+      const { usn, dob, academicYear = "2027", name } = req.body;
 
       if (!usn) {
         return res.status(400).json({
@@ -192,11 +173,11 @@ class AdminController {
       }
 
       const normalizedProctorId = proctorId.toUpperCase();
-      const normalizedUsn = usn.toLowerCase();
+      const normalizedUsn = usn.toUpperCase();
 
-      // Verify proctor exists
+      // 1. Verify proctor exists
       const proctor = await prisma.proctor.findUnique({
-        where: { proctorId: normalizedProctorId },
+        where: { proctor_id: normalizedProctorId },
       });
 
       if (!proctor) {
@@ -206,54 +187,41 @@ class AdminController {
         });
       }
 
-      // Find or create the student
-      let student = await prisma.user.findFirst({
-        where: { usn: { equals: normalizedUsn, mode: "insensitive" } },
+      // 2. Upsert the student record
+      const student = await prisma.student.upsert({
+        where: { usn: normalizedUsn },
+        update: {}, // Maintain details if exists
+        create: {
+          usn: normalizedUsn,
+          name: name || normalizedUsn,
+          dob,
+          current_year: 1,
+          details: {},
+        },
       });
 
-      if (!student) {
-        // Auto-create if dob is provided
-        if (!dob) {
-          return res.status(404).json({
-            success: false,
-            message:
-              "Student not found. Provide DOB to auto-create the student.",
-          });
-        }
-
-        student = await prisma.user.create({
-          data: {
-            usn: normalizedUsn,
-            dob,
-            proctorId: proctor.id,
+      // 3. Upsert the assignment map (unique student_id + academic_year)
+      const assignment = await prisma.proctorStudentMap.upsert({
+        where: {
+          student_id_academic_year: {
+            student_id: normalizedUsn,
+            academic_year: academicYear,
           },
-        });
-
-        return res.status(201).json({
-          success: true,
-          message: "Student created and assigned to proctor",
-          data: { id: student.id, usn: student.usn },
-        });
-      }
-
-      // Check if already assigned to this proctor
-      if (student.proctorId === proctor.id) {
-        return res.status(409).json({
-          success: false,
-          message: "Student is already assigned to this proctor",
-        });
-      }
-
-      // Assign student to proctor
-      await prisma.user.update({
-        where: { id: student.id },
-        data: { proctorId: proctor.id },
+        },
+        update: {
+          proctor_id: normalizedProctorId,
+        },
+        create: {
+          proctor_id: normalizedProctorId,
+          student_id: normalizedUsn,
+          academic_year: academicYear,
+        },
       });
 
       return res.status(200).json({
         success: true,
         message: "Student assigned to proctor successfully",
-        data: { id: student.id, usn: student.usn },
+        data: assignment,
       });
     } catch (error) {
       next(error);
@@ -262,47 +230,26 @@ class AdminController {
 
   /**
    * DELETE /api/admin/proctors/:proctorId/students/:usn
-   * Remove a student from a proctor (unlinks, does not delete)
    */
   async removeStudent(req, res, next) {
     try {
       const { proctorId, usn } = req.params;
+      const academicYear = req.query.academicYear || "2027";
       const normalizedProctorId = proctorId.toUpperCase();
+      const normalizedUsn = usn.toUpperCase();
 
-      const proctor = await prisma.proctor.findUnique({
-        where: { proctorId: normalizedProctorId },
-      });
-
-      if (!proctor) {
-        return res.status(404).json({
-          success: false,
-          message: "Proctor not found",
-        });
-      }
-
-      const student = await prisma.user.findFirst({
+      await prisma.proctorStudentMap.delete({
         where: {
-          usn: { equals: usn, mode: "insensitive" },
-          proctorId: proctor.id,
+          student_id_academic_year: {
+            student_id: normalizedUsn,
+            academic_year: academicYear,
+          },
         },
-      });
-
-      if (!student) {
-        return res.status(404).json({
-          success: false,
-          message: "Student not found under this proctor",
-        });
-      }
-
-      // Unlink student from proctor (set proctorId to null)
-      await prisma.user.update({
-        where: { id: student.id },
-        data: { proctorId: null },
       });
 
       return res.status(200).json({
         success: true,
-        message: "Student removed from proctor",
+        message: "Student assignment removed successfully",
       });
     } catch (error) {
       next(error);
@@ -311,22 +258,56 @@ class AdminController {
 
   /**
    * GET /api/admin/students/unassigned
-   * List students not assigned to any proctor
+   * List students not assigned to any proctor for a particular year
    */
   async listUnassignedStudents(req, res, next) {
     try {
-      const students = await prisma.user.findMany({
-        where: { proctorId: null },
+      const academicYear = req.query.academicYear || "2027";
+      const students = await prisma.student.findMany({
+        where: {
+          proctor_maps: {
+            none: { academic_year: academicYear },
+          },
+        },
         select: {
-          id: true,
           usn: true,
+          name: true,
           dob: true,
-          createdAt: true,
         },
         orderBy: { usn: "asc" },
       });
 
       return res.status(200).json({ success: true, data: students });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/admin/stats
+   * Consolidated stats for the admin dashboard
+   */
+  async getStats(req, res, next) {
+    try {
+      const academicYear = req.query.academicYear || "2027";
+
+      const totalProctors = await prisma.proctor.count();
+      const totalStudents = await prisma.student.count();
+      
+      const assignedCount = await prisma.proctorStudentMap.count({
+        where: { academic_year: academicYear },
+      });
+
+      const unassignedCount = totalStudents - assignedCount;
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalProctors,
+          totalStudents,
+          unassignedCount: Math.max(0, unassignedCount),
+        },
+      });
     } catch (error) {
       next(error);
     }
