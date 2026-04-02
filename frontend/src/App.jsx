@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Report from "./pages/Report";
@@ -117,23 +117,44 @@ function App() {
 
   return (
     <Router>
-      <div className="app-wrapper">
-        <Navbar academicYear={academicYear} setAcademicYear={setAcademicYear} />
-        <main className="content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/report/:usn" element={<Report />} />
-            <Route path="/proctor/:proctorId/report/:usn" element={<Report />} />
-            <Route path="/student-login" element={<StudentLogin />} />
-            <Route path="/student/dashboard" element={<StudentDashboard />} />
-            <Route path="/proctor-login" element={<ProctorLogin />} />
-            <Route path="/proctor/:proctorId/dashboard" element={<ProctorDashboard academicYear={academicYear} setAcademicYear={setAcademicYear} />} />
-            <Route path="/proctor/:proctorId/student/:usn" element={<ProcteeDetails />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-        </main>
-      </div>
+      <AppContent academicYear={academicYear} setAcademicYear={setAcademicYear} />
     </Router>
+  );
+}
+
+function AppContent({ academicYear, setAcademicYear }) {
+  const location = useLocation();
+  const isReportPage = location.pathname.includes("/report/");
+
+  // Manage body scroll to prevent dual-scrollbar (inset) issue
+  useEffect(() => {
+    if (isReportPage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isReportPage]);
+
+  return (
+    <div className="app-wrapper" style={{ paddingTop: isReportPage ? '0' : 'var(--nav-height)' }}>
+      {!isReportPage && <Navbar academicYear={academicYear} setAcademicYear={setAcademicYear} />}
+      <main className="content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/report/:usn" element={<Report />} />
+          <Route path="/proctor/:proctorId/report/:usn" element={<Report />} />
+          <Route path="/student-login" element={<StudentLogin />} />
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/proctor-login" element={<ProctorLogin />} />
+          <Route path="/proctor/:proctorId/dashboard" element={<ProctorDashboard academicYear={academicYear} setAcademicYear={setAcademicYear} />} />
+          <Route path="/proctor/:proctorId/student/:usn" element={<ProcteeDetails />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
