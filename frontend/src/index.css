@@ -398,7 +398,7 @@ p {
   position: fixed;
   top: 0;
   right: 0;
-  width: 440px; /* Increased from 340px */
+  width: 600px; /* Increased from 440px */
   height: 100vh;
   background: #0F172A; /* Monkeytype-style flat dark */
   z-index: 1001;

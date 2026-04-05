@@ -102,6 +102,39 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
     { value: "At Risk", label: "At Risk" },
   ];
 
+  // Returns white or black text for readability against any background
+  const getContrastColor = (hex) => {
+    if (!hex) return '#FFFFFF';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // Perceived luminance formula (WCAG)
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminance > 128 ? '#000000' : '#FFFFFF';
+  };
+
+  const getAttendanceStyle = (attendance) => {
+    if (attendance === null || attendance === undefined) return { color: null, textColor: '#FFFFFF', style: {} };
+    let color;
+    if (attendance < 50)       color = '#4B0000';
+    else if (attendance < 65)  color = '#FF0000';
+    else if (attendance < 75)  color = '#FFA500';
+    else if (attendance < 85)  color = '#FFD700';
+    else if (attendance < 95)  color = '#4CAF50';
+    else                       color = '#2ECC71';
+
+    const textColor = getContrastColor(color);
+
+    return {
+      color,
+      textColor,
+      style: {
+        borderLeft: `4px solid ${color}`,
+        background: `linear-gradient(to right, ${color}12 0%, #0F172A 40%)`
+      }
+    };
+  };
+
   if (loading) {
     return (
       <div className="loading-container fade-in">
@@ -159,15 +192,36 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
       </section>
 
       <div className="proctees-grid grid-container">
-        {filteredStudents.map((student) => (
-          <div
-            key={student.usn}
-            className="student-card"
-            onClick={() => handleStudentClick(student.usn)}
-          >
-            <div className="card-header">
-              <h2 className="student-name">{student.name}</h2>
-            </div>
+        {filteredStudents.map((student) => {
+          const att = student.lowestAttendance;
+          console.log(`[Card] ${student.usn} — lowestAttendance: ${att}`);
+          const attendanceData = getAttendanceStyle(att);
+          
+          return (
+            <div
+              key={student.usn}
+              className="student-card"
+              style={attendanceData.style}
+              onClick={() => handleStudentClick(student.usn)}
+            >
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <h2 className="student-name">{student.name}</h2>
+                {att !== null && att !== undefined && (
+                  <span style={{
+                    backgroundColor: attendanceData.color,
+                    color: attendanceData.textColor,
+                    padding: '3px 10px',
+                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '12px',
+                    letterSpacing: '0.02em'
+                  }}>
+                    {att !== null ? `${att}%` : 'N/A'}
+                  </span>
+                )}
+              </div>
             
             <div className="card-body">
               <div className="info-grid">
@@ -195,8 +249,9 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
                 </svg>
               </button>
             </div>
-          </div>
-        ))}
+            </div>
+          );
+        })}
 
         {filteredStudents.length === 0 && (
           <div className="no-results">
