@@ -203,8 +203,42 @@ function App() {
   );
 }
 
-function InboxPanel({ alerts, onPin, onRemove, isOpen, onClose }) {
-  const sortedAlerts = [...alerts].sort((a, b) => b.isPinned - a.isPinned);
+function InboxPanel({ alerts, onRemove, isOpen, onClose }) {
+  // Group flat subject-level alerts by student name.
+  // Skip summary alerts ("has low attendance in X subjects").
+  const grouped = React.useMemo(() => {
+    const map = new Map();
+    alerts.forEach(alert => {
+      // Skip summary alerts
+      if (alert.message.includes('has low attendance in')) return;
+
+      // Parse: "STUDENT NAME - Subject is 67%"
+      const dashIdx = alert.message.indexOf(' - ');
+      if (dashIdx === -1) {
+        // Info/system alerts — add as-is under a special key
+        if (!map.has('__system__')) {
+          map.set('__system__', { student: null, subjects: [], ids: [], time: alert.time });
+        }
+        map.get('__system__').subjects.push(alert.message);
+        map.get('__system__').ids.push(alert.id);
+        return;
+      }
+
+      const studentName = alert.message.slice(0, dashIdx).trim();
+      const subjectDetail = alert.message.slice(dashIdx + 3).trim(); // "Subject is 67%"
+
+      if (!map.has(studentName)) {
+        map.set(studentName, { student: studentName, subjects: [], ids: [], time: alert.time });
+      }
+      map.get(studentName).subjects.push(subjectDetail);
+      map.get(studentName).ids.push(alert.id);
+    });
+    return Array.from(map.values());
+  }, [alerts]);
+
+  const handleDismissGroup = (ids) => {
+    ids.forEach(id => onRemove(id));
+  };
 
   return (
     <>
@@ -217,6 +251,11 @@ function InboxPanel({ alerts, onPin, onRemove, isOpen, onClose }) {
               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
             </svg>
             <span>Inbox</span>
+            {grouped.length > 0 && (
+              <span style={{ marginLeft: '8px', background: 'rgba(255,138,0,0.15)', color: 'var(--accent-primary)', fontSize: '0.75rem', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' }}>
+                {grouped.length}
+              </span>
+            )}
           </div>
           <button className="inbox-close" onClick={onClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -227,26 +266,40 @@ function InboxPanel({ alerts, onPin, onRemove, isOpen, onClose }) {
         </div>
 
         <div className="inbox-content">
-          {sortedAlerts.length > 0 ? (
+          {grouped.length > 0 ? (
             <div className="alerts-list">
-              {sortedAlerts.map(alert => (
-                <div key={alert.id} className={`alert-item ${alert.isPinned ? 'is-pinned' : ''}`}>
-                  <div className="alert-body">
-                    <p className="alert-message">{alert.message}</p>
-                    <span className="alert-time">{alert.time}</span>
-                  </div>
-                  <div className="alert-actions">
-                    <button className="alert-action-btn" onClick={() => onPin(alert.id)} title={alert.isPinned ? "Unpin" : "Pin"}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill={alert.isPinned ? "var(--accent-primary)" : "none"} stroke="currentColor" strokeWidth="2.5">
-                        <path d="M12 2v10m0 0l-4-4m4 4l4-4M5 22h14"></path>
-                      </svg>
-                    </button>
-                    <button className="alert-action-btn remove" onClick={() => onRemove(alert.id)} title="Remove">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              {grouped.map((group, idx) => (
+                <div key={group.student || '__system__'} className="alert-group-card">
+                  <div className="alert-group-header">
+                    {group.student ? (
+                      <span className="alert-student-name">{group.student}</span>
+                    ) : (
+                      <span className="alert-student-name" style={{ color: 'var(--text-muted)', fontSize: '0.82rem', fontWeight: '500' }}>System</span>
+                    )}
+                    <button
+                      className="alert-action-btn remove"
+                      onClick={() => handleDismissGroup(group.ids)}
+                      title="Dismiss all"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M18 6L6 18M6 6l12 12"></path>
                       </svg>
                     </button>
                   </div>
+
+                  <ul className="alert-subject-list">
+                    {group.subjects.map((subj, i) => (
+                      <li key={i} className="alert-subject-item">• {subj}</li>
+                    ))}
+                  </ul>
+
+                  {group.student && group.subjects.length > 1 && (
+                    <div className="alert-summary-line">
+                      ↳ Low in {group.subjects.length} subjects
+                    </div>
+                  )}
+
+                  <span className="alert-time" style={{ display: 'block', marginTop: '8px' }}>{group.time}</span>
                 </div>
               ))}
             </div>
@@ -367,7 +420,13 @@ function AppContent({ academicYear, setAcademicYear }) {
           setAcademicYear={setAcademicYear} 
           inboxOpen={inboxOpen}
           setInboxOpen={setInboxOpen}
-          notificationCount={alerts.length}
+          notificationCount={[
+            ...new Set(
+              alerts
+                .filter(a => a.message.includes(' - ') && !a.message.includes('has low attendance in'))
+                .map(a => a.message.slice(0, a.message.indexOf(' - ')).trim())
+            )
+          ].length}
         />
       )}
       
@@ -375,7 +434,6 @@ function AppContent({ academicYear, setAcademicYear }) {
         isOpen={inboxOpen} 
         onClose={() => setInboxOpen(false)} 
         alerts={alerts}
-        onPin={togglePin}
         onRemove={removeAlert}
       />
 
