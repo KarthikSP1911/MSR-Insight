@@ -26,8 +26,8 @@ model Student {
 model Proctor {
   proctor_id    String               @id
   name          String
-  phone         String
-  email         String
+  phone         String?
+  email         String?
   password_hash String
   student_maps  ProctorStudentMap[]
 

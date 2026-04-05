@@ -42,16 +42,17 @@ function Navbar({ academicYear, setAcademicYear }) {
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
-    <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: '#0D1117' } : {}}>
-      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 160px' } : {}}>
+    <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: 'rgba(13, 17, 23, 0.8)', backdropFilter: 'blur(12px)' } : {}}>
+      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 48px' } : {}}>
         <div className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
             <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
-            <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem' }}>Smart Report</span>
+            <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem', letterSpacing: '-0.02em' }}>Smart Report</span>
           </Link>
           {isProctorView && !isReportPage && proctorId && (
-            <div style={{ marginLeft: '16px', paddingLeft: '16px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              Proctor: <span style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{proctorId}</span>
+            <div style={{ marginLeft: '20px', paddingLeft: '20px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Proctor</span>
+              <span style={{ color: '#F8FAFC', fontWeight: '600', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{proctorId}</span>
             </div>
           )}
         </div>
@@ -77,10 +78,10 @@ function Navbar({ academicYear, setAcademicYear }) {
 
           {/* Proctor Dashboard Context: Show ID and Logout */}
           {isProctorView && !isReportPage && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
               <div className="navbar-academic-setup" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Academic Year:</span>
-                <div style={{ width: '140px' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Academic Year</span>
+                <div style={{ width: '120px' }}>
                   <CustomDropdown 
                     options={academicYearOptions} 
                     value={academicYear} 
@@ -89,7 +90,21 @@ function Navbar({ academicYear, setAcademicYear }) {
                   />
                 </div>
               </div>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.5rem', fontSize: '0.95rem', background: '#2D3748', border: 'none', marginLeft: '8px' }}>
+              <button 
+                onClick={handleLogout} 
+                className="btn-logout"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#EF4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  padding: '6px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
                 Logout
               </button>
             </div>
@@ -101,7 +116,20 @@ function Navbar({ academicYear, setAcademicYear }) {
               <span className="role-info" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Student: <strong style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{studentUsn}</strong>
               </span>
-              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.4rem 1.25rem', fontSize: '0.95rem' }}>
+              <button 
+                onClick={handleLogout} 
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#EF4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  padding: '6px 16px',
+                  borderRadius: '8px',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
                 Logout
               </button>
             </div>

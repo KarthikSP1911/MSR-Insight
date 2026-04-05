@@ -128,32 +128,32 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input 
-            type="text" 
-            placeholder="Search by student name or USN..." 
+          <input
+            type="text"
+            placeholder="Search by student name or USN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <CustomDropdown 
-          options={semesterOptions} 
-          value={semesterFilter} 
-          onChange={setSemesterFilter} 
+        <CustomDropdown
+          options={semesterOptions}
+          value={semesterFilter}
+          onChange={setSemesterFilter}
           placeholder="Semester"
         />
 
-        <CustomDropdown 
-          options={sectionOptions} 
-          value={sectionFilter} 
-          onChange={setSectionFilter} 
+        <CustomDropdown
+          options={sectionOptions}
+          value={sectionFilter}
+          onChange={setSectionFilter}
           placeholder="Section"
         />
 
-        <CustomDropdown 
-          options={statusOptions} 
-          value={statusFilter} 
-          onChange={setStatusFilter} 
+        <CustomDropdown
+          options={statusOptions}
+          value={statusFilter}
+          onChange={setStatusFilter}
           placeholder="Performance Status"
         />
       </section>
@@ -165,9 +165,12 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
             className="student-card"
             onClick={() => handleStudentClick(student.usn)}
           >
-            <div className="card-content">
+            <div className="card-header">
               <h2 className="student-name">{student.name}</h2>
-              <div className="student-info">
+            </div>
+            
+            <div className="card-body">
+              <div className="info-grid">
                 <div className="info-row">
                   <span className="info-label">USN</span>
                   <span className="info-value">{student.usn}</span>
@@ -182,9 +185,16 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
                 </div>
               </div>
             </div>
-            <button className="view-btn">
-              View Full Profile
-            </button>
+
+            <div className="card-footer">
+              <button className="view-btn">
+                <span>View Full Profile</span>
+                <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
         ))}
 
