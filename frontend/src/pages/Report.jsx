@@ -26,6 +26,9 @@ const Report = () => {
     const [zoom, setZoom] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [sendingEmail, setSendingEmail] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
+    const [emailError, setEmailError] = useState(null);
 
     // Student detail fields
     const [studentDetail, setStudentDetail] = useState(null);
@@ -140,6 +143,47 @@ const Report = () => {
         }, 300);
     };
 
+    const handleSendEmail = async () => {
+        try {
+            setSendingEmail(true);
+            setEmailError(null);
+
+            // Get the HTML content of the report
+            const element = document.getElementById('report-sheet');
+            const htmlContent = element.innerHTML;
+
+            const sessionId = proctorId ? localStorage.getItem("proctorSessionId") : localStorage.getItem("studentSessionId");
+
+            if (!sessionId) {
+                navigate(proctorId ? "/proctor-login" : "/student-login");
+                return;
+            }
+
+            // Send email via backend API
+            const response = await axios.post(
+                `${API_BASE_URL}/api/report/send-email`,
+                { usn: USN, htmlContent },
+                { headers: { "x-session-id": sessionId } }
+            );
+
+            if (response.data.success) {
+                setEmailSent(true);
+                setTimeout(() => setEmailSent(false), 5000); // Auto-hide success message after 5s
+                console.log("Email sent successfully:", response.data.data);
+            } else {
+                setEmailError(response.data.message || "Failed to send email");
+                setTimeout(() => setEmailError(null), 5000);
+            }
+        } catch (err) {
+            console.error("Email sending error:", err);
+            const errorMsg = err.response?.data?.message || err.message || "Failed to send email to parents";
+            setEmailError(errorMsg);
+            setTimeout(() => setEmailError(null), 5000);
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
     // Helper to format class details for header
     const parseSemester = (classDetails) => {
         if (!classDetails) return '';
@@ -226,9 +270,59 @@ const Report = () => {
                 </div>
 
                 <div className="toolbar-right">
+                    {emailError && (
+                        <div style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            marginRight: '1rem',
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span>⚠️ {emailError}</span>
+                        </div>
+                    )}
+                    {emailSent && (
+                        <div style={{
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            marginRight: '1rem',
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span>✓ Email sent successfully to all parents!</span>
+                        </div>
+                    )}
+                    <button
+                        className="btn btn-primary generate-btn"
+                        onClick={handleSendEmail}
+                        disabled={sendingEmail || loading}
+                        title="Send report to parents via email"
+                        style={{ marginRight: '0.5rem' }}
+                    >
+                        {sendingEmail ? (
+                            <>
+                                <span style={{ marginRight: '0.5rem' }}>📧</span>
+                                Sending...
+                            </>
+                        ) : (
+                            <>
+                                <span style={{ marginRight: '0.5rem' }}>📧</span>
+                                Send Email
+                            </>
+                        )}
+                    </button>
                     <button
                         className="btn btn-primary generate-btn"
                         onClick={handleDownload}
+                        disabled={loading}
                     >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
