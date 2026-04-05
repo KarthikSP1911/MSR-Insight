@@ -301,30 +301,29 @@ const Report = () => {
                         </div>
                     )}
                     <button
-                        className="btn btn-primary generate-btn"
+                        className="btn btn-secondary email-btn"
                         onClick={handleSendEmail}
                         disabled={sendingEmail || loading}
                         title="Send report to parents via email"
-                        style={{ marginRight: '0.5rem' }}
                     >
                         {sendingEmail ? (
                             <>
-                                <span style={{ marginRight: '0.5rem' }}>📧</span>
+                                <span className="btn-span-icon">📧</span>
                                 Sending...
                             </>
                         ) : (
                             <>
-                                <span style={{ marginRight: '0.5rem' }}>📧</span>
+                                <span className="btn-span-icon">📧</span>
                                 Send Email
                             </>
                         )}
                     </button>
                     <button
-                        className="btn btn-primary generate-btn"
+                        className="btn btn-primary download-btn"
                         onClick={handleDownload}
                         disabled={loading}
                     >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="btn-svg-icon">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />

@@ -5,9 +5,9 @@
   margin: 0 auto;
 }
 
-/* 1. BACK BUTTON */
+/* 1. MINIMAL BACK LINK */
 .back-nav {
-  margin-bottom: var(--space-sm);
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
 }
@@ -15,24 +15,21 @@
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: #1A2233;
-  border-radius: 99px;
-  color: var(--text-secondary);
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #94A3B8; /* Subtle blue-gray */
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .back-link:hover {
-  background: #242D40;
-  color: var(--text-primary);
-  transform: translateX(-2px);
-  border-color: rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  transform: translateX(-4px); /* Slight shift left */
 }
 
 .back-icon {

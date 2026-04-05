@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Home from "./pages/Home";
 import Report from "./pages/Report";
 import StudentLogin from "./pages/StudentLogin";
@@ -9,15 +10,17 @@ import ProctorDashboard from "./pages/ProctorDashboard";
 import ProcteeDetails from "./pages/ProcteeDetails";
 import AdminPanel from "./pages/AdminPanel";
 import CustomDropdown from "./components/CustomDropdown";
+import { API_BASE_URL } from "./config/api.config";
 import "./App.css";
 
-function Navbar({ academicYear, setAcademicYear }) {
+function Navbar({ academicYear, setAcademicYear, inboxOpen, setInboxOpen, notificationCount }) {
   const location = useLocation();
   const navigate = useNavigate();
 
   const isHome = location.pathname === "/";
   const isReportPage = location.pathname.includes("/report/");
   const isProctorView = location.pathname.startsWith("/proctor/") && !location.pathname.includes("login") && !isReportPage;
+  const isProcteeDetailsView = isProctorView && location.pathname.includes("/student/");
   const isStudentView = location.pathname.startsWith("/student/") && !location.pathname.includes("login");
   const isAuthPage = location.pathname.includes("login");
   const isAdminPage = location.pathname.startsWith("/admin");
@@ -43,17 +46,53 @@ function Navbar({ academicYear, setAcademicYear }) {
 
   return (
     <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: 'rgba(13, 17, 23, 0.8)', backdropFilter: 'blur(12px)' } : {}}>
-      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: '0 48px' } : {}}>
+      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: isProcteeDetailsView ? '0 80px' : '0 48px' } : {}}>
         <div className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-            <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
-            <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem', letterSpacing: '-0.02em' }}>Smart Report</span>
-          </Link>
-          {isProctorView && !isReportPage && proctorId && (
-            <div style={{ marginLeft: '20px', paddingLeft: '20px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Proctor</span>
-              <span style={{ color: '#F8FAFC', fontWeight: '600', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{proctorId}</span>
-            </div>
+          {isProcteeDetailsView ? (
+            <Link 
+              to={`/proctor/${proctorId}/dashboard`} 
+              className="navbar-back-link"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#9CA3AF', /* Neutral Gray 400 */
+                textDecoration: 'none',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                padding: '0', /* No padding to keep it inline */
+                borderRadius: '0',
+                transition: 'all 0.2s ease',
+                background: 'none'
+              }}
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                style={{ width: '18px', height: '18px' }}
+              >
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              <span>Back</span>
+            </Link>
+          ) : (
+            <>
+              <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+                <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
+                <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem', letterSpacing: '-0.02em' }}>Smart Report</span>
+              </Link>
+              {isProctorView && !isReportPage && proctorId && (
+                <div style={{ marginLeft: '20px', paddingLeft: '20px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Proctor</span>
+                  <span style={{ color: '#F8FAFC', fontWeight: '600', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{proctorId}</span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -90,6 +129,20 @@ function Navbar({ academicYear, setAcademicYear }) {
                   />
                 </div>
               </div>
+
+              {/* Notification Bell */}
+              <button 
+                className={`nav-icon-btn ${inboxOpen ? 'active' : ''}`} 
+                onClick={() => setInboxOpen(!inboxOpen)}
+                style={{ position: 'relative' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+              </button>
+
               <button 
                 onClick={handleLogout} 
                 className="btn-logout"
@@ -150,25 +203,182 @@ function App() {
   );
 }
 
+function InboxPanel({ alerts, onPin, onRemove, isOpen, onClose }) {
+  const sortedAlerts = [...alerts].sort((a, b) => b.isPinned - a.isPinned);
+
+  return (
+    <>
+      <div className={`inbox-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}></div>
+      <div className={`inbox-panel ${isOpen ? 'open' : ''}`}>
+        <div className="inbox-header">
+          <div className="inbox-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span>Inbox</span>
+          </div>
+          <button className="inbox-close" onClick={onClose}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div className="inbox-content">
+          {sortedAlerts.length > 0 ? (
+            <div className="alerts-list">
+              {sortedAlerts.map(alert => (
+                <div key={alert.id} className={`alert-item ${alert.isPinned ? 'is-pinned' : ''}`}>
+                  <div className="alert-body">
+                    <p className="alert-message">{alert.message}</p>
+                    <span className="alert-time">{alert.time}</span>
+                  </div>
+                  <div className="alert-actions">
+                    <button className="alert-action-btn" onClick={() => onPin(alert.id)} title={alert.isPinned ? "Unpin" : "Pin"}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill={alert.isPinned ? "var(--accent-primary)" : "none"} stroke="currentColor" strokeWidth="2.5">
+                        <path d="M12 2v10m0 0l-4-4m4 4l4-4M5 22h14"></path>
+                      </svg>
+                    </button>
+                    <button className="alert-action-btn remove" onClick={() => onRemove(alert.id)} title="Remove">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="inbox-empty">
+              <p>Nothing to show</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 function AppContent({ academicYear, setAcademicYear }) {
   const location = useLocation();
   const isReportPage = location.pathname.includes("/report/");
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const [alerts, setAlerts] = useState([]);
 
-  // Manage body scroll to prevent dual-scrollbar (inset) issue
+  // Fetch live notifications for Proctor
   useEffect(() => {
-    if (isReportPage) {
+    const isProctorView =
+      location.pathname.startsWith("/proctor/") &&
+      !location.pathname.includes("login") &&
+      !isReportPage;
+    const pathParts = location.pathname.split('/');
+    const currentProctorId = pathParts[1] === 'proctor' ? pathParts[2] : null;
+
+    if (!isProctorView || !currentProctorId) return;
+
+    const cacheKey = `alerts-${currentProctorId}-${academicYear}`;
+
+    const fetchAlerts = async () => {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          console.log(`[App] Cache hit for ${cacheKey}`);
+          setAlerts(JSON.parse(cached));
+          return;
+        }
+
+        const sessionId = localStorage.getItem("proctorSessionId");
+        const url = `${API_BASE_URL}/api/notifications/${currentProctorId}?academicYear=${academicYear}`;
+        console.log(`[App] Fetching: ${url}`);
+
+        const response = await axios.get(url, { headers: { "x-session-id": sessionId } });
+
+        console.log("RAW API:", response.data);
+
+        const groupedData = response.data.data || response.data;
+        console.log("GROUPED:", groupedData);
+
+        if (!Array.isArray(groupedData)) {
+          console.warn("[App] Not an array:", typeof groupedData);
+          setAlerts([]);
+          return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        const flattened = [];
+
+        groupedData.forEach(group => {
+          if (!group.subjects || !Array.isArray(group.subjects)) return;
+          group.subjects.forEach(subj => {
+            flattened.push({
+              id: `alert-${group.usn}-${subj.name.replace(/\s+/g, '-')}-${today}`,
+              message: `${group.student} - ${subj.name} is ${subj.attendance}%`,
+              time: "Just now",
+              type: "warning",
+              isPinned: false
+            });
+          });
+          if (group.count > 1) {
+            flattened.push({
+              id: `summary-${group.usn}-${today}`,
+              message: `${group.student} has low attendance in ${group.count} subjects`,
+              time: "Just now",
+              type: "warning",
+              isPinned: false
+            });
+          }
+        });
+
+        console.log("FINAL ALERTS:", flattened);
+        sessionStorage.setItem(cacheKey, JSON.stringify(flattened));
+        setAlerts(flattened);
+      } catch (err) {
+        console.error("[App] Fetch failed:", err.response?.data?.message || err.message);
+      }
+    };
+
+    fetchAlerts();
+  }, [location.pathname, academicYear]);
+
+  const togglePin = (id) => {
+    setAlerts(prev => prev.map(a => a.id === id ? { ...a, isPinned: !a.isPinned } : a));
+  };
+
+  const removeAlert = (id) => {
+    setAlerts(prev => prev.filter(a => a.id !== id));
+  };
+
+  // Manage body scroll (for report page and inbox overlay)
+  useEffect(() => {
+    if (isReportPage || inboxOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isReportPage]);
+  }, [isReportPage, inboxOpen]);
 
   return (
     <div className="app-wrapper" style={{ paddingTop: isReportPage ? '0' : 'var(--nav-height)' }}>
-      {!isReportPage && <Navbar academicYear={academicYear} setAcademicYear={setAcademicYear} />}
+      {!isReportPage && (
+        <Navbar 
+          academicYear={academicYear} 
+          setAcademicYear={setAcademicYear} 
+          inboxOpen={inboxOpen}
+          setInboxOpen={setInboxOpen}
+          notificationCount={alerts.length}
+        />
+      )}
+      
+      <InboxPanel 
+        isOpen={inboxOpen} 
+        onClose={() => setInboxOpen(false)} 
+        alerts={alerts}
+        onPin={togglePin}
+        onRemove={removeAlert}
+      />
+
       <main className="content">
         <Routes>
           <Route path="/" element={<Home />} />

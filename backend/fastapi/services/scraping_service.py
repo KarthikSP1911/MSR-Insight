@@ -20,13 +20,20 @@ from services.sync_service import SyncService
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
-BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+# BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 # BRAVE_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 def get_complete_student_data(usn, day, month, year):
     options = Options()
-    options.binary_location = BRAVE_PATH
+    
+    # Only use brave binary if it actually exists at the provided path
+    if os.path.exists(BRAVE_PATH):
+        print(f"[*] Using Brave binary at: {BRAVE_PATH}")
+        options.binary_location = BRAVE_PATH
+    else:
+        print(f"[!] Warning: Brave binary not found at {BRAVE_PATH}. Defaulting to system Chrome.")
+
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless")
@@ -34,8 +41,8 @@ def get_complete_student_data(usn, day, month, year):
     options.add_argument("--blink-settings=imagesEnabled=false")
     options.page_load_strategy = 'eager'
 
-    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver = webdriver.Chrome(options=options)
+    # Auto-manages the chromedriver version using ChromeDriverManager
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     try:
         print(f"[*] Accessing portal for USN: {usn}...")
@@ -64,6 +71,7 @@ def get_complete_student_data(usn, day, month, year):
             
         driver.quit()
         
+        print("[*] Parsing Dashboard Course Table...")
         soup_dash = BeautifulSoup(dashboard_html, "html.parser")
         course_table = soup_dash.find("table", class_=re.compile(r"dash_od_row"))
         

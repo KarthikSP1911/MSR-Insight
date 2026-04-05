@@ -1,4 +1,5 @@
 import proctorRepository from "../repositories/proctor.repository.js";
+import prisma from "../config/db.config.js";
 
 class ProctorController {
   async getDashboard(req, res, next) {
@@ -71,6 +72,101 @@ class ProctorController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  async getNotifications(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const academicYear = req.query.academicYear || "2027";
+      const normalizedProctorId = proctorId.toUpperCase();
+
+      console.log(`[NotificationScan] ── START ─────────────────────────`);
+      console.log(`[NotificationScan] Proctor: ${normalizedProctorId} | Year: ${academicYear}`);
+
+      // 1. Fetch all students mapped to this proctor
+      const students = await prisma.student.findMany({
+        where: {
+          proctor_maps: {
+            some: {
+              proctor_id: normalizedProctorId,
+              academic_year: academicYear
+            }
+          }
+        },
+        select: { usn: true, name: true, details: true }
+      });
+
+      console.log(`[NotificationScan] Students found: ${students.length}`);
+
+      const alertsData = [];
+
+      for (const student of students) {
+        // 2. Parse details — handle both object and string (edge case)
+        let details = student.details;
+        if (typeof details === 'string') {
+          try { details = JSON.parse(details); } catch (e) { details = {}; }
+        }
+        if (!details || typeof details !== 'object') { details = {}; }
+
+        // 3. Unwrap double-nesting if present (some scrapers nest details.details)
+        if (details.details && typeof details.details === 'object') {
+          details = details.details;
+        }
+
+        // 4. Extract the subjects array — log what keys exist for debugging
+        const keys = Object.keys(details);
+        console.log(`[NotificationScan] ${student.usn} keys: [${keys.join(', ')}]`);
+
+        const subjectsList = Array.isArray(details.subjects)
+          ? details.subjects
+          : Array.isArray(details.current_semester)
+            ? details.current_semester
+            : [];
+
+        console.log(`[NotificationScan] ${student.usn} → ${subjectsList.length} subjects`);
+
+        const lowAttendanceSubjects = [];
+
+        for (const subj of subjectsList) {
+          // 5. Extract raw attendance from either field
+          const raw = subj.attendance ?? subj.attendance_details?.percentage ?? null;
+          if (raw === null || raw === undefined) {
+            console.log(`[NotificationScan]   SKIP "${subj.name}" — no attendance value`);
+            continue;
+          }
+
+          const val = Number(String(raw).replace('%', '').trim());
+          console.log(`[NotificationScan]   ${student.name} | "${subj.name}" → ${val}%`);
+
+          if (!isNaN(val) && val < 75) {
+            lowAttendanceSubjects.push({ name: subj.name, attendance: val });
+          }
+        }
+
+        if (lowAttendanceSubjects.length > 0) {
+          lowAttendanceSubjects.sort((a, b) => a.attendance - b.attendance);
+          alertsData.push({
+            usn: student.usn,
+            student: student.name || student.usn,
+            count: lowAttendanceSubjects.length,
+            subjects: lowAttendanceSubjects
+          });
+        }
+      }
+
+      if (alertsData.length > 0) {
+        alertsData.sort((a, b) => a.subjects[0].attendance - b.subjects[0].attendance);
+      }
+
+      console.log(`[NotificationScan] ── RESULT: ${alertsData.length} student alerts ──`);
+      console.log(JSON.stringify(alertsData, null, 2));
+
+      // Always return an array — never null/empty object
+      return res.status(200).json({ success: true, data: alertsData });
+    } catch (error) {
+      console.error("[NotificationScan] FATAL ERROR:", error.message);
+      return res.status(200).json({ success: true, data: [] }); // safe fallback
     }
   }
 }

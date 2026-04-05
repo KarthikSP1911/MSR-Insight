@@ -62,8 +62,8 @@
   background: var(--bg-card);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 8px; /* Standardized to 8px */
+  font-weight: 500; /* Medium font weight */
   font-size: 0.9rem;
   padding: 8px 12px;
   cursor: pointer;
@@ -75,6 +75,7 @@
 
 .year-picker:hover {
   border-color: var(--border-bright);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .year-picker option {
@@ -93,21 +94,19 @@
 .filter-item {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
+  border-radius: 8px; /* Standardized to 8px */
   height: 44px;
   display: flex;
   align-items: center;
   padding: 0 16px;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  box-shadow: none; /* Removed shadow */
 }
 
 .filter-item:hover {
-  background: #232D3F;
-  /* Slightly lighter on hover */
+  background: #1e293b;
   border-color: var(--border-bright);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  transform: none; /* Removed lift */
 }
 
 .search-box {
@@ -275,19 +274,20 @@
 
 .view-btn {
   width: 100%;
-  padding: 11px 16px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05); /* Solid subtle background */
   color: var(--accent-primary);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px; /* Standardized to 8px */
+  font-weight: 500; /* Medium font weight */
   font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px; /* Improved icon spacing */
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: none; /* Removed glow/shadow */
 }
 
 .btn-icon {
@@ -300,6 +300,7 @@
   background: var(--accent-primary);
   color: #FFF;
   border-color: var(--accent-primary);
+  filter: brightness(1.1); /* Simple hover brightness */
 }
 
 .student-card:hover .btn-icon {

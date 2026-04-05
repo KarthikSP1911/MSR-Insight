@@ -69,7 +69,7 @@ const ProcteeDetails = () => {
         return (
             <div className="proctee-details-page fade-in" style={{ textAlign: 'center', paddingTop: '100px' }}>
                 <p style={{ color: 'var(--error)', marginBottom: '24px', fontSize: '1.1rem' }}>⚠️ {error || "Student not found"}</p>
-                <button className="btn btn-primary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>
+                <button className="btn btn-secondary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>
                     Back to Dashboard
                 </button>
             </div>
@@ -82,15 +82,7 @@ const ProcteeDetails = () => {
     return (
         <div className="container fade-in">
             <div className="proctee-details-page">
-                {/* 1. BACK BUTTON */}
-                <nav className="back-nav">
-                    <button className="back-link" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>
-                        <span className="back-icon">←</span>
-                        <span>Back</span>
-                    </button>
-                </nav>
-
-                {/* 2. STUDENT HERO CARD */}
+                {/* STUDENT HERO CARD */}
                 <header className="student-hero-card">
                     <div className="student-info">
                         <h1>{student.name || student.usn}</h1>
