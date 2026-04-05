@@ -23,14 +23,50 @@
     z-index: 1000;
 }
 
-/* Compact, formal download button */
-.toolbar-right .generate-btn {
+/* Primary & Secondary Toolbar Actions */
+.toolbar-right .btn {
+    height: 36px;
     padding: 0 16px;
-    height: 38px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     border-radius: 8px;
-    font-weight: 600;
-    margin-right: 4px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: none;
+}
+
+.toolbar-right .download-btn {
+    background-color: #D97706; /* Muted orange/amber */
+    color: white;
+}
+
+.toolbar-right .download-btn:hover {
+    filter: brightness(1.1);
+}
+
+.toolbar-right .email-btn {
+    background-color: rgba(255, 255, 255, 0.05); /* Very subtle primary */
+    color: #F8FAFC;
+    border: 1px solid var(--border-subtle);
+    margin-right: 12px;
+}
+
+.toolbar-right .email-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-bright);
+}
+
+.btn-span-icon, 
+.btn-svg-icon {
+    margin-right: 2px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
 }
 
 .toolbar-left,
@@ -51,7 +87,7 @@
 .toolbar-btn {
     background: transparent;
     border: none;
-    color: var(--text-secondary);
+    color: #9CA3AF;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -152,7 +188,7 @@
     overflow: hidden;
     display: flex;
     justify-content: center;
-    background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+    background: #0F172A; /* Solid background, no gradient */
     position: relative;
 }
 

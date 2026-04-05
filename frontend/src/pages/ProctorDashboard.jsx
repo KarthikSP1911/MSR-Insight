@@ -102,6 +102,39 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
     { value: "At Risk", label: "At Risk" },
   ];
 
+  // Returns white or black text for readability against any background
+  const getContrastColor = (hex) => {
+    if (!hex) return '#FFFFFF';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // Perceived luminance formula (WCAG)
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luminance > 128 ? '#000000' : '#FFFFFF';
+  };
+
+  const getAttendanceStyle = (attendance) => {
+    if (attendance === null || attendance === undefined) return { color: null, textColor: '#FFFFFF', style: {} };
+    let color;
+    if (attendance < 50)       color = '#4B0000';
+    else if (attendance < 65)  color = '#FF0000';
+    else if (attendance < 75)  color = '#FFA500';
+    else if (attendance < 85)  color = '#FFD700';
+    else if (attendance < 95)  color = '#4CAF50';
+    else                       color = '#2ECC71';
+
+    const textColor = getContrastColor(color);
+
+    return {
+      color,
+      textColor,
+      style: {
+        borderLeft: `4px solid ${color}`,
+        background: `linear-gradient(to right, ${color}12 0%, #0F172A 40%)`
+      }
+    };
+  };
+
   if (loading) {
     return (
       <div className="loading-container fade-in">
@@ -128,46 +161,70 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input 
-            type="text" 
-            placeholder="Search by student name or USN..." 
+          <input
+            type="text"
+            placeholder="Search by student name or USN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <CustomDropdown 
-          options={semesterOptions} 
-          value={semesterFilter} 
-          onChange={setSemesterFilter} 
+        <CustomDropdown
+          options={semesterOptions}
+          value={semesterFilter}
+          onChange={setSemesterFilter}
           placeholder="Semester"
         />
 
-        <CustomDropdown 
-          options={sectionOptions} 
-          value={sectionFilter} 
-          onChange={setSectionFilter} 
+        <CustomDropdown
+          options={sectionOptions}
+          value={sectionFilter}
+          onChange={setSectionFilter}
           placeholder="Section"
         />
 
-        <CustomDropdown 
-          options={statusOptions} 
-          value={statusFilter} 
-          onChange={setStatusFilter} 
+        <CustomDropdown
+          options={statusOptions}
+          value={statusFilter}
+          onChange={setStatusFilter}
           placeholder="Performance Status"
         />
       </section>
 
       <div className="proctees-grid grid-container">
-        {filteredStudents.map((student) => (
-          <div
-            key={student.usn}
-            className="student-card"
-            onClick={() => handleStudentClick(student.usn)}
-          >
-            <div className="card-content">
-              <h2 className="student-name">{student.name}</h2>
-              <div className="student-info">
+        {filteredStudents.map((student) => {
+          const att = student.lowestAttendance;
+          console.log(`[Card] ${student.usn} — lowestAttendance: ${att}`);
+          const attendanceData = getAttendanceStyle(att);
+          
+          return (
+            <div
+              key={student.usn}
+              className="student-card"
+              style={attendanceData.style}
+              onClick={() => handleStudentClick(student.usn)}
+            >
+              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <h2 className="student-name">{student.name}</h2>
+                {att !== null && att !== undefined && (
+                  <span style={{
+                    backgroundColor: attendanceData.color,
+                    color: attendanceData.textColor,
+                    padding: '3px 10px',
+                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    whiteSpace: 'nowrap',
+                    marginLeft: '12px',
+                    letterSpacing: '0.02em'
+                  }}>
+                    {att !== null ? `${att}%` : 'N/A'}
+                  </span>
+                )}
+              </div>
+            
+            <div className="card-body">
+              <div className="info-grid">
                 <div className="info-row">
                   <span className="info-label">USN</span>
                   <span className="info-value">{student.usn}</span>
@@ -182,11 +239,19 @@ const ProctorDashboard = ({ academicYear, setAcademicYear }) => {
                 </div>
               </div>
             </div>
-            <button className="view-btn">
-              View Full Profile
-            </button>
-          </div>
-        ))}
+
+            <div className="card-footer">
+              <button className="view-btn">
+                <span>View Full Profile</span>
+                <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+            </div>
+          );
+        })}
 
         {filteredStudents.length === 0 && (
           <div className="no-results">

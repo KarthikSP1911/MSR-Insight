@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api.config";
+import "./ProcteeDetails.css";
 
 /**
  * ProcteeDetails: Displays detailed student profile information to the proctor.
- * Integrated with the new JSONB-centric schema.
+ * Integrated with the new JSONB-centric schema and modern SaaS UI.
  */
 const ProcteeDetails = () => {
     const { proctorId, usn } = useParams();
@@ -57,161 +58,106 @@ const ProcteeDetails = () => {
 
     if (loading) {
         return (
-            <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)', textAlign: 'center' }}>
-                <p>Fetching student profile...</p>
+            <div className="proctee-details-page fade-in" style={{ textAlign: 'center', paddingTop: '100px' }}>
+                <div className="spinner" style={{ margin: '0 auto 20px' }} />
+                <p style={{ color: 'var(--text-secondary)' }}>Fetching student profile...</p>
             </div>
         );
     }
 
     if (error || !student) {
         return (
-            <div className="container fade-in" style={{ paddingTop: 'var(--space-xl)', paddingBottom: 'var(--space-xl)', textAlign: 'center' }}>
-                <p style={{ color: 'var(--error)', marginBottom: 'var(--space-md)' }}>⚠️ {error || "Student not found"}</p>
-                <button className="btn btn-primary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>Back to Dashboard</button>
+            <div className="proctee-details-page fade-in" style={{ textAlign: 'center', paddingTop: '100px' }}>
+                <p style={{ color: 'var(--error)', marginBottom: '24px', fontSize: '1.1rem' }}>⚠️ {error || "Student not found"}</p>
+                <button className="btn btn-secondary" onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}>
+                    Back to Dashboard
+                </button>
             </div>
         );
     }
 
     const details = student.details || {};
+    const hasGoodStanding = (details.cgpa || 0) >= 5;
 
     return (
-        <div className="container fade-in" style={{ paddingTop: 'var(--space-lg)', paddingBottom: 'var(--space-lg)' }}>
-            <button
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '16px',
-                    color: 'var(--text-secondary)',
-                    textDecoration: 'none',
-                    fontSize: '0.9rem',
-                    background: 'transparent',
-                    border: '1px solid var(--border-subtle)',
-                    padding: '8px 16px',
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                }}
-                onClick={() => navigate(`/proctor/${proctorId}/dashboard`)}
-            >
-                ← Back to Dashboard
-            </button>
-
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                marginBottom: 'var(--space-xl)',
-                background: 'var(--bg-secondary)',
-                padding: 'var(--space-lg)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-            }}>
-                <div>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '4px', fontWeight: '800', color: 'white' }}>
-                        {student.name || student.usn}
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-                        USN: <span style={{ color: 'var(--accent-primary)', fontWeight: '600' }}>{student.usn}</span>
-                        {' • '}
-                        {details.class_details || "Student Profile Active"}
-                    </p>
-                </div>
-                <button className="btn btn-primary" onClick={handleGenerateReport} style={{ padding: '12px 24px', fontWeight: '600' }}>
-                    Generate Report
-                </button>
-            </header>
-
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                gap: '24px'
-            }}>
-                <div className="card" style={{ padding: 'var(--space-lg)' }}>
-                    <h2 style={{
-                        fontSize: '1.25rem',
-                        marginBottom: 'var(--space-lg)',
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}>
-                        <span style={{ color: 'var(--accent-primary)' }}>■</span> Personal Information
-                    </h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                        <div>
-                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Name</span>
-                            <span style={{ fontWeight: '500', fontSize: '1.1rem', color: 'white' }}>{student.name || "Not Available"}</span>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
-                            <div>
-                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>USN</span>
-                                <span style={{ fontWeight: '500', color: 'white' }}>{student.usn}</span>
-                            </div>
-                            <div>
-                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date of Birth</span>
-                                <span style={{ fontWeight: '500', color: 'white' }}>{student.dob || 'N/A'}</span>
-                            </div>
-                        </div>
-                        <div>
-                            <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>
-                            <span style={{ fontWeight: '500', color: 'white' }}>{student.email || "Not Available"}</span>
+        <div className="container fade-in">
+            <div className="proctee-details-page">
+                {/* STUDENT HERO CARD */}
+                <header className="student-hero-card">
+                    <div className="student-info">
+                        <h1>{student.name || student.usn}</h1>
+                        <div className="student-meta-row">
+                            <span className="usn-badge">{student.usn}</span>
+                            <div className="meta-divider"></div>
+                            <span>{details.class_details || "Student Profile Active"}</span>
                         </div>
                     </div>
-                </div>
+                    <button className="generate-report-btn" onClick={handleGenerateReport}>
+                        Generate Report
+                    </button>
+                </header>
 
-                <div className="card" style={{ padding: 'var(--space-lg)' }}>
-                    <h2 style={{
-                        fontSize: '1.25rem',
-                        marginBottom: 'var(--space-lg)',
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}>
-                        <span style={{ color: 'var(--accent-primary)' }}>■</span> Academic Status
-                    </h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: 'var(--space-md)',
-                            background: 'rgba(255,255,255,0.02)',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid var(--border-subtle)'
-                        }}>
-                            <div>
-                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current CGPA</span>
-                                <span style={{ color: 'white', fontSize: '2.5rem', fontWeight: '700' }}>
-                                    {details.cgpa || "N/A"}
-                                </span>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</span>
-                                <span style={{
-                                    color: details.cgpa >= 5 ? 'var(--success)' : 'var(--warning)',
-                                    fontWeight: '600'
-                                }}>
-                                    {details.cgpa ? (details.cgpa >= 5 ? 'Good Standing' : 'Needs Regularity') : 'Profile Incomplete'}
-                                </span>
-                            </div>
+                <div className="details-grid">
+                    {/* 3. PERSONAL INFORMATION CARD */}
+                    <div className="info-card">
+                        <div className="card-header">
+                            <div className="accent-line"></div>
+                            <h2>Personal Information</h2>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700', color: 'white' }}>{(details.current_semester || []).length}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Courses</span>
+                        <div className="personal-info-grid">
+                            <div className="info-row">
+                                <span className="info-label">Full Name</span>
+                                <span className="info-value">{student.name || "Not Available"}</span>
                             </div>
-                            <div style={{ background: 'rgba(255,255,255,0.02)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: '700', color: 'white' }}>{(details.exam_history || []).length}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Completed Semesters</span>
+                            <div className="info-row">
+                                <span className="info-label">USN</span>
+                                <span className="info-value">{student.usn}</span>
+                            </div>
+                            <div className="info-row">
+                                <span className="info-label">Date of Birth</span>
+                                <span className="info-value">{student.dob || '—'}</span>
+                            </div>
+                            <div className="info-row">
+                                <span className="info-label">Email</span>
+                                <span className="info-value">{student.email || "Not Available"}</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>Last Scraped</span>
-                            <span style={{ color: 'var(--text-secondary)' }}>{details.last_updated || "Never"}</span>
+                    {/* 4. ACADEMIC STATUS CARD */}
+                    <div className="info-card">
+                        <div className="card-header">
+                            <div className="accent-line"></div>
+                            <h2>Academic Status</h2>
+                        </div>
+
+                        <div className="academic-metrics">
+                            <div className="cgpa-container">
+                                <div className="cgpa-display">
+                                    <span className="cgpa-label">Current CGPA</span>
+                                    <span className="cgpa-value">{details.cgpa || "—"}</span>
+                                </div>
+                                <div className={`status-badge ${!hasGoodStanding ? 'warning' : ''}`}>
+                                    {details.cgpa ? (hasGoodStanding ? 'Good Standing' : 'Needs Regularity') : 'Profile Incomplete'}
+                                </div>
+                            </div>
+
+                            <div className="mini-stats-grid">
+                                <div className="mini-stat-card">
+                                    <span className="stat-number">{(details.current_semester || []).length}</span>
+                                    <span className="stat-label">Courses</span>
+                                </div>
+                                <div className="mini-stat-card">
+                                    <span className="stat-number">{(details.exam_history || []).length}</span>
+                                    <span className="stat-label">Semesters</span>
+                                </div>
+                            </div>
+
+                            <div className="last-updated">
+                                <span>Last Scraped</span>
+                                <span>{details.last_updated || "Never"}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

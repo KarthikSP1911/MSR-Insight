@@ -1,6 +1,6 @@
 # Smart Report Generator 🎓
 
-
+/* right me story
 
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, secure session management, and generative AI feedback loops.
 
