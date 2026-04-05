@@ -17,12 +17,52 @@ class ProctorController {
 
       const proctees = studentMaps.map((map) => {
         const student = map.student;
-        const details = student.details || {};
-        const classInfo = details.class_details || "";
 
-        // Parse sem/sec for display from the JSONB blob
+        // 1. Parse details safely (handle string or object)
+        let details = student.details;
+        if (typeof details === 'string') {
+          try { details = JSON.parse(details); } catch (e) { details = {}; }
+        }
+        details = (details && typeof details === 'object') ? details : {};
+
+        // 2. Unwrap nesting if present (some scrapers wrap inside details.details)
+        const innerDetails = (details.details && typeof details.details === 'object')
+          ? details.details
+          : details;
+
+        const classInfo = innerDetails.class_details || details.class_details || "";
         const semMatch = classInfo.match(/SEM\s*(\d+)/i);
         const secMatch = classInfo.match(/SEC\s*(\w+)/i);
+
+        // 3. Extract subjects array
+        const subjects = Array.isArray(innerDetails.subjects)
+          ? innerDetails.subjects
+          : Array.isArray(innerDetails.current_semester)
+            ? innerDetails.current_semester
+            : [];
+
+        // DEBUG: log raw data to confirm structure
+        console.log(`[Dashboard] ${student.usn} — detail keys: [${Object.keys(innerDetails).join(', ')}]`);
+        console.log(`[Dashboard] ${student.usn} — subjects count: ${subjects.length}`);
+        if (subjects.length > 0) {
+          console.log(`[Dashboard] ${student.usn} — first subject sample:`, JSON.stringify(subjects[0]));
+        }
+
+        // 4. Compute lowestAttendance using parseFloat for safety
+        const attendanceValues = subjects
+          .map(s => {
+            const raw = s.attendance ?? s.attendance_details?.percentage ?? null;
+            if (raw === null || raw === undefined) return null;
+            const val = parseFloat(String(raw).replace('%', '').trim());
+            return isNaN(val) ? null : val;
+          })
+          .filter(v => v !== null);
+
+        const lowestAttendance = attendanceValues.length > 0
+          ? Math.min(...attendanceValues)
+          : null;
+
+        console.log(`[Dashboard] ${student.usn} — lowestAttendance: ${lowestAttendance}`);
 
         return {
           usn: student.usn,
@@ -30,6 +70,7 @@ class ProctorController {
           semester: semMatch ? `Sem ${semMatch[1]}` : `Year ${student.current_year}`,
           section: secMatch ? `Sec ${secMatch[1]}` : "N/A",
           academicYear: map.academic_year,
+          lowestAttendance: lowestAttendance,
         };
       });
 
