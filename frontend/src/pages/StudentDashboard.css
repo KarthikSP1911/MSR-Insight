@@ -353,6 +353,41 @@
     gap: 16px;
 }
 
+.loading-spinner {
+    position: relative;
+    width: 60px;
+    height: 60px;
+}
+
+.spinner-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    animation: spinnerRotate 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(1) {
+    border-top-color: var(--accent-primary, #FF8A00);
+    animation-delay: 0s;
+}
+
+.spinner-ring:nth-child(2) {
+    border-right-color: #3b82f6;
+    animation-delay: -0.4s;
+    inset: 8px;
+}
+
+.spinner-ring:nth-child(3) {
+    border-bottom-color: #10b981;
+    animation-delay: -0.8s;
+    inset: 16px;
+}
+
+@keyframes spinnerRotate {
+    100% { transform: rotate(360deg); }
+}
+
 .loading-text {
     font-size: 14px;
     color: var(--text-secondary, #94A3B8);
