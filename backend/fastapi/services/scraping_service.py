@@ -26,7 +26,14 @@ BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 
 def get_complete_student_data(usn, day, month, year):
     options = Options()
-    options.binary_location = BRAVE_PATH
+    
+    # Only use brave binary if it actually exists at the provided path
+    if os.path.exists(BRAVE_PATH):
+        print(f"[*] Using Brave binary at: {BRAVE_PATH}")
+        options.binary_location = BRAVE_PATH
+    else:
+        print(f"[!] Warning: Brave binary not found at {BRAVE_PATH}. Defaulting to system Chrome.")
+
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--headless")
@@ -64,6 +71,7 @@ def get_complete_student_data(usn, day, month, year):
             
         driver.quit()
         
+        print("[*] Parsing Dashboard Course Table...")
         soup_dash = BeautifulSoup(dashboard_html, "html.parser")
         course_table = soup_dash.find("table", class_=re.compile(r"dash_od_row"))
         

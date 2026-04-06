@@ -4,10 +4,10 @@ import { verifySession } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
+// Apply session verification
 router.use(verifySession);
 
-router.get("/:proctorId/dashboard", proctorController.getDashboard);
-router.get("/:proctorId/student/:studentUsn", proctorController.getProctee);
-router.get("/:proctorId/notifications", proctorController.getNotifications);
+// GET /api/notifications/:proctorId
+router.get("/:proctorId", proctorController.getNotifications);
 
 export default router;

@@ -110,3 +110,38 @@ ORDER BY psm.assigned_year;
   { "assigned_year": 3, "students": [] },
   { "assigned_year": 4, "students": ["1MS18CS050"] }
 ]
+
+Implement a daily attendance alert system for proctor dashboard.
+
+- Every day (cron job / scheduler):
+  1. Fetch all students under a proctor
+  2. Check attendance %
+  3. If attendance < 75:
+     - Create notification:
+       "Rahul attendance dropped below 75%"
+
+- Store in DB:
+  Notifications(
+    id,
+    proctor_id,
+    message,
+    created_at,
+    is_read
+  )
+
+- Avoid duplicates:
+  - Do not notify same student repeatedly on same day
+
+- Backend:
+  - Use Celery / node-cron / APScheduler
+  - Run once per day
+
+- API:
+  GET /notifications?proctor_id=...
+
+- Frontend:
+  - Fetch notifications
+  - Show in inbox panel
+
+Goal:
+Automated daily alert system for low attendance students.
