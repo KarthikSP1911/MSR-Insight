@@ -1,294 +1,460 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Line } from 'recharts';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 import './SubjectDetail.css';
 
+/* ── Assessment type maps ── */
+const ASSESSMENT_ICONS = { T1: 'T1', T2: 'T2', AQ1: 'Q1', AQ2: 'Q2' };
+const ASSESSMENT_COLORS = {
+  T1:  { bg: 'rgba(173,198,255,0.12)', color: '#adc6ff' },
+  T2:  { bg: 'rgba(255,182,144,0.12)', color: '#ffb690' },
+  AQ1: { bg: 'rgba(78,222,163,0.12)',  color: '#4edea3' },
+  AQ2: { bg: 'rgba(255,180,171,0.12)', color: '#ffb4ab' },
+};
+const ASSESSMENT_LABELS = {
+  T1: 'Test 1', T2: 'Test 2', AQ1: 'Quiz 1', AQ2: 'Quiz 2'
+};
+
+/* ── Max marks per type ── */
+const getMaxMarks = (type) => {
+  if (type === 'T1' || type === 'T2')   return 30;
+  if (type === 'AQ1' || type === 'AQ2') return 10;
+  return null;
+};
+
+/* ── Custom chart tooltip ── */
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="sd-chart-tooltip">
+      <p className="sd-tooltip-label">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} className="sd-tooltip-row">
+          <span className="sd-tooltip-dot" style={{ background: p.color }} />
+          {p.name}: <strong>{p.value}</strong>
+        </p>
+      ))}
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════ */
 const SubjectDetail = ({ subject, onBack }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear());
+  const [targetPct,    setTargetPct]    = useState(75);
 
   if (!subject) return null;
 
-  // Parse attendance dates
+  /* ── Attendance data ── */
   const attendanceDetails = subject.attendance_details || {};
-  const presentDates = attendanceDetails.present_dates || [];
-  const absentDates = attendanceDetails.absent_dates || [];
+  const presentDates  = attendanceDetails.present_dates || [];
+  const absentDates   = attendanceDetails.absent_dates  || [];
+  const presentCount  = attendanceDetails.present   ?? presentDates.length;
+  const absentCount   = attendanceDetails.absent    ?? absentDates.length;
+  const remainingCount = attendanceDetails.remaining ?? 0;
+  const totalClasses  = presentCount + absentCount + remainingCount;
 
-  // Get available months from dates
-  const getAvailableMonths = () => {
-    const months = new Set();
-    [...presentDates, ...absentDates].forEach(dateStr => {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        const month = parseInt(parts[1]) - 1;
-        const year = parseInt(parts[2]);
-        months.add(`${year}-${month}`);
-      }
-    });
-    return Array.from(months).sort();
-  };
+  /* ── Attendance calculator ── */
+  const T       = targetPct / 100;
+  const canMiss = Math.floor(presentCount + remainingCount - T * totalClasses);
 
-  const availableMonths = getAvailableMonths();
-
-  // Generate calendar for current month
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  /* ── Calendar grid ── */
+  const daysInMonth    = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const calendarDays   = [];
+  for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(null);
+  for (let i = 1; i <= daysInMonth; i++)    calendarDays.push(i);
 
-  const calendarDays = [];
-  for (let i = 0; i < firstDayOfMonth; i++) {
-    calendarDays.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    calendarDays.push(i);
-  }
-
-  // Helper to check if date is present/absent
   const getDateStatus = (day) => {
-    const dateStr = `${String(day).padStart(2, '0')}-${String(currentMonth + 1).padStart(2, '0')}-${currentYear}`;
-    if (presentDates.includes(dateStr)) return 'present';
-    if (absentDates.includes(dateStr)) return 'absent';
-    return null;
+    const d = `${String(day).padStart(2,'0')}-${String(currentMonth+1).padStart(2,'0')}-${currentYear}`;
+    if (presentDates.includes(d)) return 'present';
+    if (absentDates.includes(d))  return 'absent';
+    return 'remaining';
   };
 
-  // Navigate months
-  const goToPreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
+  const today   = new Date();
+  const isToday = (day) =>
+    day === today.getDate() &&
+    currentMonth === today.getMonth() &&
+    currentYear  === today.getFullYear();
+
+  const goToPrev = () => {
+    if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); }
+    else setCurrentMonth(m => m - 1);
+  };
+  const goToNext = () => {
+    if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(y => y + 1); }
+    else setCurrentMonth(m => m + 1);
   };
 
-  const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
-
-  // Prepare bar chart data - only show T1, T2, AQ1, AQ2
+  /* ── Chart data ── */
   const chartData = useMemo(() => {
-    const assessments = subject.assessments || [];
-    const filtered = assessments.filter(a => 
-      ['T1', 'T2', 'AQ1', 'AQ2'].includes(a.type)
-    );
-    return filtered.map(a => ({
-      type: a.type,
-      obtained: parseFloat(a.obtained_marks) || 0,
-      classAvg: parseFloat(a.class_average) || 0
-    }));
+    return (subject.assessments || [])
+      .filter(a => ['T1','T2','AQ1','AQ2'].includes(a.type))
+      .map(a => ({
+        type:     a.type,
+        obtained: parseFloat(a.obtained_marks) || 0,
+        classAvg: parseFloat(a.class_average)  || 0,
+      }));
   }, [subject]);
 
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const chartYMax = useMemo(() => {
+    if (!chartData.length) return 30;
+    const max = Math.max(...chartData.flatMap(d => [d.obtained, d.classAvg]));
+    return Math.max(10, Math.ceil(max / 10) * 10);
+  }, [chartData]);
 
+  const tableAssessments = (subject.assessments || [])
+    .filter(a => ['T1','T2','AQ1','AQ2'].includes(a.type));
+
+  const monthNames = ['January','February','March','April','May','June',
+                      'July','August','September','October','November','December'];
+  const dayLabels  = ['S','M','T','W','T','F','S'];
+
+  const attColor = canMiss > 0 ? '#4edea3' : canMiss === 0 ? '#ffb690' : '#ffb4ab';
+
+  /* ═══════════════════════════════════════════════════ */
   return (
-    <div className="subject-detail-page">
-      {/* Header */}
-      <div className="subject-detail-header">
-        <button className="back-button" onClick={onBack}>
-          <ArrowLeft size={20} />
-          <span>Back to Performance</span>
+    <div className="sd-page">
+
+      {/* ── Title Bar ── */}
+      <div className="sd-page-titlebar">
+        <button className="sd-back-btn" onClick={onBack}>
+          <ArrowLeft size={16} /> Back
         </button>
-        <div className="subject-header-content">
-          <h1 className="subject-detail-title">{subject.name}</h1>
-          <span className="subject-detail-code">{subject.code}</span>
+        <div className="sd-subject-meta">
+          <h1 className="sd-subject-name">{subject.name}</h1>
+          {subject.code && <span className="sd-subject-code">{subject.code}</span>}
         </div>
-        <div className="subject-header-stats">
-          <div className="header-stat">
-            <span className="stat-label">Attendance</span>
-            <span className="stat-value">{Math.round(subject.attendance || 0)}%</span>
+        <div className="sd-header-kpis">
+          <div className="sd-kpi">
+            <span className="sd-kpi-label">Attendance</span>
+            <span className="sd-kpi-value" style={{ color: '#4edea3' }}>
+              {Math.round(subject.attendance || 0)}%
+            </span>
           </div>
-          <div className="header-stat">
-            <span className="stat-label">CIE Score</span>
-            <span className="stat-value">{subject.marks || 0}/50</span>
+          <div className="sd-kpi">
+            <span className="sd-kpi-label">CIE Score</span>
+            <span className="sd-kpi-value" style={{ color: '#adc6ff' }}>
+              {subject.marks || 0}<span className="sd-kpi-max">/50</span>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="subject-detail-grid">
-        {/* Attendance Calendar Section */}
-        <div className="subject-section attendance-section">
-          <div className="section-header">
-            <h2 className="section-title">Attendance Calendar</h2>
-            <div className="attendance-summary">
-              <div className="summary-item present">
-                <span className="summary-dot"></span>
-                <span>Present: {attendanceDetails.present || 0}</span>
-              </div>
-              <div className="summary-item absent">
-                <span className="summary-dot"></span>
-                <span>Absent: {attendanceDetails.absent || 0}</span>
-              </div>
-              <div className="summary-item remaining">
-                <span className="summary-dot"></span>
-                <span>Remaining: {attendanceDetails.remaining || 0}</span>
-              </div>
+      {/* ── 2 × 2 Grid ── */}
+      <div className="sd-2x2-grid">
+
+        {/* ┌─────────────────────────────┐
+            │  TOP LEFT  —  Attendance    │
+            └─────────────────────────────┘ */}
+        <section className="sd-card sd-calendar-card">
+          <div className="sd-card-header">
+            <h3 className="sd-card-title">Attendance</h3>
+            <div className="sd-cal-nav">
+              <button className="sd-cal-nav-btn" onClick={goToPrev}>
+                <ChevronLeft size={18} />
+              </button>
+              <span className="sd-cal-month-label">
+                {monthNames[currentMonth].slice(0,3).toUpperCase()} {currentYear}
+              </span>
+              <button className="sd-cal-nav-btn" onClick={goToNext}>
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
 
-          <div className="calendar-container">
-            <div className="calendar-navigation">
-              <button 
-                className="nav-button"
-                onClick={goToPreviousMonth}
-                title="Previous month"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <h3 className="calendar-month-year">
-                {monthNames[currentMonth]} {currentYear}
-              </h3>
-              <button 
-                className="nav-button"
-                onClick={goToNextMonth}
-                title="Next month"
-              >
-                <ChevronRight size={20} />
-              </button>
-            </div>
+          <div className="sd-cal-weekdays">
+            {dayLabels.map((d, i) => <div key={i} className="sd-cal-weekday">{d}</div>)}
+          </div>
 
-            <div className="calendar-weekdays">
-              {dayNames.map(day => (
-                <div key={day} className="weekday">{day}</div>
+          <div className="sd-cal-days">
+            {calendarDays.map((day, idx) => {
+              if (!day) return <div key={idx} className="sd-cal-day sd-cal-empty" />;
+              const status = getDateStatus(day);
+              return (
+                <div key={idx} className={`sd-cal-day sd-cal-${status}${isToday(day) ? ' sd-cal-today' : ''}`}>
+                  {day}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="sd-cal-legend">
+            <div className="sd-legend-item">
+              <span className="sd-legend-dot" style={{ background: '#4edea3' }} />
+              <span className="sd-legend-text">PRESENT</span>
+              <span className="sd-legend-count sd-count-present">{presentCount}</span>
+            </div>
+            <div className="sd-legend-item">
+              <span className="sd-legend-dot" style={{ background: '#ffb4ab' }} />
+              <span className="sd-legend-text">ABSENT</span>
+              <span className="sd-legend-count sd-count-absent">{absentCount}</span>
+            </div>
+            <div className="sd-legend-item">
+              <span className="sd-legend-dot" style={{ background: '#32353c' }} />
+              <span className="sd-legend-text">REMAINING</span>
+              <span className="sd-legend-count sd-count-remaining">{remainingCount}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ┌─────────────────────────────────┐
+            │  TOP RIGHT  —  Calculator       │
+            └─────────────────────────────────┘ */}
+        <section className="sd-card sd-calc-card">
+          <div className="sd-card-header">
+            <div>
+              <h3 className="sd-card-title">Attendance Calculator</h3>
+              <p className="sd-card-subtitle">Track your attendance threshold</p>
+            </div>
+            <div className="sd-att-target-pills">
+              {[65, 75, 85].map(pct => (
+                <button
+                  key={pct}
+                  className={`sd-target-pill ${targetPct === pct ? 'sd-target-pill-active' : ''}`}
+                  onClick={() => setTargetPct(pct)}
+                >
+                  {pct}%
+                </button>
               ))}
             </div>
-
-            <div className="calendar-days">
-              {calendarDays.map((day, idx) => {
-                const status = day ? getDateStatus(day) : null;
-                return (
-                  <div
-                    key={idx}
-                    className={`calendar-day ${status ? status : 'empty'}`}
-                  >
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="calendar-legend">
-              <div className="legend-item">
-                <div className="legend-color present"></div>
-                <span>Present</span>
-              </div>
-              <div className="legend-item">
-                <div className="legend-color absent"></div>
-                <span>Absent</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Test Scores Section */}
-        <div className="subject-section scores-section">
-          <div className="section-header">
-            <h2 className="section-title">Test Scores</h2>
           </div>
 
-          {chartData.length > 0 ? (
-            <div className="scores-content">
-              <div className="chart-container">
-                <ResponsiveContainer width="100%" height={350}>
-                  <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                    <XAxis 
-                      dataKey="type" 
-                      stroke="#64748b"
-                      style={{ fontSize: '14px', fontWeight: 500 }}
-                    />
-                    <YAxis 
-                      stroke="#64748b" 
-                      domain={[0, 50]}
-                      ticks={[0, 10, 20, 30, 40, 50]}
-                      style={{ fontSize: '13px' }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#0f172a',
-                        border: '1px solid rgba(59, 130, 246, 0.2)',
-                        borderRadius: '8px',
-                        color: '#ffffff'
-                      }}
-                      formatter={(value) => `${value}`}
-                    />
-                    <Legend 
-                      wrapperStyle={{ paddingTop: '20px' }}
-                      iconType="square"
-                    />
-                    <Bar
-                      dataKey="obtained"
-                      fill="#3b82f6"
-                      name="Your Marks"
-                      radius={[6, 6, 0, 0]}
-                      barSize={40}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="classAvg"
-                      stroke="#f97316"
-                      strokeWidth={3}
-                      name="Class Average"
-                      dot={false}
-                      isAnimationActive={false}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+          {/* Big stat row */}
+          <div className="sd-calc-stat-row">
+            <div className="sd-calc-stat">
+              <span className="sd-calc-stat-label">Current</span>
+              <span className="sd-calc-stat-val" style={{ color: attColor }}>
+                {Math.round(subject.attendance || 0)}%
+              </span>
+            </div>
+            <div className="sd-calc-stat-divider" />
+            <div className="sd-calc-stat">
+              <span className="sd-calc-stat-label">Target</span>
+              <span className="sd-calc-stat-val" style={{ color: '#ffb690' }}>{targetPct}%</span>
+            </div>
+            <div className="sd-calc-stat-divider" />
+            <div className="sd-calc-stat">
+              <span className="sd-calc-stat-label">Total</span>
+              <span className="sd-calc-stat-val" style={{ color: '#c6c6cd' }}>{totalClasses}</span>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="sd-att-progress-wrap">
+            <div className="sd-att-progress-bar">
+              <div
+                className="sd-att-progress-fill"
+                style={{
+                  width: `${Math.min(100, Math.round(subject.attendance || 0))}%`,
+                  background: attColor
+                }}
+              />
+              <div
+                className="sd-att-progress-target"
+                style={{ left: `${Math.min(targetPct, 99)}%` }}
+                title={`${targetPct}% threshold`}
+              />
+            </div>
+            <div className="sd-att-progress-labels">
+              <span style={{ color: attColor }}>{Math.round(subject.attendance || 0)}% current</span>
+              <span style={{ color: '#c6c6cd' }}>{targetPct}% target</span>
+            </div>
+          </div>
+
+          {/* Result message */}
+          {totalClasses === 0 ? (
+            <p className="sd-att-calc-na">No attendance data available</p>
+          ) : canMiss > 0 ? (
+            <div className="sd-att-result sd-att-result-ok">
+              <div className="sd-att-result-icon">✓</div>
+              <div>
+                <p className="sd-att-result-main">
+                  You can miss <strong>{canMiss}</strong> more class{canMiss !== 1 ? 'es' : ''}
+                </p>
+                <p className="sd-att-result-sub">and still maintain {targetPct}% attendance</p>
               </div>
-
-              <div className="scores-table-container">
-                <table className="scores-table">
-                  <thead>
-                    <tr>
-                      <th>Assessment</th>
-                      <th>Your Marks</th>
-                      <th>Class Average</th>
-                      <th>Difference</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {subject.assessments && subject.assessments
-                      .filter(a => ['T1', 'T2', 'AQ1', 'AQ2'].includes(a.type))
-                      .map((assessment, idx) => {
-                        const obtained = parseFloat(assessment.obtained_marks) || 0;
-                        const classAvg = parseFloat(assessment.class_average) || 0;
-                        const diff = obtained - classAvg;
-                        const diffStatus = diff > 0 ? 'better' : diff < 0 ? 'lower' : 'equal';
-
-                        return (
-                          <tr key={idx}>
-                            <td className="assessment-name">
-                              <strong>{assessment.type}</strong>
-                            </td>
-                            <td className="marks-obtained">
-                              <span className="mark-badge">{obtained}</span>
-                            </td>
-                            <td className="class-avg">
-                              <span className="mark-badge class-avg-badge">{classAvg}</span>
-                            </td>
-                            <td className={`difference ${diffStatus}`}>
-                              <span className={`diff-value ${diffStatus}`}>
-                                {diff > 0 ? '+' : ''}{diff.toFixed(1)}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
+            </div>
+          ) : canMiss === 0 ? (
+            <div className="sd-att-result sd-att-result-warn">
+              <div className="sd-att-result-icon">!</div>
+              <div>
+                <p className="sd-att-result-main">No more absences allowed</p>
+                <p className="sd-att-result-sub">Attend all remaining classes to stay at {targetPct}%</p>
               </div>
             </div>
           ) : (
-            <div className="no-data-message">
-              <p>No test score data available yet</p>
+            <div className="sd-att-result sd-att-result-danger">
+              <div className="sd-att-result-icon">✗</div>
+              <div>
+                <p className="sd-att-result-main">
+                  Need <strong>{Math.abs(canMiss)}</strong> more class{Math.abs(canMiss) !== 1 ? 'es' : ''}
+                </p>
+                <p className="sd-att-result-sub">
+                  {Math.abs(canMiss) <= remainingCount
+                    ? `Attend next ${Math.abs(canMiss)} classes without fail to reach ${targetPct}%`
+                    : `Cannot reach ${targetPct}% — not enough classes remaining`}
+                </p>
+              </div>
             </div>
           )}
-        </div>
+
+          {/* Breakdown */}
+          <div className="sd-calc-breakdown">
+            <div className="sd-calc-breakdown-row">
+              <span>Classes attended</span>
+              <span style={{ color: '#4edea3', fontWeight: 700 }}>{presentCount}</span>
+            </div>
+            <div className="sd-calc-breakdown-row">
+              <span>Classes missed</span>
+              <span style={{ color: '#ffb4ab', fontWeight: 700 }}>{absentCount}</span>
+            </div>
+            <div className="sd-calc-breakdown-row">
+              <span>Classes remaining</span>
+              <span style={{ color: '#c6c6cd', fontWeight: 700 }}>{remainingCount}</span>
+            </div>
+            <div className="sd-calc-breakdown-row sd-calc-breakdown-total">
+              <span>Total classes</span>
+              <span style={{ color: '#e1e2eb', fontWeight: 800 }}>{totalClasses}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ┌────────────────────────────────┐
+            │  BOTTOM LEFT  —  Test Scores   │
+            └────────────────────────────────┘ */}
+        <section className="sd-card sd-chart-card">
+          <div className="sd-card-header">
+            <div>
+              <h3 className="sd-card-title">Test Scores</h3>
+              <p className="sd-card-subtitle">Assessment Performance Analysis</p>
+            </div>
+            <div className="sd-chart-legend">
+              <div className="sd-chart-legend-item">
+                <span className="sd-chart-legend-line" style={{ background: '#adc6ff', boxShadow: '0 0 5px #adc6ff' }} />
+                <span className="sd-chart-legend-label">YOUR MARKS</span>
+              </div>
+              <div className="sd-chart-legend-item">
+                <span className="sd-chart-legend-line" style={{ background: '#ffb690', boxShadow: '0 0 5px #ffb690' }} />
+                <span className="sd-chart-legend-label">CLASS AVG</span>
+              </div>
+            </div>
+          </div>
+
+          {chartData.length > 0 ? (
+            <div className="sd-chart-area">
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={chartData} margin={{ top: 10, right: 16, left: -20, bottom: 8 }}>
+                  <defs>
+                    <filter id="sd-glow-blue">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                    <filter id="sd-glow-orange">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+                  <CartesianGrid strokeDasharray="0" stroke="rgba(225,226,235,0.05)" horizontal vertical={false} />
+                  <XAxis
+                    dataKey="type"
+                    stroke="rgba(198,198,205,0.4)"
+                    tick={{ fill: 'rgba(198,198,205,0.4)', fontSize: 10, fontWeight: 700 }}
+                    axisLine={false} tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, chartYMax]}
+                    stroke="rgba(198,198,205,0.4)"
+                    tick={{ fill: 'rgba(198,198,205,0.4)', fontSize: 10 }}
+                    axisLine={false} tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone" dataKey="obtained" stroke="#adc6ff" strokeWidth={3}
+                    name="Your Marks" dot={{ fill: '#adc6ff', r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: '#adc6ff', strokeWidth: 0 }}
+                    filter="url(#sd-glow-blue)"
+                  />
+                  <Line
+                    type="monotone" dataKey="classAvg" stroke="#ffb690" strokeWidth={3}
+                    name="Class Avg" dot={{ fill: '#ffb690', r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: '#ffb690', strokeWidth: 0 }}
+                    filter="url(#sd-glow-orange)" strokeDasharray="6 3"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="sd-no-data"><p>No assessment data available yet</p></div>
+          )}
+        </section>
+
+        {/* ┌──────────────────────────────────────┐
+            │  BOTTOM RIGHT  —  Recent Assessments │
+            └──────────────────────────────────────┘ */}
+        <section className="sd-card sd-table-card">
+          <div className="sd-table-header">
+            <h3 className="sd-card-title">Recent Assessments</h3>
+          </div>
+          <div className="sd-table-scroll">
+            <table className="sd-table">
+              <thead>
+                <tr>
+                  <th className="sd-th">Assessment</th>
+                  <th className="sd-th sd-th-center">Your Marks</th>
+                  <th className="sd-th sd-th-center">Class Avg</th>
+                  <th className="sd-th sd-th-right">Diff</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tableAssessments.length > 0 ? tableAssessments.map((a, idx) => {
+                  const obtained  = parseFloat(a.obtained_marks) || 0;
+                  const classAvg  = parseFloat(a.class_average)  || 0;
+                  const diff      = obtained - classAvg;
+                  const maxMarks  = a.max_marks || getMaxMarks(a.type) || '—';
+                  const colors    = ASSESSMENT_COLORS[a.type] || { bg: 'rgba(198,198,205,0.12)', color: '#c6c6cd' };
+
+                  return (
+                    <tr key={idx} className="sd-tr">
+                      <td className="sd-td">
+                        <div className="sd-assessment-cell">
+                          <div className="sd-assessment-icon" style={{ background: colors.bg, color: colors.color }}>
+                            {ASSESSMENT_ICONS[a.type] || a.type}
+                          </div>
+                          <div>
+                            <p className="sd-assessment-name">{ASSESSMENT_LABELS[a.type] || a.type}</p>
+                            <p className="sd-assessment-sub">Out of {maxMarks}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="sd-td sd-td-center">
+                        <span className="sd-marks-value">{obtained}/{maxMarks}</span>
+                      </td>
+                      <td className="sd-td sd-td-center">
+                        <span className="sd-avg-value">{classAvg.toFixed(1)}/{maxMarks}</span>
+                      </td>
+                      <td className="sd-td sd-td-right">
+                        <span className={`sd-diff-badge ${diff > 0 ? 'sd-diff-pos' : diff < 0 ? 'sd-diff-neg' : 'sd-diff-eq'}`}>
+                          {diff > 0 ? '+' : ''}{diff.toFixed(1)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                }) : (
+                  <tr>
+                    <td colSpan={4} className="sd-table-empty">No assessment data available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
       </div>
     </div>
   );
