@@ -3,6 +3,7 @@
 ## 5-Minute Setup
 
 ### 1️⃣ Get Resend Credentials (2 min)
+
 ```
 1. Go to https://resend.com
 2. Sign up (free account)
@@ -11,13 +12,16 @@
 ```
 
 ### 2️⃣ Update Environment Variables (1 min)
+
 Edit `backend/express/env.local`:
+
 ```env
 RESEND_API_KEY=re_your_api_key_here
 RESEND_FROM_EMAIL=onboarding@resend.dev
 ```
 
 ### 3️⃣ Dependencies Already Installed ✅
+
 ```bash
 cd backend/express
 npm list resend cloudinary puppeteer
@@ -25,17 +29,21 @@ npm list resend cloudinary puppeteer
 ```
 
 ### 4️⃣ Verify Database Setup (1 min)
+
 Check your database has:
+
 - ✅ Student table with `usn`, `name`
 - ✅ Parent table with `usn` (FK), `email`, `name`, `relation`
 
 Query to check:
+
 ```sql
 SELECT * FROM parents WHERE usn = 'TEST001';
 -- Should return parent records with emails
 ```
 
 ### 5️⃣ Test the Feature (1 min)
+
 1. Start your backend: `npm start`
 2. In app: Go to Proctor Dashboard
 3. Select a student → Click "Generate Report"
@@ -47,44 +55,53 @@ SELECT * FROM parents WHERE usn = 'TEST001';
 ## 🎯 Expected Behavior
 
 ### Button States
+
 - **Normal**: "📧 Send Email" (blue button)
 - **Sending**: "📧 Sending..." (disabled, loading)
 - **Success**: "✓ Email sent successfully to all parents!" (green notification, 5s)
 - **Error**: "⚠️ Error message" (red notification, 5s)
 
 ### Email Details
+
 - **From**: Your configured RESEND_FROM_EMAIL
 - **To**: All parent emails from Parent table
 - **Subject**: "Student Report - {Name} ({USN})"
-- **Attachment**: Report_{USN}.pdf (auto-generated)
+- **Attachment**: Report\_{USN}.pdf (auto-generated)
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### ❌ "Failed to send email to parents"
+
 **Cause**: Invalid Resend API key  
-**Fix**: 
+**Fix**:
+
 1. Copy API key again from https://resend.com/api-keys
 2. Update RESEND_API_KEY in env.local
 3. Restart backend server
 
 ### ❌ "No parents found for this student"
+
 **Cause**: Student has no registered parents  
 **Fix**: Add parent records to database:
+
 ```sql
-INSERT INTO parents (usn, relation, name, phone, email) 
+INSERT INTO parents (usn, relation, name, phone, email)
 VALUES ('TEST001', 'Father', 'John', '9999999999', 'john@email.com');
 ```
 
 ### ❌ Email not arriving in inbox
+
 **Cause**: Check spam/junk folder first  
-**Fix**: 
+**Fix**:
+
 1. Check parent email addresses in database
 2. Verify sender email is verified in Resend dashboard
 3. Check Resend logs at https://resend.com/dashboard
 
 ### ❌ Puppeteer error on first use
+
 **Cause**: Normal - Puppeteer downloads Chromium (~200MB)  
 **Fix**: Wait for first run to complete, then it's cached
 
@@ -113,6 +130,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 Then uncomment in email.service.js:
+
 ```javascript
 // Uncomment to enable Cloudinary storage
 // const cloudinaryResponse = await uploadPDFToCloudinary(pdfBuffer, cloudinaryPublicId);
@@ -123,16 +141,19 @@ Then uncomment in email.service.js:
 ## 📞 What's New?
 
 ### Backend
+
 - ✅ New endpoint: `POST /api/report/send-email`
 - ✅ New service: `email.service.js` (PDF + Email logic)
 - ✅ New dependencies: resend, cloudinary, puppeteer
 
-### Frontend  
+### Frontend
+
 - ✅ New button: "Send Email" in Report toolbar
 - ✅ New handler: `handleSendEmail()` function
 - ✅ Notifications: Success/error messages
 
 ### No Changes To
+
 - ✅ Database schema (same tables and fields)
 - ✅ Download PDF feature (still works)
 - ✅ Authentication (uses existing session)
@@ -142,16 +163,16 @@ Then uncomment in email.service.js:
 
 ## 📝 Testing Checklist
 
-| Test | Steps | Expected | ✓ |
-|------|-------|----------|---|
-| Button visible | Open report | "Send Email" button shows | |
-| Loading state | Click button | Shows "Sending..." for 10-30s | |
-| Success flow | Wait for email | Get success notification | |
-| Email received | Check inbox | Find email with PDF | |
-| PDF quality | Open PDF | Report displays correctly | |
-| Error handling | No parent data | Shows specific error message | |
-| Multiple parents | 2+ parents | Email sent to all | |
-| Download still works | Click Download | PDF downloads locally | |
+| Test                 | Steps          | Expected                      | ✓   |
+| -------------------- | -------------- | ----------------------------- | --- |
+| Button visible       | Open report    | "Send Email" button shows     |     |
+| Loading state        | Click button   | Shows "Sending..." for 10-30s |     |
+| Success flow         | Wait for email | Get success notification      |     |
+| Email received       | Check inbox    | Find email with PDF           |     |
+| PDF quality          | Open PDF       | Report displays correctly     |     |
+| Error handling       | No parent data | Shows specific error message  |     |
+| Multiple parents     | 2+ parents     | Email sent to all             |     |
+| Download still works | Click Download | PDF downloads locally         |     |
 
 ---
 
@@ -185,12 +206,14 @@ Then uncomment in email.service.js:
 **Endpoint**: `POST /api/report/send-email`
 
 **Headers Required**:
+
 ```
 x-session-id: your_session_id
 Content-Type: application/json
 ```
 
 **Request Body**:
+
 ```json
 {
   "usn": "TEST001",
@@ -199,6 +222,7 @@ Content-Type: application/json
 ```
 
 **Success Response** (200):
+
 ```json
 {
   "success": true,
@@ -215,6 +239,7 @@ Content-Type: application/json
 ```
 
 **Error Response** (400/404):
+
 ```json
 {
   "success": false,
@@ -308,9 +333,9 @@ The feature is now ready to use. Follow the **5-Minute Setup** to get started.
 **Questions?** Check the FAQ or detailed docs above.
 
 **Ready to test?** Go to your app now:
+
 1. Login as proctor
 2. Select a student
 3. Generate report
 4. Click "Send Email"
 5. Check parent's inbox ✅
-

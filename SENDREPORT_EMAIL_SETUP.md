@@ -1,7 +1,9 @@
 # Email Report Feature - Setup and Usage Guide
 
 ## Overview
+
 This feature adds the ability to send student reports directly to parents' emails in PDF format. When a proctor clicks the "Send Email" button on a student's report, the system:
+
 1. Generates a PDF from the report HTML
 2. Optionally uploads to Cloudinary for backup
 3. Sends the PDF to all registered parents via Resend email service
@@ -26,6 +28,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ### 2. Get API Keys
 
 #### Resend
+
 1. Go to https://resend.com
 2. Sign up/login to your account
 3. Go to API keys section
@@ -34,6 +37,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 6. Set `RESEND_FROM_EMAIL` to your verified sender email (e.g., `noreply@yourdomain.com`)
 
 #### Cloudinary (Optional)
+
 1. Go to https://cloudinary.com
 2. Sign up/login to your account
 3. Go to Dashboard
@@ -44,20 +48,22 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 ```json
 {
-  "resend": "^3.0.0",      // Email service
+  "resend": "^3.0.0", // Email service
   "cloudinary": "^1.41.0", // Cloud storage
-  "puppeteer": "^22.0.0"   // Server-side PDF generation
+  "puppeteer": "^22.0.0" // Server-side PDF generation
 }
 ```
 
 ## Frontend Implementation
 
 ### Report Component Changes
+
 - Added "Send Email" button next to "Download PDF" button
 - New states: `sendingEmail`, `emailSent` for UX feedback
 - New function: `handleSendEmail()` - calls backend API
 
 ### Button Features
+
 - Shows loading state while sending
 - Displays success message for 5 seconds
 - Shows error messages if sending fails
@@ -66,9 +72,11 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ## Backend Implementation
 
 ### New Endpoint
+
 **POST** `/api/report/send-email`
 
 **Request Body:**
+
 ```json
 {
   "usn": "string (student USN)",
@@ -77,6 +85,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 **Response (Success):**
+
 ```json
 {
   "success": true,
@@ -102,6 +111,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 **Response (Error):**
+
 ```json
 {
   "success": false,
@@ -112,6 +122,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ### Backend Services
 
 #### email.service.js
+
 Three main functions:
 
 1. **generatePDFFromHTML(htmlContent, filename)**
@@ -130,6 +141,7 @@ Three main functions:
    - Returns: Summary of all emails sent/failed
 
 ### Database Schema Used
+
 - **Student**: usn, name, email, details (JSONB)
 - **Parent**: usn (FK), email, name, relation, phone
 - Relationship: One student → Many parents
@@ -138,17 +150,18 @@ Three main functions:
 
 ### Common Scenarios
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| No parents found | Student has no registered parents | Add parents to the Parent table |
-| Email sending failed | Invalid Resend API key | Verify RESEND_API_KEY in env.local |
-| PDF generation failed | Chromium not installed | Puppeteer auto-downloads on first use |
-| Cloudinary upload failed | Invalid credentials | Verify Cloudinary credentials |
-| Session expired | User not authenticated | User needs to login again |
+| Error                    | Cause                             | Solution                              |
+| ------------------------ | --------------------------------- | ------------------------------------- |
+| No parents found         | Student has no registered parents | Add parents to the Parent table       |
+| Email sending failed     | Invalid Resend API key            | Verify RESEND_API_KEY in env.local    |
+| PDF generation failed    | Chromium not installed            | Puppeteer auto-downloads on first use |
+| Cloudinary upload failed | Invalid credentials               | Verify Cloudinary credentials         |
+| Session expired          | User not authenticated            | User needs to login again             |
 
 ## Email Template
 
 The email includes:
+
 - Professional HTML template
 - Student name and USN
 - Date generated
@@ -181,6 +194,7 @@ The email includes:
 ### Manual Testing Steps
 
 1. **Setup test environment**
+
    ```bash
    cd backend/express
    npm install  # Already done
@@ -188,6 +202,7 @@ The email includes:
    ```
 
 2. **Test with Postman/cURL**
+
    ```bash
    POST http://localhost:5001/api/report/send-email
    Headers: { "x-session-id": "your_session_id", "Content-Type": "application/json" }
@@ -204,17 +219,20 @@ The email includes:
 ### Troubleshooting
 
 **Email not arriving?**
+
 1. Check RESEND_API_KEY is correct
 2. Verify parent email addresses in database
 3. Check spam/junk folders
 4. Check Resend dashboard for delivery logs
 
 **PDF looks wrong?**
+
 1. Verify htmlContent is valid HTML
 2. Check for missing styles (CSS might not render)
 3. Try downloading PDF for comparison
 
 **Puppeteer errors?**
+
 1. Allow Puppeteer to download Chromium on first run
 2. Check file permissions in temp directory
 3. On Linux, may need to install system dependencies
@@ -222,6 +240,7 @@ The email includes:
 ## File Changes Summary
 
 ### Backend
+
 - `backend/express/package.json` - Added dependencies
 - `backend/express/env.local` - Added email/storage config
 - `backend/express/src/services/email.service.js` - NEW
@@ -229,6 +248,7 @@ The email includes:
 - `backend/express/src/routes/report.routes.js` - Added POST /send-email route
 
 ### Frontend
+
 - `frontend/src/pages/Report.jsx` - Added Send Email button and handler
 
 ## Notes

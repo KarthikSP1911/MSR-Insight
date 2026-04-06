@@ -1,6 +1,7 @@
 # 📝 Detailed Change Log - Send Report via Email Feature
 
 ## Summary
+
 Added email functionality to send student reports as PDF attachments to parents via Resend email service.  
 **Total Changes**: 6 files modified/created  
 **Lines Added**: ~400 backend + ~150 frontend  
@@ -12,6 +13,7 @@ Added email functionality to send student reports as PDF attachments to parents 
 ## 📁 File-by-File Changes
 
 ### 1. `backend/express/package.json` [MODIFIED]
+
 **Location**: `/backend/express/package.json`  
 **Changes**: Added 3 new dependencies to `dependencies` section
 
@@ -21,7 +23,8 @@ Added email functionality to send student reports as PDF attachments to parents 
 + "resend": "^3.0.0"
 ```
 
-**Purpose**: 
+**Purpose**:
+
 - `resend` - Send emails via Resend service
 - `puppeteer` - Generate PDFs from HTML server-side
 - `cloudinary` - Optional cloud storage for PDFs
@@ -31,6 +34,7 @@ Added email functionality to send student reports as PDF attachments to parents 
 ---
 
 ### 2. `backend/express/env.local` [MODIFIED]
+
 **Location**: `/backend/express/env.local`  
 **Changes**: Added 5 new environment variables
 
@@ -38,7 +42,7 @@ Added email functionality to send student reports as PDF attachments to parents 
 + # Email Service - Resend
 + RESEND_API_KEY=your_resend_api_key_here
 + RESEND_FROM_EMAIL=your_sender_email@example.com
-+ 
++
 + # Cloud Storage - Cloudinary
 + CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 + CLOUDINARY_API_KEY=your_cloudinary_api_key
@@ -52,11 +56,13 @@ Added email functionality to send student reports as PDF attachments to parents 
 ---
 
 ### 3. `backend/express/src/services/email.service.js` [NEW FILE]
+
 **Location**: `/backend/express/src/services/email.service.js`  
 **Size**: ~220 lines  
 **Created**: New file with 4 exported functions
 
 **Functions**:
+
 1. **generatePDFFromHTML(htmlContent, filename)**
    - Converts HTML to PDF using Puppeteer
    - Returns Buffer
@@ -80,6 +86,7 @@ Added email functionality to send student reports as PDF attachments to parents 
    - Handles errors per parent
 
 **Key Features**:
+
 - Proper error handling with descriptive messages
 - Streams for efficient memory usage
 - HTML email template with professional styling
@@ -88,31 +95,35 @@ Added email functionality to send student reports as PDF attachments to parents 
 ---
 
 ### 4. `backend/express/src/controllers/report.controller.js` [MODIFIED]
+
 **Location**: `/backend/express/src/controllers/report.controller.js`  
 **Size**: ~450 lines (added 60 lines)  
 **Changes**: Added 1 new function and 2 imports
 
 **Imports Added**:
+
 ```javascript
 import { sendReportToAllParents } from "../services/email.service.js";
 import { PrismaClient } from "@prisma/client";
 ```
 
 **New Function: sendReportViaEmail()**
+
 ```javascript
 /**
  * Sends the report as PDF to all parents' emails
  */
 const sendReportViaEmail = async (req, res, next) => {
-    // 60 lines of code
-    // Validates USN and HTML content
-    // Fetches student and parent data from DB
-    // Calls email service
-    // Returns formatted response
-}
+  // 60 lines of code
+  // Validates USN and HTML content
+  // Fetches student and parent data from DB
+  // Calls email service
+  // Returns formatted response
+};
 ```
 
 **Functionality**:
+
 - Validates request parameters
 - Fetches student from database
 - Retrieves all parents for student
@@ -121,6 +132,7 @@ const sendReportViaEmail = async (req, res, next) => {
 - Handles session authentication (via middleware)
 
 **Error Scenarios Handled**:
+
 - Missing USN
 - Missing HTML content
 - Student not found
@@ -130,21 +142,25 @@ const sendReportViaEmail = async (req, res, next) => {
 ---
 
 ### 5. `backend/express/src/routes/report.routes.js` [MODIFIED]
+
 **Location**: `/backend/express/src/routes/report.routes.js`  
 **Size**: ~15 lines  
 **Changes**: Added import and 1 new route
 
 **Added Import**:
+
 ```javascript
 import { sendReportViaEmail } from "../controllers/report.controller.js";
 ```
 
 **Added Route**:
+
 ```javascript
 router.post("/send-email", requireSession, sendReportViaEmail);
 ```
 
 **Route Details**:
+
 - **Method**: POST
 - **Path**: `/api/report/send-email`
 - **Auth**: Requires valid session (middleware)
@@ -155,31 +171,35 @@ router.post("/send-email", requireSession, sendReportViaEmail);
 ---
 
 ### 6. `frontend/src/pages/Report.jsx` [MODIFIED]
+
 **Location**: `/frontend/src/pages/Report.jsx`  
 **Size**: ~800 lines (added ~80 lines)  
 **Changes**: Added states, handler, and UI component
 
 **States Added**:
+
 ```javascript
-const [sendingEmail, setSendingEmail] = useState(false);    // Loading state
-const [emailSent, setEmailSent] = useState(false);          // Success state
-const [emailError, setEmailError] = useState(null);         // Error state
+const [sendingEmail, setSendingEmail] = useState(false); // Loading state
+const [emailSent, setEmailSent] = useState(false); // Success state
+const [emailError, setEmailError] = useState(null); // Error state
 ```
 
 **Function Added: handleSendEmail()**
+
 ```javascript
 const handleSendEmail = async () => {
-    // ~35 lines
-    // Sets loading state
-    // Gets HTML content from DOM
-    // Validates session
-    // Calls backend API
-    // Handles success/error responses
-    // Auto-dismisses notifications after 5s
-}
+  // ~35 lines
+  // Sets loading state
+  // Gets HTML content from DOM
+  // Validates session
+  // Calls backend API
+  // Handles success/error responses
+  // Auto-dismisses notifications after 5s
+};
 ```
 
 **UI Changes**:
+
 1. Added "Send Email" button in toolbar
    - Shows loading state while sending
    - Emoji icon: 📧
@@ -196,6 +216,7 @@ const handleSendEmail = async () => {
    - Auto-dismisses after 5 seconds
 
 **Disabled States**:
+
 - Button disabled while sending email
 - Button disabled while page loading
 
@@ -203,16 +224,16 @@ const handleSendEmail = async () => {
 
 ## 📊 Summary Statistics
 
-| Metric | Count |
-|--------|-------|
-| Files Created | 1 |
-| Files Modified | 5 |
-| Total Lines Added | ~500 |
-| Backend Changes | 4 files, 60+ lines code |
-| Frontend Changes | 1 file, 80+ lines code |
-| New Dependencies | 3 packages |
-| Node Modules Size Increase | ~32 MB |
-| Database Schema Changes | 0 (uses existing tables) |
+| Metric                     | Count                    |
+| -------------------------- | ------------------------ |
+| Files Created              | 1                        |
+| Files Modified             | 5                        |
+| Total Lines Added          | ~500                     |
+| Backend Changes            | 4 files, 60+ lines code  |
+| Frontend Changes           | 1 file, 80+ lines code   |
+| New Dependencies           | 3 packages               |
+| Node Modules Size Increase | ~32 MB                   |
+| Database Schema Changes    | 0 (uses existing tables) |
 
 ---
 
@@ -265,11 +286,13 @@ Response back to Frontend
 ## 🧪 Testing Evidence
 
 All files checked for syntax errors:
+
 - ✅ `email.service.js` - No errors
-- ✅ `report.controller.js` - No errors  
+- ✅ `report.controller.js` - No errors
 - ✅ `report.routes.js` - No errors
 
 Dependencies installed successfully:
+
 - ✅ resend@3.0.0
 - ✅ cloudinary@1.41.0
 - ✅ puppeteer@22.0.0
@@ -279,28 +302,33 @@ Dependencies installed successfully:
 ## 🔐 Security Audit
 
 **Authentication**:
+
 - ✅ Uses existing `requireSession` middleware
 - ✅ Only authenticated users can access endpoint
 - ✅ Session ID validated on each request
 
 **Authorization**:
+
 - ✅ No new roles/permissions needed
 - ✅ Proctors already have report access
 - ✅ No changes to existing auth flow
 
 **Data Protection**:
+
 - ✅ Sensitive keys in environment variables only
 - ✅ No hardcoded credentials
 - ✅ API keys not exposed in responses
 - ✅ Parent emails not logged/exposed
 
 **Database**:
+
 - ✅ No schema modifications
 - ✅ Only reads existing tables
 - ✅ No write operations to database
 - ✅ Proper query with Prisma ORM
 
 **API Security**:
+
 - ✅ Validates all inputs (USN, HTML)
 - ✅ Student exists check before processing
 - ✅ Parent existence validation
@@ -344,6 +372,7 @@ RESEND_FROM_EMAIL=<verified sender email>
 ```
 
 Optional:
+
 ```env
 CLOUDINARY_CLOUD_NAME=<from https://cloudinary.com>
 CLOUDINARY_API_KEY=<from https://cloudinary.com>
@@ -355,6 +384,7 @@ CLOUDINARY_API_SECRET=<from https://cloudinary.com>
 ## ✅ Backward Compatibility
 
 **No Breaking Changes**:
+
 - ✅ Existing routes unchanged
 - ✅ Existing endpoints work identically
 - ✅ Database schema same
@@ -364,6 +394,7 @@ CLOUDINARY_API_SECRET=<from https://cloudinary.com>
 - ✅ Authentication flow unchanged
 
 **Additive Only**:
+
 - ✅ One new endpoint added
 - ✅ One new service file
 - ✅ One button in UI
@@ -412,13 +443,13 @@ npm start
 
 ## 📞 Quick Troubleshooting Matrix
 
-| Issue | File | Line | Fix |
-|-------|------|------|-----|
-| "Cannot find module 'resend'" | report.controller.js | 1 | `npm install` |
-| Button not visible | Report.jsx | 270 | Verify import, check render |
-| Email not sent | email.service.js | 80 | Check RESEND_API_KEY |
-| Puppet puppeteer error | email.service.js | 45 | Allow Chromium download |
-| No parents error | report.controller.js | 80 | Add parents to DB |
+| Issue                         | File                 | Line | Fix                         |
+| ----------------------------- | -------------------- | ---- | --------------------------- |
+| "Cannot find module 'resend'" | report.controller.js | 1    | `npm install`               |
+| Button not visible            | Report.jsx           | 270  | Verify import, check render |
+| Email not sent                | email.service.js     | 80   | Check RESEND_API_KEY        |
+| Puppet puppeteer error        | email.service.js     | 45   | Allow Chromium download     |
+| No parents error              | report.controller.js | 80   | Add parents to DB           |
 
 ---
 

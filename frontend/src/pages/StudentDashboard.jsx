@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import "./StudentDashboard.css";
 import { API_BASE_URL } from "../config/api.config";
+import SubjectDetail from "./SubjectDetail";
 
 
 const GRADE_COLORS = {
@@ -34,6 +35,7 @@ const StudentDashboard = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [toast, setToast] = useState({ show: false, message: "", type: "info" });
+    const [selectedSubject, setSelectedSubject] = useState(null);
 
     const showToast = (message, type = "info") => {
         setToast({ show: true, message, type });
@@ -299,9 +301,16 @@ const StudentDashboard = () => {
             <main className="dashboard-main-content">
                 <div className="content-wrapper">
 
+                    {/* SUBJECT DETAIL VIEW */}
+                    {selectedSubject && (
+                        <SubjectDetail 
+                            subject={selectedSubject}
+                            onBack={() => setSelectedSubject(null)}
+                        />
+                    )}
 
                     {/* CURRENT SEMESTER PERFORMANCE TAB */}
-                    {activeTab === 'performance' && (
+                    {!selectedSubject && activeTab === 'performance' && (
                         <div className="tab-content">
                             <div className="page-header">
                                 <div className="header-content">
@@ -481,7 +490,13 @@ const StudentDashboard = () => {
                                                 else if (attendanceLevel === 'warning' || cieLevel === 'warning') status = "Good";
 
                                                 return (
-                                                    <tr key={idx}>
+                                                    <tr 
+                                                        key={idx}
+                                                        onClick={() => setSelectedSubject(subject)}
+                                                        style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.background = ''}
+                                                    >
                                                         <td style={{ fontWeight: 500, color: 'var(--text-muted)' }}>{subject.code || '-'}</td>
                                                         <td style={{ fontWeight: 500 }}>{subject.name}</td>
                                                         <td>
@@ -508,7 +523,7 @@ const StudentDashboard = () => {
                     )}
 
                     {/* ANALYTICS TAB */}
-                    {activeTab === 'analytics' && (
+                    {!selectedSubject && activeTab === 'analytics' && (
                         <div className="tab-content">
                             <div className="page-header">
                                 <div className="header-content">
@@ -733,7 +748,7 @@ const StudentDashboard = () => {
                     )}
 
                     {/* EXAM HISTORY TAB */}
-                    {activeTab === 'history' && (
+                    {!selectedSubject && activeTab === 'history' && (
                         <div className="tab-content">
                             <div className="page-header">
                                 <div className="header-content">
