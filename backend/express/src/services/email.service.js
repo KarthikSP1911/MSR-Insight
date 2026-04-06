@@ -45,11 +45,14 @@ export const generatePDFFromHTML = async (
     });
 
     // Load the logo as a base64 URI for backend PDF rendering
-    const logoPath = path.resolve(__dirname, '../../../../frontend/public/logo.png');
+    const logoPath = path.resolve(
+      __dirname,
+      "../../../../frontend/public/logo.png",
+    );
     let logoDataUri = null;
     if (fs.existsSync(logoPath)) {
       const logoBuffer = fs.readFileSync(logoPath);
-      logoDataUri = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+      logoDataUri = `data:image/png;base64,${logoBuffer.toString("base64")}`;
     }
 
     // Inject print CSS and ensure styles are applied
@@ -333,8 +336,14 @@ export const generatePDFFromHTML = async (
     `;
 
     if (logoDataUri) {
-      styledHtml = styledHtml.replace(/src="\/logo\.png"/g, `src="${logoDataUri}"`);
-      styledHtml = styledHtml.replace(/src='\/logo\.png'/g, `src='${logoDataUri}'`);
+      styledHtml = styledHtml.replace(
+        /src="\/logo\.png"/g,
+        `src="${logoDataUri}"`,
+      );
+      styledHtml = styledHtml.replace(
+        /src='\/logo\.png'/g,
+        `src='${logoDataUri}'`,
+      );
     }
 
     await page.setContent(styledHtml, { waitUntil: "networkidle0" });
@@ -415,180 +424,205 @@ export const sendReportEmailViaResend = async (
       html: `
         <!DOCTYPE html>
         <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              body {
-                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                background: #f5f5f5;
-                margin: 0;
-                padding: 0;
-              }
-              .email-container {
-                max-width: 600px;
-                margin: 0 auto;
-                background: white;
-                padding: 30px;
-                border-radius: 8px;
-              }
-              .header {
-                text-align: center;
-                border-bottom: 2px solid #f97316;
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-              }
-              .header h1 {
-                color: #0f172a;
-                margin: 0;
-                font-size: 24px;
-              }
-              .header p {
-                color: #64748b;
-                margin: 5px 0 0 0;
-              }
-              .greeting {
-                margin: 20px 0;
-                color: #1e293b;
-              }
-              .greeting p {
-                margin: 10px 0;
-              }
-              .info-box {
-                background: #f8fafc;
-                border-left: 4px solid #f97316;
-                padding: 15px;
-                margin: 20px 0;
-                border-radius: 4px;
-              }
-              .info-box h3 {
-                color: #0f172a;
-                margin: 0 0 10px 0;
-                font-size: 14px;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-              }
-              .info-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 5px 0;
-                font-size: 14px;
-                color: #475569;
-              }
-              .info-label {
-                font-weight: 600;
-                color: #334155;
-              }
-              .pdf-attachment {
-                text-align: center;
-                margin: 30px 0;
-                padding: 20px;
-                background: #f0f9ff;
-                border-radius: 6px;
-                border: 2px dashed #0369a1;
-              }
-              .pdf-icon {
-                font-size: 36px;
-                margin-bottom: 10px;
-              }
-              .pdf-text {
-                color: #0369a1;
-                font-weight: 600;
-                font-size: 14px;
-              }
-              .footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #e2e8f0;
-                text-align: center;
-                color: #64748b;
-                font-size: 12px;
-              }
-              .highlight {
-                color: #f97316;
-                font-weight: 600;
-              }
-              .divider {
-                height: 1px;
-                background: #e2e8f0;
-                margin: 20px 0;
-              }
-            </style>
-          </head>
-          <body>
+        <head>
+          <style>
+            body {
+              font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+              line-height: 1.6;
+              color: #334155;
+              margin: 0;
+              padding: 0;
+              background-color: #f8fafc;
+            }
+            .email-wrapper {
+              width: 100%;
+              padding: 40px 0;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background-color: #0f172a;
+              color: #ffffff;
+              padding: 32px 40px;
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 22px;
+              letter-spacing: 1px;
+              text-transform: uppercase;
+            }
+            .header p {
+              margin: 8px 0 0;
+              font-size: 14px;
+              opacity: 0.9;
+            }
+            .content {
+              padding: 40px;
+            }
+            .greeting {
+              font-size: 16px;
+              margin-bottom: 24px;
+            }
+            .highlight {
+              color: #0f172a;
+              font-weight: 600;
+            }
+            .info-box {
+              background-color: #f1f5f9;
+              border-radius: 6px;
+              padding: 24px;
+              margin: 24px 0;
+            }
+            
+            .info-box table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .info-box td {
+              padding: 10px 0;
+              border-bottom: 1px solid #e2e8f0;
+              font-size: 14px;
+            }
+            .info-box tr:last-child td {
+              border-bottom: none;
+            }
+            .info-label {
+              font-weight: 600;
+              color: #475569;
+              text-align: left;
+            }
+            .info-value {
+              text-align: right;
+              color: #334155;
+            }
+            .attachment-card {
+              display: flex;
+              align-items: center;
+              padding: 16px;
+              border: 2px dashed #cbd5e1;
+              border-radius: 8px;
+              background-color: #ffffff;
+              text-decoration: none;
+              margin-top: 30px;
+            }
+            .pdf-icon {
+              font-size: 32px;
+              margin-right: 16px;
+            }
+            .attachment-details strong {
+              display: block;
+              color: #0f172a;
+              font-size: 14px;
+            }
+            .attachment-details span {
+              font-size: 12px;
+              color: #64748b;
+            }
+            .summary-list {
+              margin-top: 32px;
+              padding-top: 24px;
+              border-top: 1px solid #e2e8f0;
+            }
+            .summary-list h4 {
+              font-size: 15px;
+              margin-bottom: 12px;
+              color: #0f172a;
+            }
+            .footer {
+              background-color: #f8fafc;
+              padding: 32px 40px;
+              text-align: center;
+              font-size: 12px;
+              color: #94a3b8;
+            }
+            .footer strong {
+              color: #64748b;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-wrapper">
             <div class="email-container">
               <div class="header">
-                <h1>📊 Academic Performance Report</h1>
+                <h1>Official Academic Transcript</h1>
                 <p>M S Ramaiah Institute of Technology</p>
               </div>
 
-              <div class="greeting">
-                <p>Dear <span class="highlight">${parentName}</span>,</p>
-                <p>We are pleased to share the latest academic performance report for <strong>${studentName}</strong>.</p>
-                <p>Please find the detailed report attached below as a PDF document.</p>
+              <div class="content">
+                <div class="greeting">
+                  <p>Dear <span class="highlight">${parentName}</span>,</p>
+                  <p>We are writing to formally share the academic performance evaluation for <strong>${studentName}</strong> for the current term.</p>
+                  <p>The institute remains committed to maintaining transparency regarding student progress and fostering a collaborative environment between educators and guardians.</p>
+                </div>
+
+                <div class="info-box">
+                <h3>Academic Record Details</h3>
+                <table>
+                  <tr>
+                    <td class="info-label">Student Name</td>
+                    <td class="info-value">${studentName}</td>
+                  </tr>
+                  <tr>
+                    <td class="info-label">University Seat No (USN)</td>
+                    <td class="info-value">${studentUSN}</td>
+                  </tr>
+                  <tr>
+                    <td class="info-label">Issue Date</td>
+                    <td class="info-value">
+                      ${new Date().toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                </table>
               </div>
 
-              <div class="info-box">
-                <h3>📋 Report Details</h3>
-                <div class="info-row">
-                  <span class="info-label">Student Name:</span>
-                  <span>${studentName}</span>
+                <div class="attachment-card">
+                  <div class="pdf-icon">📄</div>
+                  <div class="attachment-details">
+                    <strong>Performance_Report.pdf</strong>
+                    <span>Secure PDF Document • ${studentUSN}</span>
+                  </div>
                 </div>
-                <div class="info-row">
-                  <span class="info-label">USN:</span>
-                  <span>${studentUSN}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Date Generated:</span>
-                  <span>${new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}</span>
-                </div>
-              </div>
 
-              <div class="pdf-attachment">
-                <div class="pdf-icon">📄</div>
-                <div style="margin-bottom: 10px;">
-                  <strong style="color: #0f172a; font-size: 15px;">Complete Report Attached</strong>
+                <div class="summary-list">
+                  <h4>Report Components:</h4>
+                  <ul style="font-size: 14px; color: #475569; padding-left: 20px;">
+                    <li>Semester GPA and Credit Analysis</li>
+                    <li>Course-wise Attendance Statistics</li>
+                    <li>Internal Assessment Benchmarking</li>
+                    <li>Faculty Proctor Observations</li>
+                  </ul>
                 </div>
-                <div class="pdf-text">
-                  Report_${studentUSN}.pdf
-                </div>
-              </div>
 
-              <div class="divider"></div>
-
-              <div>
-                <p style="font-size: 14px; color: #475569; margin-bottom: 15px;">
-                  <strong>What's Included in the Report:</strong>
+                <p style="margin-top: 30px; font-size: 14px; color: #64748b;">
+                  Should you require a formal discussion regarding these results, please contact the Department Office or the assigned Faculty Proctor during campus hours.
                 </p>
-                <ul style="font-size: 14px; color: #475569; margin: 0; padding-left: 20px;">
-                  <li>Current semester performance details</li>
-                  <li>Subject-wise marks and attendance</li>
-                  <li>Grade analysis and CGPA</li>
-                  <li>System-generated academic remarks</li>
-                  <li>Proctor observations and feedback</li>
-                </ul>
               </div>
-
-              <p style="margin-top: 20px; font-size: 14px; color: #475569;">
-                If you have any questions regarding this report or need further clarification, please don't hesitate to contact the proctor or the institution.
-              </p>
 
               <div class="footer">
-                <p style="margin: 0 0 10px 0;">
-                  ✉️ <strong>Smart Report Generator</strong>
+                <p>
+                  ✉️ <strong>Smart Report Management System</strong><br>
+                  M S Ramaiah Institute of Technology, Bangalore<br>
+                  <em>This is an automated institutional notification. Please do not reply directly to this email.</em>
                 </p>
-                <p style="margin: 0;">
-                  This is an automated email from the Smart Report Generator system.
+                <p style="margin-top: 20px;">
+                  &copy; 2026 MSRIT. All Rights Reserved.
                 </p>
               </div>
             </div>
-          </body>
+          </div>
+        </body>
         </html>
       `,
       attachments: [
@@ -626,7 +660,10 @@ export const sendReportToAllParents = async (
     // Upload to Cloudinary (optional but useful for record keeping)
     const cloudinaryPublicId = `reports/${studentUSN}_${Date.now()}`;
     // Uncomment if you want to store on Cloudinary
-    const cloudinaryResponse = await uploadPDFToCloudinary(pdfBuffer, cloudinaryPublicId);
+    const cloudinaryResponse = await uploadPDFToCloudinary(
+      pdfBuffer,
+      cloudinaryPublicId,
+    );
 
     // Send to all parents
     const emailResults = [];
