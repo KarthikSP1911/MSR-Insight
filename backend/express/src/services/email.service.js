@@ -44,8 +44,16 @@ export const generatePDFFromHTML = async (
       deviceScaleFactor: 2,
     });
 
+    // Load the logo as a base64 URI for backend PDF rendering
+    const logoPath = path.resolve(__dirname, '../../../../frontend/public/logo.png');
+    let logoDataUri = null;
+    if (fs.existsSync(logoPath)) {
+      const logoBuffer = fs.readFileSync(logoPath);
+      logoDataUri = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+    }
+
     // Inject print CSS and ensure styles are applied
-    const styledHtml = `
+    let styledHtml = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -323,6 +331,11 @@ export const generatePDFFromHTML = async (
         </body>
       </html>
     `;
+
+    if (logoDataUri) {
+      styledHtml = styledHtml.replace(/src="\/logo\.png"/g, `src="${logoDataUri}"`);
+      styledHtml = styledHtml.replace(/src='\/logo\.png'/g, `src='${logoDataUri}'`);
+    }
 
     await page.setContent(styledHtml, { waitUntil: "networkidle0" });
 
@@ -613,7 +626,7 @@ export const sendReportToAllParents = async (
     // Upload to Cloudinary (optional but useful for record keeping)
     const cloudinaryPublicId = `reports/${studentUSN}_${Date.now()}`;
     // Uncomment if you want to store on Cloudinary
-    // const cloudinaryResponse = await uploadPDFToCloudinary(pdfBuffer, cloudinaryPublicId);
+    const cloudinaryResponse = await uploadPDFToCloudinary(pdfBuffer, cloudinaryPublicId);
 
     // Send to all parents
     const emailResults = [];

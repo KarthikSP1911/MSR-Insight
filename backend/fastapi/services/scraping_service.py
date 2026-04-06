@@ -20,8 +20,8 @@ from services.sync_service import SyncService
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
-# BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+# BRAVE_PATH = r"C:\Users\karth\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+BRAVE_PATH="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 # BRAVE_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 def get_complete_student_data(usn, day, month, year):
@@ -34,8 +34,9 @@ def get_complete_student_data(usn, day, month, year):
     options.add_argument("--blink-settings=imagesEnabled=false")
     options.page_load_strategy = 'eager'
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver=webdriver.Chrome(options=options)
+
     try:
         print(f"[*] Accessing portal for USN: {usn}...")
         driver.get("https://parents.msrit.edu/newparents/")
