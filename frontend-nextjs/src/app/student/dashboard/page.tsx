@@ -180,7 +180,7 @@ export default function StudentDashboard() {
                     </div>
                 </div>
             )}
-            <style jsx global>{`
+            <style>{`
                 @keyframes slideInRight {
                     from { transform: translateX(100%); opacity: 0; }
                     to { transform: translateX(0); opacity: 1; }
@@ -290,7 +290,7 @@ export default function StudentDashboard() {
                                         <div style={{ flex: '1', height: '100%', minWidth: 0 }}>
                                             <ResponsiveContainer width="100%" height={380}>
                                                 <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
-                                                    <RadialBar background={{ fill: 'rgba(255,255,255,0.03)' }} clockWise dataKey="attendance" cornerRadius={10} />
+                                                    <RadialBar background={{ fill: 'rgba(255,255,255,0.03)' }} dataKey="attendance" cornerRadius={10} />
                                                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} formatter={(val) => [`${val}%`, '']} />
                                                 </RadialBarChart>
                                             </ResponsiveContainer>
