@@ -336,6 +336,16 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
             <div className="sd-chart-area">
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={chartData} margin={{ top: 10, right: 16, left: -20, bottom: 8 }}>
+                  <defs>
+                    <filter id="sd-glow-blue">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                    <filter id="sd-glow-orange">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
                   <CartesianGrid strokeDasharray="0" stroke="rgba(225,226,235,0.05)" horizontal vertical={false} />
                   <XAxis
                     dataKey="type"
@@ -354,12 +364,13 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
                     type="monotone" dataKey="obtained" stroke="#adc6ff" strokeWidth={3}
                     name="Your Marks" dot={{ fill: '#adc6ff', r: 4, strokeWidth: 0 }}
                     activeDot={{ r: 6, fill: '#adc6ff', strokeWidth: 0 }}
+                    filter="url(#sd-glow-blue)"
                   />
                   <Line
                     type="monotone" dataKey="classAvg" stroke="#ffb690" strokeWidth={3}
                     name="Class Avg" dot={{ fill: '#ffb690', r: 4, strokeWidth: 0 }}
                     activeDot={{ r: 6, fill: '#ffb690', strokeWidth: 0 }}
-                    strokeDasharray="6 3"
+                    filter="url(#sd-glow-orange)" strokeDasharray="6 3"
                   />
                 </LineChart>
               </ResponsiveContainer>
