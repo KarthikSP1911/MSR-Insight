@@ -22,6 +22,10 @@ const getGrade = (score: number) => {
     return 'F';
 };
 
+/**
+ * ReportComponent: Generates a printable A4 academic report.
+ * Migrated to Next.js App Router with full feature parity and improved UI.
+ */
 export default function ReportComponent() {
     const router = useRouter();
     const params = useParams();
@@ -45,6 +49,7 @@ export default function ReportComponent() {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
+                setError(null);
                 const sessionId = proctorId ? localStorage.getItem("proctorSessionId") : localStorage.getItem("studentSessionId");
 
                 if (!sessionId) {
@@ -52,6 +57,7 @@ export default function ReportComponent() {
                     return;
                 }
 
+                // 1. Fetch AI Remarks
                 const remarkRes = await axios.get(`${API_BASE_URL}/api/report/${USN}`, {
                     headers: { "x-session-id": sessionId }
                 });
@@ -72,6 +78,7 @@ export default function ReportComponent() {
                     : '<p>No AI remarks generated.</p>';
                 setSystemRemarks(remarkHtml);
 
+                // 2. Fetch Detailed Student Data
                 const detailedResp = await axios.get(`${API_BASE_URL}/api/report/student/${USN}`, {
                     headers: { "x-session-id": sessionId },
                 });
@@ -91,7 +98,7 @@ export default function ReportComponent() {
 
             } catch (err: any) {
                 console.error("Report Generation Error:", err);
-                setError(err.response?.data?.message || err.message);
+                setError(err.response?.data?.message || err.message || "An unexpected error occurred while generating the report.");
             } finally {
                 setLoading(false);
             }
@@ -107,7 +114,10 @@ export default function ReportComponent() {
     const handleResetZoom = () => setZoom(1);
 
     const handleDownload = () => {
-        if (!html2pdf) return;
+        if (!html2pdf) {
+            alert("PDF generation library is not loaded. Please try again or refresh the page.");
+            return;
+        }
         const element = document.getElementById('report-sheet');
         if (!element) return;
 
@@ -131,6 +141,10 @@ export default function ReportComponent() {
         setTimeout(() => {
             html2pdf().set(opt).from(element).save().then(() => {
                 setZoom(currentZoom);
+            }).catch((e: any) => {
+                console.error("PDF generation error:", e);
+                setZoom(currentZoom);
+                alert("Failed to generate PDF. Please try again.");
             });
         }, 300);
     };
@@ -210,15 +224,24 @@ export default function ReportComponent() {
     if (error) {
         return (
             <div className="report-viewer-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'center', color: '#ef4444' }}>
-                    <p>⚠️ Error: {error}</p>
-                    <button
-                        className="btn btn-secondary"
-                        style={{ marginTop: '1rem' }}
-                        onClick={() => router.push(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
-                    >
-                        ← Back to {proctorId ? 'Student Profile' : 'Dashboard'}
-                    </button>
+                <div style={{ textAlign: 'center', maxWidth: '600px', padding: '2rem' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+                    <h2 style={{ color: '#ef4444', marginBottom: '1rem' }}>Report Generation Failed</h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>{error}</p>
+                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => router.push(proctorId ? `/proctor/${proctorId}/dashboard` : '/student/dashboard')}
+                        >
+                            Back to Dashboard
+                        </button>
+                        <button
+                            className="btn btn-primary"
+                            onClick={() => window.location.reload()}
+                        >
+                            Retry
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -293,6 +316,7 @@ export default function ReportComponent() {
                         disabled={sendingEmail || loading}
                         title="Send report to parents via email"
                     >
+                        <span style={{ marginRight: '8px' }}>📧</span>
                         {sendingEmail ? "Sending..." : "Send Email"}
                     </button>
                     <button
@@ -300,6 +324,11 @@ export default function ReportComponent() {
                         onClick={handleDownload}
                         disabled={loading}
                     >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px', marginRight: '8px' }}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
                         Download PDF
                     </button>
                 </div>
@@ -353,7 +382,7 @@ export default function ReportComponent() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {marksData.map((item, index) => (
+                                        {marksData.length > 0 ? marksData.map((item, index) => (
                                             <tr key={index}>
                                                 <td>{index + 1}</td>
                                                 <td>{item.subject}</td>
@@ -365,7 +394,13 @@ export default function ReportComponent() {
                                                     </span>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )) : (
+                                            <tr>
+                                                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                                                    No academic data available for the current semester.
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </section>

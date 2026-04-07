@@ -13,18 +13,20 @@ const fastApi = axios.create({
     },
 });
 
-/**
- * Fetches AI-generated remarks for a given USN from the FastAPI service.
- * NOW retrieves data from the already synced PG database instead of FastAPI file calls.
- */
 const getRemarkByUSN = async (usn, studentData) => {
     if (!usn || !studentData) throw new Error("USN and data are required to fetch remarks");
     
     try {
+        console.log(`[ReportService] Posting to FastAPI: ${FASTAPI_BASE_URL}/generate-remark`);
         const response = await fastApi.post(`/generate-remark`, studentData);
         return response.data;
     } catch (error) {
         console.error(`[ReportService] Error fetching remarks for ${usn}:`, error.message);
+        if (error.response) {
+            console.error(`[ReportService] FastAPI Response Error (${error.response.status}):`, error.response.data);
+        } else if (error.request) {
+            console.error(`[ReportService] No response from FastAPI at ${FASTAPI_BASE_URL}. Is it running?`);
+        }
         throw error;
     }
 };

@@ -13,5 +13,9 @@ def generate_ai_remark(request: dict):
     try:
         result = ai_service.generate_remark(request)
         return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"ERROR: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Internal Server Error during AI remark generation")
