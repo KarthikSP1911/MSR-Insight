@@ -1,4 +1,5 @@
 import axios from "axios";
+import { scrapeAndSyncStudent } from "./puppeteerScraper.service.js";
 
 // Sanitize and configure the FastAPI base URL
 const FASTAPI_BASE_URL = (process.env.FASTAPI_URL || "http://localhost:8000").replace(/\/$/, "");
@@ -29,20 +30,15 @@ const getRemarkByUSN = async (usn, studentData) => {
 };
 
 /**
- * Triggers a background scrape on FastAPI to refresh the student's data.
- * The scraper now automatically syncs to Express /api/students/sync inside Python.
+ * Triggers a background scrape locally via Puppeteer.
+ * The scraper directly syncs the parsed data into PostgreSQL.
  */
 const triggerScrape = async (usn, dob) => {
     if (!usn || !dob) throw new Error("USN and DOB are required to trigger scrape");
 
     try {
-        const response = await fastApi.post("/api/scrape", {
-            usn,
-            dob
-        }, {
-            timeout: 120000 // 120 seconds specifically for scraping
-        });
-        return response.data?.data;
+        const data = await scrapeAndSyncStudent(usn, dob);
+        return data;
     } catch (error) {
         console.error(`[ReportService] Error triggering scrape for ${usn}:`, error.message);
         throw error;
