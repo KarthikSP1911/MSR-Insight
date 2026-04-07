@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -13,6 +13,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ content, onChange }) => {
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
+                // Disable all formatting extensions to keep it plain-text based but structured
                 bold: false,
                 italic: false,
                 strike: false,
@@ -29,6 +30,13 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ content, onChange }) => {
             onChange(editor.getHTML());
         },
     });
+
+    // Handle external content updates (crucial for async data fetching)
+    useEffect(() => {
+        if (editor && content !== editor.getHTML()) {
+            editor.commands.setContent(content);
+        }
+    }, [content, editor]);
 
     if (!editor) {
         return null;

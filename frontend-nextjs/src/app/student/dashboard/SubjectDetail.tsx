@@ -11,9 +11,9 @@ import "@/styles/SubjectDetail.css";
 /* ── Assessment type maps ── */
 const ASSESSMENT_ICONS: Record<string, string> = { T1: 'T1', T2: 'T2', AQ1: 'Q1', AQ2: 'Q2' };
 const ASSESSMENT_COLORS: Record<string, { bg: string, color: string }> = {
-  T1:  { bg: 'rgba(173,198,255,0.12)', color: '#adc6ff' },
-  T2:  { bg: 'rgba(255,182,144,0.12)', color: '#ffb690' },
-  AQ1: { bg: 'rgba(78,222,163,0.12)',  color: '#4edea3' },
+  T1: { bg: 'rgba(173,198,255,0.12)', color: '#adc6ff' },
+  T2: { bg: 'rgba(255,182,144,0.12)', color: '#ffb690' },
+  AQ1: { bg: 'rgba(78,222,163,0.12)', color: '#4edea3' },
   AQ2: { bg: 'rgba(255,180,171,0.12)', color: '#ffb4ab' },
 };
 const ASSESSMENT_LABELS: Record<string, string> = {
@@ -21,7 +21,7 @@ const ASSESSMENT_LABELS: Record<string, string> = {
 };
 
 const getMaxMarks = (type: string) => {
-  if (type === 'T1' || type === 'T2')   return 30;
+  if (type === 'T1' || type === 'T2') return 30;
   if (type === 'AQ1' || type === 'AQ2') return 10;
   return null;
 };
@@ -48,43 +48,43 @@ interface SubjectDetailProps {
 
 const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear());
-  const [targetPct,    setTargetPct]    = useState(75);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [targetPct, setTargetPct] = useState(75);
 
   if (!subject) return null;
 
   /* ── Attendance data ── */
   const attendanceDetails = subject.attendance_details || {};
-  const presentDates  = attendanceDetails.present_dates || [];
-  const absentDates   = attendanceDetails.absent_dates  || [];
-  const presentCount  = attendanceDetails.present   ?? presentDates.length;
-  const absentCount   = attendanceDetails.absent    ?? absentDates.length;
+  const presentDates = attendanceDetails.present_dates || [];
+  const absentDates = attendanceDetails.absent_dates || [];
+  const presentCount = attendanceDetails.present ?? presentDates.length;
+  const absentCount = attendanceDetails.absent ?? absentDates.length;
   const remainingCount = attendanceDetails.remaining ?? 0;
-  const totalClasses  = presentCount + absentCount + remainingCount;
+  const totalClasses = presentCount + absentCount + remainingCount;
 
   /* ── Attendance calculator ── */
-  const T       = targetPct / 100;
+  const T = targetPct / 100;
   const canMiss = Math.floor(presentCount + remainingCount - T * totalClasses);
 
   /* ── Calendar grid ── */
-  const daysInMonth    = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  const calendarDays   = [];
+  const calendarDays = [];
   for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(null);
   for (let i = 1; i <= daysInMonth; i++)    calendarDays.push(i);
 
   const getDateStatus = (day: number) => {
-    const d = `${String(day).padStart(2,'0')}-${String(currentMonth+1).padStart(2,'0')}-${currentYear}`;
+    const d = `${String(day).padStart(2, '0')}-${String(currentMonth + 1).padStart(2, '0')}-${currentYear}`;
     if (presentDates.includes(d)) return 'present';
-    if (absentDates.includes(d))  return 'absent';
+    if (absentDates.includes(d)) return 'absent';
     return 'remaining';
   };
 
-  const today   = new Date();
+  const today = new Date();
   const isToday = (day: number) =>
     day === today.getDate() &&
     currentMonth === today.getMonth() &&
-    currentYear  === today.getFullYear();
+    currentYear === today.getFullYear();
 
   const goToPrev = () => {
     if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); }
@@ -98,11 +98,11 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
   /* ── Chart data ── */
   const chartData = useMemo(() => {
     return (subject.assessments || [])
-      .filter((a: any) => ['T1','T2','AQ1','AQ2'].includes(a.type))
+      .filter((a: any) => ['T1', 'T2', 'AQ1', 'AQ2'].includes(a.type))
       .map((a: any) => ({
-        type:     a.type,
+        type: a.type,
         obtained: parseFloat(a.obtained_marks) || 0,
-        classAvg: parseFloat(a.class_average)  || 0,
+        classAvg: parseFloat(a.class_average) || 0,
       }));
   }, [subject]);
 
@@ -113,11 +113,11 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
   }, [chartData]);
 
   const tableAssessments = (subject.assessments || [])
-    .filter((a: any) => ['T1','T2','AQ1','AQ2'].includes(a.type));
+    .filter((a: any) => ['T1', 'T2', 'AQ1', 'AQ2'].includes(a.type));
 
-  const monthNames = ['January','February','March','April','May','June',
-                      'July','August','September','October','November','December'];
-  const dayLabels  = ['S','M','T','W','T','F','S'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   const attColor = canMiss > 0 ? '#4edea3' : canMiss === 0 ? '#ffb690' : '#ffb4ab';
 
@@ -156,7 +156,7 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
                 <ChevronLeft size={18} />
               </button>
               <span className="sd-cal-month-label">
-                {monthNames[currentMonth].slice(0,3).toUpperCase()} {currentYear}
+                {monthNames[currentMonth].slice(0, 3).toUpperCase()} {currentYear}
               </span>
               <button className="sd-cal-nav-btn" onClick={goToNext}>
                 <ChevronRight size={18} />
@@ -396,11 +396,11 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
               </thead>
               <tbody>
                 {tableAssessments.length > 0 ? tableAssessments.map((a: any, idx: number) => {
-                  const obtained  = parseFloat(a.obtained_marks) || 0;
-                  const classAvg  = parseFloat(a.class_average)  || 0;
-                  const diff      = obtained - classAvg;
-                  const maxMarks  = a.max_marks || getMaxMarks(a.type) || '—';
-                  const colors    = ASSESSMENT_COLORS[a.type] || { bg: 'rgba(198,198,205,0.12)', color: '#c6c6cd' };
+                  const obtained = parseFloat(a.obtained_marks) || 0;
+                  const classAvg = parseFloat(a.class_average) || 0;
+                  const diff = obtained - classAvg;
+                  const maxMarks = a.max_marks || getMaxMarks(a.type) || '—';
+                  const colors = ASSESSMENT_COLORS[a.type] || { bg: 'rgba(198,198,205,0.12)', color: '#c6c6cd' };
 
                   return (
                     <tr key={idx} className="sd-tr">

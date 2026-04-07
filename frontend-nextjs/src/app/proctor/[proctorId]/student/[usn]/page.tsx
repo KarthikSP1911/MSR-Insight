@@ -15,7 +15,7 @@ export default function ProcteeDetails() {
     const router = useRouter();
     const proctorId = params.proctorId as string;
     const usn = params.usn as string;
-    
+
     const [student, setStudent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
