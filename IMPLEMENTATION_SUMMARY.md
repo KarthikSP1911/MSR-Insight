@@ -9,6 +9,7 @@ Added a new **"Send Email"** button to the proctor dashboard report viewer that 
 ## 🔧 Implementation Checklist
 
 ### Backend Changes
+
 - ✅ **package.json** - Added 3 new dependencies:
   - `resend` v3.0.0 - Email service
   - `cloudinary` v1.41.0 - Cloud storage (optional)
@@ -37,6 +38,7 @@ Added a new **"Send Email"** button to the proctor dashboard report viewer that 
   - Import for new controller function
 
 ### Frontend Changes
+
 - ✅ **src/pages/Report.jsx** - Updated component:
   - Added states: `sendingEmail`, `emailSent`, `emailError`
   - Added `handleSendEmail()` function
@@ -50,11 +52,13 @@ Added a new **"Send Email"** button to the proctor dashboard report viewer that 
 ## 📋 API Contract
 
 ### Endpoint
+
 ```
 POST /api/report/send-email
 ```
 
 ### Request
+
 ```json
 {
   "usn": "STUDENT_USN",
@@ -63,6 +67,7 @@ POST /api/report/send-email
 ```
 
 ### Success Response (200)
+
 ```json
 {
   "success": true,
@@ -94,6 +99,7 @@ POST /api/report/send-email
 ```
 
 ### Error Response (400/404/500)
+
 ```json
 {
   "success": false,
@@ -106,6 +112,7 @@ POST /api/report/send-email
 ## 🚀 Setup Instructions
 
 ### Step 1: Get Resend API Key
+
 1. Visit https://resend.com
 2. Sign up/login
 3. Go to API Keys
@@ -113,6 +120,7 @@ POST /api/report/send-email
 5. Verify sender email address
 
 ### Step 2: Update Environment Variables
+
 ```bash
 # In backend/express/env.local
 RESEND_API_KEY=re_your_key_here
@@ -120,12 +128,14 @@ RESEND_FROM_EMAIL=noreply@yourdomain.com
 ```
 
 ### Step 3: (Optional) Setup Cloudinary
+
 1. Visit https://cloudinary.com
 2. Sign up/login
 3. Copy Cloud Name, API Key, API Secret
 4. Add to env.local
 
 ### Step 4: Verify Dependencies Installed
+
 ```bash
 cd backend/express
 npm list resend cloudinary puppeteer
@@ -136,6 +146,7 @@ npm list resend cloudinary puppeteer
 ## 📧 Email Template
 
 The email sent to parents includes:
+
 - Professional HTML template
 - Student name and USN
 - Current date
@@ -144,6 +155,7 @@ The email sent to parents includes:
 - Footer with disclaimer
 
 **Subject Line:**
+
 ```
 Student Report - {STUDENT_NAME} ({USN})
 ```
@@ -153,16 +165,19 @@ Student Report - {STUDENT_NAME} ({USN})
 ## 🔍 Database Schema Used
 
 ### Student Table
+
 ```
 usn (PK) | name | email | current_year | details (JSONB) | parents (FK)
 ```
 
 ### Parent Table
+
 ```
 usn (FK) | relation | name | phone | email | (composite PK: usn + relation)
 ```
 
 ### Relationship
+
 ```
 One Student → Many Parents
 (based on usn foreign key)
@@ -183,7 +198,7 @@ One Student → Many Parents
                     ↓
 5. For each parent:
    ├─ Generate PDF from HTML using Puppeteer
-   ├─ (Optional) Upload to Cloudinary   
+   ├─ (Optional) Upload to Cloudinary
    └─ Send email via Resend with PDF attachment
                     ↓
 6. Backend returns summary of all sends
@@ -196,6 +211,7 @@ One Student → Many Parents
 ## 🧪 Testing Guide
 
 ### Unit Test Checklist
+
 - [ ] Parent emails exist in database
 - [ ] Report HTML is valid/complete
 - [ ] Network connectivity to Resend API
@@ -203,6 +219,7 @@ One Student → Many Parents
 - [ ] Parent email addresses are correct format
 
 ### Manual Test Steps
+
 ```bash
 # 1. Ensure backend is running
 npm start
@@ -230,6 +247,7 @@ npm start
 - **Memory**: ~200-400MB for Puppeteer browser instance
 
 ### Optimization Tips
+
 - Keep report HTML concise
 - Disable Cloudinary upload if not needed (comment out in code)
 - Consider caching Puppeteer instance in production
@@ -238,13 +256,13 @@ npm start
 
 ## ⚠️ Error Scenarios & Solutions
 
-| Scenario | Error Message | Solution |
-|----------|---------------|----------|
-| No parents registered | "No parents found for this student" | Add parents to Parent table first |
-| Invalid Resend key | "Email sending failed" | Verify RESEND_API_KEY in env.local |
-| Network timeout | "Failed to send email to parents" | Check internet connection |
-| Puppeteer warning | "< 24.15.0 is no longer supported" | Upgrade puppeteer (not critical) |
-| Session expired | Redirects to login | User needs to login again |
+| Scenario              | Error Message                       | Solution                           |
+| --------------------- | ----------------------------------- | ---------------------------------- |
+| No parents registered | "No parents found for this student" | Add parents to Parent table first  |
+| Invalid Resend key    | "Email sending failed"              | Verify RESEND_API_KEY in env.local |
+| Network timeout       | "Failed to send email to parents"   | Check internet connection          |
+| Puppeteer warning     | "< 24.15.0 is no longer supported"  | Upgrade puppeteer (not critical)   |
+| Session expired       | Redirects to login                  | User needs to login again          |
 
 ---
 
@@ -292,21 +310,24 @@ frontend/src/pages/
 ## 📝 Implementation Notes
 
 **No Breaking Changes:**
+
 - ✅ Existing download functionality unchanged
 - ✅ Database schema unchanged
 - ✅ Session/auth system unchanged
 - ✅ No modifications to other features
 
 **What Was Added:**
+
 - ✅ One new backend endpoint
 - ✅ One new service file
 - ✅ One button and handler in frontend
 - ✅ Three npm packages
 
 **Dependencies Installed:**
+
 ```
 ✅ resend@3.0.0       (10.2 MB)
-✅ cloudinary@1.41.0  (2.3 MB)  
+✅ cloudinary@1.41.0  (2.3 MB)
 ✅ puppeteer@22.0.0   (19.4 MB)
 Total: ~32 MB added to node_modules
 ```
@@ -316,6 +337,7 @@ Total: ~32 MB added to node_modules
 ## 🔗 Configuration Files
 
 ### Backend Env Setup Template
+
 ```env
 # ==========================================
 # EXPRESS BACKEND EMAIL CONFIGURATION
@@ -349,6 +371,7 @@ CLOUDINARY_API_SECRET=secret123xyz789
 ## 📞 Support
 
 For issues or questions:
+
 1. Check env.local has all required keys
 2. Verify internet connectivity
 3. Check parent table has email addresses

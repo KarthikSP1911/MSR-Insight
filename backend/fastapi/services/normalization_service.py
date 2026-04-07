@@ -80,7 +80,7 @@ class DataNormalizer:
                 "absent_dates": absent_dates
             }
             
-            # Assessments
+            # Assessments - Pass through scraped data with class_average
             cie_details = entry.get("cie_details", {})
             raw_tests = cie_details.get("tests", [])
             
@@ -90,19 +90,22 @@ class DataNormalizer:
                 if not std_type: continue
                 
                 obtained = t.get("marks_obtained")
-                max_m = t.get("max_marks")
+                class_avg = t.get("class_average", 0)
                 
                 if not DataNormalizer.is_valid_numeric(obtained): continue
                 
                 obtained_val = float(obtained)
-                max_val = float(max_m) if DataNormalizer.is_valid_numeric(max_m) else 0
+                class_avg_val = float(class_avg) if DataNormalizer.is_valid_numeric(class_avg) else 0.0
                 
-                if obtained_val == 0 and max_val == 0: continue
+                # Skip if both obtained and class_average are 0 (not yet updated)
+                if obtained_val == 0 and class_avg_val == 0: 
+                    # Still add it so we show 0 scores during scraping
+                    pass
                 
                 assessments.append({
                     "type": std_type,
                     "obtained_marks": obtained_val,
-                    "max_marks": max_val
+                    "class_average": class_avg_val
                 })
             
             # Calculate Total Marks (CIE)
