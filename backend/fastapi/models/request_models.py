@@ -8,7 +8,3 @@ class SubjectItem(BaseModel):
 
 class RemarkRequest(BaseModel):
     subjects: list[SubjectItem]
-
-class ScrapeRequest(BaseModel):
-    usn: str
-    dob: str  # Format: YYYY-MM-DD
