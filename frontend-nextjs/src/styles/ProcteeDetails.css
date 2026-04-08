@@ -15,11 +15,11 @@
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px; /* space-2 */
   padding: 0;
   background: none;
   border: none;
-  color: #94A3B8; /* Subtle blue-gray */
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -39,21 +39,20 @@
 
 /* 2. STUDENT HEADER CARD */
 .student-hero-card {
-  background: #0F172A;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-lg);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .student-info h1 {
-  font-size: 36px;
+  font-size: 2rem;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--text-primary);
   margin-bottom: 4px;
   letter-spacing: -0.03em;
 }
@@ -79,21 +78,21 @@
 }
 
 .generate-report-btn {
-  background: var(--accent-primary);
-  color: white;
-  padding: 12px 28px;
-  border-radius: 12px;
+  background: var(--bg-surface);
+  color: var(--accent-primary);
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 1rem;
-  border: none;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-subtle);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 138, 0, 0.2);
   transition: all 0.2s ease;
 }
 
 .generate-report-btn:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
+  background: var(--accent-primary);
+  color: #000;
+  border-color: var(--accent-primary);
 }
 
 /* 3. GRID & CARDS */
@@ -105,9 +104,9 @@
 }
 
 .info-card {
-  background: #0F172A;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: 24px;
   transition: all 0.25s ease;
   height: 100%;
@@ -116,9 +115,7 @@
 }
 
 .info-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-bright);
 }
 
 /* 4. CARD HEADERS */
@@ -137,9 +134,9 @@
 }
 
 .card-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #F8FAFC;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 /* 5. PERSONAL INFORMATION LAYOUT */
@@ -159,15 +156,15 @@
 .info-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94A3B8;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .info-value {
-  font-size: 1rem;
-  color: #E5E7EB;
-  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 /* 6. ACADEMIC STATUS LAYOUT */
@@ -202,9 +199,9 @@
 }
 
 .cgpa-value {
-  font-size: 48px;
+  font-size: 3rem;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--text-primary);
   line-height: 1;
 }
 

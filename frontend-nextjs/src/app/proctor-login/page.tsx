@@ -35,7 +35,7 @@ export default function ProctorLogin() {
             }
         } catch (err: any) {
             setError(
-                err.response?.data?.message || "Login failed. Please check your credentials."
+                err.response?.data?.message || "Invalid credentials"
             );
         } finally {
             setLoading(false);
@@ -43,16 +43,16 @@ export default function ProctorLogin() {
     };
 
     return (
-        <div className="container fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - var(--nav-height))' }}>
-            <div className="card" style={{ maxWidth: '450px', width: '100%', padding: 'var(--space-xl)' }}>
-                <h1 style={{ marginBottom: 'var(--space-xs)', textAlign: 'center' }}>Proctor Login</h1>
-                <p style={{ textAlign: 'center', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>
-                    Access your administrative dashboard.
-                </p>
+        <div className="login-page">
+            <div className="login-card fade-in">
+                <header className="login-header">
+                    <h1 className="login-title">Proctor Access</h1>
+                    <p className="login-subtitle">Administrative dashboard login</p>
+                </header>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="login-form">
                     <div className="form-group">
-                        <label className="form-label">Proctor ID</label>
+                        <label className="form-label">Proctor Identifier</label>
                         <input
                             type="text"
                             className="input-field"
@@ -63,7 +63,7 @@ export default function ProctorLogin() {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Password</label>
+                        <label className="form-label">Secure Password</label>
                         <input
                             type="password"
                             className="input-field"
@@ -74,16 +74,81 @@ export default function ProctorLogin() {
                     </div>
 
                     {error && (
-                        <div style={{ color: 'var(--error)', fontSize: '0.85rem', marginBottom: 'var(--space-sm)', textAlign: 'center' }}>
+                        <div className="form-error">
                             {error}
                         </div>
                     )}
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-sm)' }} disabled={loading}>
-                        {loading ? "Authenticating..." : "Sign In"}
+                    <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
+                        {loading ? "Verifying..." : "Sign In"}
                     </button>
+                    
+                    <div className="login-footer">
+                        Protected administrative area
+                    </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .login-page {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: calc(100vh - var(--nav-height));
+                    background: var(--bg-primary);
+                }
+                .login-card {
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: var(--radius-lg);
+                    padding: 40px;
+                    width: 100%;
+                    max-width: 400px;
+                    box-shadow: var(--shadow-lg);
+                }
+                .login-header {
+                    margin-bottom: 32px;
+                    text-align: center;
+                }
+                .login-title {
+                    font-size: 1.75rem;
+                    font-weight: 800;
+                    margin-bottom: 8px;
+                    color: var(--text-primary);
+                }
+                .login-subtitle {
+                    color: var(--text-secondary);
+                    font-size: 0.95rem;
+                }
+                .login-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                .login-btn {
+                    margin-top: 10px;
+                    font-weight: 600;
+                    height: 44px;
+                }
+                .form-error {
+                    background: rgba(239, 68, 68, 0.1);
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    color: var(--error);
+                    padding: 10px;
+                    border-radius: var(--radius-md);
+                    font-size: 0.85rem;
+                    text-align: center;
+                }
+                .login-footer {
+                    margin-top: 24px;
+                    text-align: center;
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+            `}</style>
         </div>
     );
 }
+

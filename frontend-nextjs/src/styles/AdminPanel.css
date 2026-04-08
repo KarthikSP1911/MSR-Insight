@@ -12,7 +12,7 @@
 }
 
 .admin-gate-card {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 3rem 2.5rem;
@@ -26,13 +26,14 @@
   width: 64px;
   height: 64px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, var(--accent-primary), #ff6b00);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
-  box-shadow: 0 8px 32px rgba(255, 138, 0, 0.25);
+  color: var(--accent-primary);
 }
 
 .admin-gate-card h2 {
@@ -146,22 +147,22 @@
 }
 
 .stat-card {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 0.75rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-card:hover {
-  border-color: rgba(255, 138, 0, 0.25);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  background: var(--bg-surface);
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
 }
 
 .stat-icon {
@@ -177,9 +178,9 @@
 }
 
 .stat-icon.orange {
-  background: rgba(255, 138, 0, 0.1);
+  background: rgba(0, 173, 181, 0.1);
   color: var(--accent-primary);
-  border: 1px solid rgba(255, 138, 0, 0.1);
+  border: 1px solid rgba(0, 173, 181, 0.2);
 }
 
 .stat-icon.green {
@@ -438,13 +439,14 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary), #ff6b00);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.95rem;
-  color: white;
+  color: var(--accent-primary);
   flex-shrink: 0;
 }
 
@@ -472,7 +474,7 @@
 }
 
 .student-count-badge {
-  background: rgba(255, 138, 0, 0.1);
+  background: rgba(0, 173, 181, 0.1);
   color: var(--accent-primary);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -761,6 +763,88 @@
   border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.add-student-form {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  background: var(--bg-surface);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  border: 1px solid var(--border-subtle);
+}
+
+.field-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.full-width { grid-column: span 2; }
+
+.dob-row {
+  display: flex;
+  gap: 12px;
+}
+
+.assign-btn {
+  white-space: nowrap;
+  padding: 0 24px !important;
+  height: 40px;
+}
+
+.student-info-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-header-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-name-mini {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.student-usn-mini {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  font-weight: 700;
+}
+
+.student-dob {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.year-selector {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.year-selector:hover {
+  border-color: var(--border-bright);
 }
 
 @keyframes spin {

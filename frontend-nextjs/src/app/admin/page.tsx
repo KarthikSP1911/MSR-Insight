@@ -208,9 +208,9 @@ function ProctorCard({
           </div>
 
           {showAddStudent && (
-            <form className="add-student-form" onSubmit={handleAssignStudent} style={{ display: 'grid', gap: '12px', gridTemplateColumns: '1fr 1fr', alignItems: 'end' }}>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>USN</label>
+            <form className="add-student-form" onSubmit={handleAssignStudent}>
+              <div className="form-group">
+                <label className="field-label">USN</label>
                 <input
                   type="text"
                   placeholder="e.g. 1MS24CS001"
@@ -221,8 +221,8 @@ function ProctorCard({
                   autoFocus
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>Full Name</label>
+              <div className="form-group">
+                <label className="field-label">Full Name</label>
                 <input
                   type="text"
                   placeholder="e.g. John Doe"
@@ -232,16 +232,15 @@ function ProctorCard({
                   required
                 />
               </div>
-              <div className="form-group" style={{ marginBottom: 0, gridColumn: 'span 2' }}>
-                <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px', display: 'block' }}>Date of Birth</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="form-group full-width">
+                <label className="field-label">Date of Birth</label>
+                <div className="dob-row">
                   <DOBSelector value={newStudentDob} onChange={setNewStudentDob} />
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-sm"
-                    disabled={assigning}
-                    style={{ whiteSpace: 'nowrap', padding: '0 20px' }}
-                  >
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-sm assign-btn"
+                      disabled={assigning}
+                    >
                     {assigning ? "..." : "Assign Student"}
                   </button>
                 </div>
@@ -259,17 +258,17 @@ function ProctorCard({
             <div className="student-list">
               {students.map((s) => (
                 <div key={s.usn} className="student-row">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span className="student-name" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                <div className="student-info-mini">
+                    <div className="student-header-mini">
+                      <span className="student-name-mini">
                         {s.name}
                       </span>
-                      <span className="student-usn" style={{ fontSize: '0.8rem', padding: '2px 8px', background: 'var(--bg-secondary)', borderRadius: '4px', color: 'var(--text-secondary)' }}>
+                      <span className="student-usn-mini">
                         {s.usn.toUpperCase()}
                       </span>
                     </div>
                     {s.dob && (
-                      <span className="student-dob" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <span className="student-dob">
                         DOB: {s.dob}
                       </span>
                     )}
@@ -413,7 +412,6 @@ export default function AdminPanel() {
             className="year-selector"
             value={academicYear}
             onChange={(e) => setAcademicYear(e.target.value)}
-            style={{ marginRight: '16px', background: 'var(--bg-secondary)', color: 'white', border: '1px solid var(--border-subtle)', padding: '4px 12px', borderRadius: '4px' }}
           >
             <option value="2027">Year 2027</option>
             <option value="2028">Year 2028</option>

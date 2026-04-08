@@ -119,7 +119,7 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
     'July', 'August', 'September', 'October', 'November', 'December'];
   const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-  const attColor = canMiss > 0 ? '#4edea3' : canMiss === 0 ? '#ffb690' : '#ffb4ab';
+  const attColor = canMiss > 0 ? 'var(--accent-primary)' : canMiss === 0 ? '#ffb690' : '#EF4444';
 
   return (
     <div className="sd-page">
@@ -134,13 +134,13 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
         <div className="sd-header-kpis">
           <div className="sd-kpi">
             <span className="sd-kpi-label">Attendance</span>
-            <span className="sd-kpi-value" style={{ color: '#4edea3' }}>
+            <span className="sd-kpi-value" style={{ color: 'var(--accent-primary)' }}>
               {Math.round(subject.attendance || 0)}%
             </span>
           </div>
           <div className="sd-kpi">
             <span className="sd-kpi-label">CIE Score</span>
-            <span className="sd-kpi-value" style={{ color: '#adc6ff' }}>
+            <span className="sd-kpi-value" style={{ color: 'var(--text-primary)' }}>
               {subject.marks || 0}<span className="sd-kpi-max">/50</span>
             </span>
           </div>
@@ -322,11 +322,11 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
             </div>
             <div className="sd-chart-legend">
               <div className="sd-chart-legend-item">
-                <span className="sd-chart-legend-line" style={{ background: '#adc6ff', boxShadow: '0 0 5px #adc6ff' }} />
+                <span className="sd-chart-legend-line" style={{ background: 'var(--accent-primary)', boxShadow: '0 0 5px var(--accent-glow)' }} />
                 <span className="sd-chart-legend-label">YOUR MARKS</span>
               </div>
               <div className="sd-chart-legend-item">
-                <span className="sd-chart-legend-line" style={{ background: '#ffb690', boxShadow: '0 0 5px #ffb690' }} />
+                <span className="sd-chart-legend-line" style={{ background: 'var(--text-muted)' }} />
                 <span className="sd-chart-legend-label">CLASS AVG</span>
               </div>
             </div>
@@ -361,16 +361,16 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Line
-                    type="monotone" dataKey="obtained" stroke="#adc6ff" strokeWidth={3}
-                    name="Your Marks" dot={{ fill: '#adc6ff', r: 4, strokeWidth: 0 }}
-                    activeDot={{ r: 6, fill: '#adc6ff', strokeWidth: 0 }}
+                    type="monotone" dataKey="obtained" stroke="var(--accent-primary)" strokeWidth={3}
+                    name="Your Marks" dot={{ fill: 'var(--accent-primary)', r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: 'var(--accent-primary)', strokeWidth: 0 }}
                     filter="url(#sd-glow-blue)"
                   />
                   <Line
-                    type="monotone" dataKey="classAvg" stroke="#ffb690" strokeWidth={3}
-                    name="Class Avg" dot={{ fill: '#ffb690', r: 4, strokeWidth: 0 }}
-                    activeDot={{ r: 6, fill: '#ffb690', strokeWidth: 0 }}
-                    filter="url(#sd-glow-orange)" strokeDasharray="6 3"
+                    type="monotone" dataKey="classAvg" stroke="var(--text-muted)" strokeWidth={2}
+                    name="Class Avg" dot={{ fill: 'var(--text-muted)', r: 3, strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: 'var(--text-muted)', strokeWidth: 0 }}
+                    strokeDasharray="4 4"
                   />
                 </LineChart>
               </ResponsiveContainer>

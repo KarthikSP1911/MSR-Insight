@@ -119,26 +119,11 @@ export default function ProctorDashboard() {
         return luminance > 128 ? '#000000' : '#FFFFFF';
     };
 
-    const getAttendanceStyle = (attendance: number | null) => {
-        if (attendance === null || attendance === undefined) return { color: undefined, textColor: '#FFFFFF', style: {} };
-        let color;
-        if (attendance < 50) color = '#4B0000';
-        else if (attendance < 65) color = '#FF0000';
-        else if (attendance < 75) color = '#FFA500';
-        else if (attendance < 85) color = '#FFD700';
-        else if (attendance < 95) color = '#4CAF50';
-        else color = '#2ECC71';
-
-        const textColor = getContrastColor(color);
-
-        return {
-            color,
-            textColor,
-            style: {
-                borderLeft: `4px solid ${color}`,
-                background: `linear-gradient(to right, ${color}12 0%, #0F172A 40%)`
-            }
-        };
+    const getAttendanceStatus = (attendance: number | null) => {
+        if (attendance === null || attendance === undefined) return { label: 'N/A', class: 'status-na' };
+        if (attendance < 65) return { label: `${attendance}%`, class: 'status-danger' };
+        if (attendance < 75) return { label: `${attendance}%`, class: 'status-warn' };
+        return { label: `${attendance}%`, class: 'status-ok' };
     };
 
     if (loading) {
@@ -199,33 +184,19 @@ export default function ProctorDashboard() {
 
             <div className="proctees-grid grid-container">
                 {filteredStudents.map((student) => {
-                    const att = student.lowestAttendance;
-                    const attendanceData = getAttendanceStyle(att);
+                    const status = getAttendanceStatus(student.lowestAttendance);
 
                     return (
                         <div
                             key={student.usn}
-                            className="student-card"
-                            style={attendanceData.style}
+                            className={`student-card ${status.class}`}
                             onClick={() => handleStudentClick(student.usn)}
                         >
-                            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div className="card-header">
                                 <h2 className="student-name">{student.name}</h2>
-                                {att !== null && att !== undefined && (
-                                    <span style={{
-                                        backgroundColor: attendanceData.color,
-                                        color: attendanceData.textColor,
-                                        padding: '3px 10px',
-                                        borderRadius: '12px',
-                                        fontSize: '0.78rem',
-                                        fontWeight: '700',
-                                        whiteSpace: 'nowrap',
-                                        marginLeft: '12px',
-                                        letterSpacing: '0.02em'
-                                    }}>
-                                        {att}%
-                                    </span>
-                                )}
+                                <span className={`status-badge ${status.class}`}>
+                                    {status.label}
+                                </span>
                             </div>
 
                             <div className="card-body">

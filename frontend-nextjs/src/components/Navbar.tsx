@@ -13,12 +13,12 @@ interface NavbarProps {
   notificationCount: number;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  academicYear, 
-  setAcademicYear, 
-  inboxOpen, 
-  setInboxOpen, 
-  notificationCount 
+const Navbar: React.FC<NavbarProps> = ({
+  academicYear,
+  setAcademicYear,
+  inboxOpen,
+  setInboxOpen,
+  notificationCount
 }) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -51,93 +51,65 @@ const Navbar: React.FC<NavbarProps> = ({
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
-    <nav className="navbar" style={(isStudentDashboard || isProctorView) ? { borderBottom: '1px solid var(--border-subtle)', background: 'rgba(13, 17, 23, 0.8)', backdropFilter: 'blur(12px)' } : {}}>
-      <div className="container" style={(isStudentDashboard || isProctorView) ? { maxWidth: '100%', padding: isProcteeDetailsView ? '0 80px' : '0 48px' } : {}}>
-        <div className="nav-logo" style={{ display: 'flex', alignItems: 'center' }}>
+    <nav className="navbar">
+      <div className="container navbar-container">
+        <div className="nav-logo">
           {isProcteeDetailsView ? (
-            <Link 
-              href={`/proctor/${proctorId}/dashboard`} 
+            <Link
+              href={`/proctor/${proctorId}/dashboard`}
               className="navbar-back-link"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: '#9CA3AF',
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                padding: '0',
-                borderRadius: '0',
-                transition: 'all 0.2s ease',
-                background: 'none'
-              }}
             >
-              <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                style={{ width: '18px', height: '18px' }}
-              >
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
-              <span>Back</span>
+              
+              <span>&lt;--  Back</span>
             </Link>
           ) : (
-            <>
-              <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-                <img src="/logo-icon.svg" alt="Smart Report Logo" style={{ height: '32px', width: 'auto' }} />
-                <span style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '1.25rem', letterSpacing: '-0.02em' }}>Smart Report</span>
-              </Link>
-              {isProctorView && !isReportPage && proctorId && (
-                <div style={{ marginLeft: '20px', paddingLeft: '20px', borderLeft: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Proctor</span>
-                  <span style={{ color: '#F8FAFC', fontWeight: '600', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>{proctorId}</span>
-                </div>
-              )}
-            </>
+            <Link href="/">
+              <div className="logo-link">
+                <img src="/logo-icon.svg" alt="Logo" className="logo-img" />
+                <span className="logo-text">Smart Report</span>
+              </div>
+            </Link>
+          )}
+
+          {isProctorView && !isReportPage && proctorId && !isProcteeDetailsView && (
+            <div className="role-badge">
+              <span className="badge-label">Proctor</span>
+              <span className="badge-id">{proctorId}</span>
+            </div>
           )}
         </div>
 
         <div className="nav-actions">
           {(isHome || isAuthPage) && !isReportPage && !isAdminPage && (
-            <>
-              <Link
-                href="/student-login"
-                className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}
-              >
+            <div className="auth-links">
+              <Link href="/student-login" className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}>
                 Student Login
               </Link>
-              <Link
-                href="/proctor-login"
-                className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}
-              >
+              <Link href="/proctor-login" className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}>
                 Proctor Login
               </Link>
-            </>
+            </div>
           )}
 
           {isProctorView && !isReportPage && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
-              <div className="navbar-academic-setup" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Academic Year</span>
-                <div style={{ width: '120px' }}>
-                  <CustomDropdown 
-                    options={academicYearOptions} 
-                    value={academicYear} 
-                    onChange={setAcademicYear} 
-                    placeholder="2027"
+            <div className="proctor-actions">
+              <div className="setup-item">
+                <span className="setup-label">Academic Year</span>
+                <div className="setup-dropdown-wrap">
+                  <CustomDropdown
+                    options={academicYearOptions}
+                    value={academicYear}
+                    onChange={setAcademicYear}
+                    placeholder="Year"
                   />
                 </div>
               </div>
 
-              <button 
-                className={`nav-icon-btn ${inboxOpen ? 'active' : ''}`} 
+              <div className="divider"></div>
+
+              <button
+                className={`icon-btn ${inboxOpen ? 'active' : ''}`}
                 onClick={() => setInboxOpen(!inboxOpen)}
-                style={{ position: 'relative' }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -146,52 +118,245 @@ const Navbar: React.FC<NavbarProps> = ({
                 {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
               </button>
 
-              <button 
-                onClick={handleLogout} 
-                className="btn-logout"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: '#EF4444',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  padding: '6px 16px',
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
+              <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
             </div>
           )}
 
           {isStudentDashboard && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <span className="role-info" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Student: <strong style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{studentUsn}</strong>
-              </span>
-              <button 
-                onClick={handleLogout} 
-                className="btn-logout"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: '#EF4444',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
-                  padding: '6px 16px',
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
+            <div className="student-actions">
+              <div className="user-meta">
+                <span className="meta-label">Student</span>
+                <span className="meta-value">{studentUsn}</span>
+              </div>
+              <div className="divider"></div>
+              <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>
             </div>
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        .navbar {
+          background: rgba(10, 10, 10, 0.8);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid #1F1F1F;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          width: 100%;
+        }
+
+        .navbar-container {
+          width: 100%;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .nav-logo {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .logo-link {
+          display: inline-flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: flex-start !important;
+          gap: 8px !important;
+          text-decoration: none;
+          white-space: nowrap;
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .logo-img {
+          height: 24px;
+          width: auto;
+          display: block;
+          flex-shrink: 0;
+        }
+
+        .logo-text {
+          color: #EDEDED;
+          font-weight: 700;
+          font-size: 1.1rem;
+          letter-spacing: -0.02em;
+          flex-shrink: 0;
+          display: inline !important;
+          line-height: 1;
+        }
+
+        .navbar-back-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #A1A1A1;
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: color 0.2s ease;
+        }
+
+        .navbar-back-link:hover {
+          color: #EDEDED;
+        }
+
+        .role-badge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding-left: 20px;
+          border-left: 1px solid #1F1F1F;
+          height: 24px;
+        }
+
+        .badge-label {
+          color: #737373;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .badge-id {
+          color: #EDEDED;
+          font-size: 0.85rem;
+          font-weight: 600;
+          background: rgba(255, 255, 255, 0.05);
+          padding: 2px 8px;
+          border-radius: 4px;
+        }
+
+        .nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .auth-links {
+          display: flex;
+          gap: 24px;
+        }
+
+        .nav-link {
+          color: #A1A1A1;
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: color 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+          color: #EDEDED;
+        }
+
+        .proctor-actions, .student-actions {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        }
+
+        .setup-item, .user-meta {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .setup-label, .meta-label {
+          color: #737373;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .meta-value {
+          color: #EDEDED;
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+
+        .setup-dropdown-wrap {
+          width: 120px;
+        }
+
+        .divider {
+          width: 1px;
+          height: 20px;
+          background: #1F1F1F;
+        }
+
+        .icon-btn {
+          background: none;
+          border: none;
+          color: #A1A1A1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          position: relative;
+          padding: 8px;
+          border-radius: 8px;
+        }
+
+        .icon-btn:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: #EDEDED;
+        }
+
+        .icon-btn.active {
+          color: #00ADB5;
+        }
+
+        .notification-badge {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          background: #00ADB5;
+          color: #0A0A0A;
+          font-size: 10px;
+          font-weight: 700;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 99px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid #0A0A0A;
+        }
+
+        .logout-btn {
+          background: rgba(239, 68, 68, 0.1);
+          color: #EF4444;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          padding: 6px 16px;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: #EF4444;
+        }
+      `}</style>
     </nav>
   );
 };

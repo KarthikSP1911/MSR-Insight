@@ -96,7 +96,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   }, [isReportPage, inboxOpen]);
 
   return (
-    <div className="app-wrapper" style={{ paddingTop: isReportPage ? '0' : 'var(--nav-height)' }}>
+    <div className="app-wrapper">
       {!isReportPage && (
         <Navbar 
           academicYear={academicYear} 

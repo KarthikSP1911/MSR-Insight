@@ -9,43 +9,22 @@ const CustomSelect = ({ value, onChange, options, placeholder }: { value: string
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="custom-select-container" style={{ position: 'relative', flex: 1 }}>
+        <div className="custom-select-container">
             <div
-                className="input-field"
-                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                className="select-trigger"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <span style={{ color: value ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                <span className={value ? "value-text" : "placeholder-text"}>
                     {value || placeholder}
                 </span>
-                <span style={{ fontSize: '10px' }}>▼</span>
+                <span className="chevron">▼</span>
             </div>
             {isOpen && (
-                <div style={{
-                    position: 'absolute',
-                    top: 'calc(100% + 4px)',
-                    left: 0,
-                    right: 0,
-                    backgroundColor: 'var(--bg-card)',
-                    border: '1px solid var(--border-bright)',
-                    borderRadius: 'var(--radius-md)',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    zIndex: 10,
-                    boxShadow: 'var(--shadow-lg)'
-                }}>
+                <div className="select-dropdown">
                     {options.map((opt) => (
                         <div
                             key={opt}
-                            style={{
-                                padding: '10px 16px',
-                                cursor: 'pointer',
-                                transition: 'background 0.2s',
-                                color: value === opt ? 'var(--accent-primary)' : 'var(--text-primary)',
-                                background: value === opt ? 'var(--accent-glow)' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-secondary)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = value === opt ? 'var(--accent-glow)' : 'transparent')}
+                            className={`select-option ${value === opt ? "selected" : ""}`}
                             onClick={() => {
                                 onChange(opt);
                                 setIsOpen(false);
@@ -56,7 +35,52 @@ const CustomSelect = ({ value, onChange, options, placeholder }: { value: string
                     ))}
                 </div>
             )}
-            {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setIsOpen(false)} />}
+            {isOpen && <div className="select-overlay" onClick={() => setIsOpen(false)} />}
+
+            <style jsx>{`
+                .custom-select-container { position: relative; flex: 1; }
+                .select-trigger {
+                    background: var(--bg-primary);
+                    border: 1px solid var(--border-subtle);
+                    padding: 10px 14px;
+                    border-radius: var(--radius-md);
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                }
+                .select-trigger:hover { border-color: var(--border-bright); background: var(--bg-secondary); }
+                .value-text { color: var(--text-primary); }
+                .placeholder-text { color: var(--text-muted); }
+                .chevron { font-size: 8px; color: var(--text-muted); opacity: 0.7; }
+                .select-dropdown {
+                    position: absolute;
+                    top: calc(100% + 6px);
+                    left: 0;
+                    right: 0;
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: var(--radius-md);
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 100;
+                    box-shadow: var(--shadow-lg);
+                    padding: 4px;
+                }
+                .select-option {
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    border-radius: var(--radius-sm);
+                    font-size: 0.85rem;
+                    color: var(--text-secondary);
+                    transition: all 0.2s ease;
+                }
+                .select-option:hover { background: var(--bg-surface); color: var(--text-primary); }
+                .select-option.selected { background: var(--bg-surface); color: var(--accent-primary); font-weight: 600; }
+                .select-overlay { position: fixed; inset: 0; z-index: 90; }
+            `}</style>
         </div>
     );
 };
@@ -72,8 +96,8 @@ export default function StudentLogin() {
 
     const days = Array.from({ length: 31 }, (_, i) => String(i + 1));
     const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 50 }, (_, i) => String(currentYear - i - 15));
@@ -105,7 +129,7 @@ export default function StudentLogin() {
             }
         } catch (err: any) {
             setError(
-                err.response?.data?.message || "Login failed. Please check your credentials."
+                err.response?.data?.message || "Invalid credentials"
             );
         } finally {
             setLoading(false);
@@ -113,16 +137,16 @@ export default function StudentLogin() {
     };
 
     return (
-        <div className="container fade-in" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - var(--nav-height))' }}>
-            <div className="card" style={{ maxWidth: '500px', width: '100%', padding: 'var(--space-xl)' }}>
-                <h1 style={{ marginBottom: 'var(--space-xs)', textAlign: 'center' }}>Student Login</h1>
-                <p style={{ textAlign: 'center', marginBottom: 'var(--space-lg)', color: 'var(--text-secondary)' }}>
-                    Access your personalized academic report.
-                </p>
+        <div className="login-page">
+            <div className="login-card fade-in">
+                <header className="login-header">
+                    <h1 className="login-title">Student Portal</h1>
+                    <p className="login-subtitle">Sign in to access your reports</p>
+                </header>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="login-form">
                     <div className="form-group">
-                        <label className="form-label">University Seat Number (USN)</label>
+                        <label className="form-label">University Seat Number</label>
                         <input
                             type="text"
                             className="input-field"
@@ -134,7 +158,7 @@ export default function StudentLogin() {
 
                     <div className="form-group">
                         <label className="form-label">Date of Birth</label>
-                        <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                        <div className="dob-grid">
                             <CustomSelect
                                 value={day}
                                 onChange={setDay}
@@ -157,16 +181,85 @@ export default function StudentLogin() {
                     </div>
 
                     {error && (
-                        <div style={{ color: 'var(--error)', fontSize: '0.85rem', marginBottom: 'var(--space-sm)', textAlign: 'center' }}>
+                        <div className="form-error">
                             {error}
                         </div>
                     )}
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--space-sm)' }} disabled={loading}>
-                        {loading ? "Authenticating..." : "Sign In"}
+                    <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
+                        {loading ? "Verifying..." : "Sign In"}
                     </button>
+                    
+                    <div className="login-footer">
+                        Secure academic access powered by Smart Report
+                    </div>
                 </form>
             </div>
+
+            <style jsx>{`
+                .login-page {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: calc(100vh - var(--nav-height));
+                    background: var(--bg-primary);
+                }
+                .login-card {
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: var(--radius-lg);
+                    padding: 40px;
+                    width: 100%;
+                    max-width: 440px;
+                    box-shadow: var(--shadow-lg);
+                }
+                .login-header {
+                    margin-bottom: 32px;
+                    text-align: center;
+                }
+                .login-title {
+                    font-size: 1.75rem;
+                    font-weight: 800;
+                    margin-bottom: 8px;
+                    color: var(--text-primary);
+                }
+                .login-subtitle {
+                    color: var(--text-secondary);
+                    font-size: 0.95rem;
+                }
+                .login-form {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                .dob-grid {
+                    display: flex;
+                    gap: 10px;
+                }
+                .login-btn {
+                    margin-top: 10px;
+                    font-weight: 600;
+                    height: 44px;
+                }
+                .form-error {
+                    background: rgba(239, 68, 68, 0.1);
+                    border: 1px solid rgba(239, 68, 68, 0.2);
+                    color: var(--error);
+                    padding: 10px;
+                    border-radius: var(--radius-md);
+                    font-size: 0.85rem;
+                    text-align: center;
+                }
+                .login-footer {
+                    margin-top: 24px;
+                    text-align: center;
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+            `}</style>
         </div>
     );
 }
+

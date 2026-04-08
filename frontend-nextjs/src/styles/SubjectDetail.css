@@ -1,15 +1,5 @@
 /* ==========================================================================
-   SubjectDetail — Material You / Academia Dark Theme
-   Palette:
-     Primary (orange)  #ffb690
-     Secondary (blue)  #adc6ff
-     Tertiary (green)  #4edea3
-     Error (red)       #ffb4ab
-     Surface container #1d2026
-     Surface low       #191c22
-     BG                #10131a
-     Text primary      #e1e2eb
-     Text secondary    #c6c6cd
+   SubjectDetail — Technical Dark Theme
    ========================================================================== */
 
 /* ── Page Shell ── */
@@ -41,10 +31,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border-radius: 8px;
-  background: rgba(255, 182, 144, 0.1);
-  border: 1px solid rgba(255, 182, 144, 0.2);
-  color: #ffb690;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -54,9 +44,9 @@
 }
 
 .sd-back-btn:hover {
-  background: rgba(255, 182, 144, 0.18);
-  border-color: rgba(255, 182, 144, 0.4);
-  transform: translateX(-2px);
+  background: var(--bg-surface);
+  border-color: var(--border-bright);
+  color: var(--text-primary);
 }
 
 .sd-subject-meta {
@@ -79,14 +69,14 @@
 
 .sd-subject-code {
   display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: rgba(173, 198, 255, 0.12);
-  color: #adc6ff;
-  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  border: 1px solid rgba(173, 198, 255, 0.2);
+  border: 1px solid var(--border-subtle);
   white-space: nowrap;
 }
 
@@ -125,10 +115,10 @@
 
 /* ── Card base ── */
 .sd-card {
-  background: #1d2026;
-  border-radius: 12px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-subtle);
 }
 
 .sd-card-header {
@@ -250,31 +240,27 @@
 
 /* Present — green */
 .sd-cal-present {
-  background: rgba(78, 222, 163, 0.12);
-  color: #4edea3;
+  background: var(--bg-surface);
+  color: var(--accent-primary);
 }
 
-/* Absent — red/pink */
 .sd-cal-absent {
-  background: rgba(255, 180, 171, 0.12);
-  color: #ffb4ab;
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
 }
 
-/* Remaining (not yet happened) — dark gray */
 .sd-cal-remaining {
-  background: rgba(50, 53, 60, 0.6);
-  color: rgba(198, 198, 205, 0.4);
-  font-weight: 500;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-subtle);
+  font-weight: 400;
 }
 
-/* Today highlight */
 .sd-cal-today {
-  outline: 2px solid #4edea3;
-  outline-offset: -1px;
-  box-shadow: 0 0 12px rgba(78, 222, 163, 0.35);
-  background: #4edea3 !important;
-  color: #003824 !important;
-  font-weight: 900;
+  border: 1px solid var(--accent-primary);
+  background: var(--accent-glow) !important;
+  color: var(--accent-primary) !important;
+  font-weight: 800;
 }
 
 /* Legend */
@@ -316,9 +302,9 @@
   line-height: 1.6;
 }
 
-.sd-count-present  { background: rgba(78,222,163,0.15);  color: #4edea3; }
-.sd-count-absent   { background: rgba(255,180,171,0.15); color: #ffb4ab; }
-.sd-count-remaining{ background: rgba(50,53,60,0.6);     color: rgba(198,198,205,0.6); }
+.sd-count-present  { background: var(--bg-surface); color: var(--accent-primary); border: 1px solid var(--border-subtle); }
+.sd-count-absent   { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+.sd-count-remaining{ background: var(--bg-primary);    color: var(--text-muted); border: 1px solid var(--border-subtle); }
 
 /* ── Attendance Calculator ── */
 .sd-att-calc {
@@ -401,9 +387,9 @@
   flex-shrink: 0;
 }
 
-.sd-att-result-ok     .sd-att-result-icon { background: rgba(78,222,163,0.2);  color: #4edea3; }
-.sd-att-result-warn   .sd-att-result-icon { background: rgba(255,182,144,0.2); color: #ffb690; }
-.sd-att-result-danger .sd-att-result-icon { background: rgba(255,180,171,0.2); color: #ffb4ab; }
+.sd-att-result-ok     .sd-att-result-icon { background: var(--bg-surface); color: var(--accent-primary); border: 1px solid var(--border-subtle); }
+.sd-att-result-warn   .sd-att-result-icon { background: rgba(255,182,144,0.1); color: #ffb690; }
+.sd-att-result-danger .sd-att-result-icon { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
 
 .sd-att-result-main {
   font-size: 13px;
@@ -714,17 +700,10 @@
   margin: 0;
 }
 
-.sd-assessment-sub {
-  font-size: 11px;
-  color: rgba(198, 198, 205, 0.6);
-  margin-top: 2px;
-}
-
-/* Marks column — bold blue */
 .sd-marks-value {
   font-size: 17px;
   font-weight: 800;
-  color: #adc6ff;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
@@ -732,7 +711,7 @@
 .sd-avg-value {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(198, 198, 205, 0.8);
+  color: var(--text-muted);
 }
 
 /* Difference badges */
@@ -740,26 +719,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 700;
-  min-width: 52px;
+  min-width: 48px;
 }
 
 .sd-diff-pos {
-  background: #4edea3;
-  color: #003824;
+  background: var(--bg-surface);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .sd-diff-neg {
-  background: rgba(255, 180, 171, 0.9);
-  color: #690005;
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .sd-diff-eq {
-  background: rgba(50, 53, 60, 0.8);
-  color: #c6c6cd;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .sd-table-empty {

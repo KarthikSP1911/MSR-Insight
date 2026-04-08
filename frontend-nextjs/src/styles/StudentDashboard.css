@@ -17,8 +17,8 @@
     position: fixed;
     top: var(--nav-height, 64px);
     left: 0;
-    background: var(--bg-primary, #0B0F19);
-    border-right: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     z-index: 100;
@@ -39,31 +39,28 @@
 .nav-button {
     display: flex;
     align-items: center;
-    gap: 16px;
-    /* Improved spacing between icons and text */
-    padding: 12px 16px;
-    /* Added internal height back for clickability */
+    gap: 12px;
+    padding: 10px 16px;
     background: transparent;
-    border: none;
-    border-radius: 8px;
-    color: var(--text-secondary, #94A3B8);
-    font-size: 16px;
-    /* Slightly larger and more readable */
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: left;
 }
 
 .nav-button:hover {
-    color: var(--text-primary, #F8FAFC);
-    background: var(--bg-card, #1B2333);
+    color: var(--text-primary);
+    background: var(--bg-surface);
 }
 
 .nav-button.active {
-    background: var(--bg-secondary, #121826);
-    color: var(--accent-primary, #FF8A00);
-    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    background: var(--bg-surface);
+    color: var(--accent-primary);
+    border: 1px solid var(--border-subtle);
 }
 
 
@@ -143,13 +140,19 @@
 }
 
 .stat-card {
-    background: var(--bg-card, #1B2333);
-    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-bright);
 }
 
 .stat-header {
@@ -247,13 +250,18 @@
 }
 
 .chart-card {
-    background: var(--bg-card, #1B2333);
-    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    border-radius: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
     padding: 24px;
-    /* Proper consistent internal padding */
     display: flex;
     flex-direction: column;
+    transition: all 0.2s ease;
+}
+
+.chart-card:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-bright);
 }
 
 .chart-header {
@@ -264,13 +272,15 @@
 }
 
 .chart-title {
-    font-size: 16px; /* Increased from 14px */
+    font-size: 16px;
+    /* Increased from 14px */
     font-weight: 500;
     color: var(--text-primary, #F8FAFC);
 }
 
 .chart-subtitle {
-    font-size: 14px; /* Increased from 13px */
+    font-size: 14px;
+    /* Increased from 13px */
     color: var(--text-secondary, #94A3B8);
     margin-top: 4px;
 }
@@ -295,7 +305,8 @@
 }
 
 .dashboard-table th {
-    font-size: 13px; /* Increased from 12px */
+    font-size: 13px;
+    /* Increased from 12px */
     font-weight: 500;
     color: var(--text-secondary, #94A3B8);
     padding: 16px 24px;
@@ -307,7 +318,8 @@
 .dashboard-table td {
     padding: 16px 24px;
     border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    font-size: 15px; /* Increased from 14px */
+    font-size: 15px;
+    /* Increased from 14px */
     color: var(--text-primary, #F8FAFC);
 }
 
@@ -320,7 +332,8 @@
     align-items: center;
     padding: 4px 8px;
     border-radius: 6px;
-    font-size: 13px; /* Increased from 12px */
+    font-size: 13px;
+    /* Increased from 12px */
     font-weight: 500;
     background: var(--bg-secondary, #121826);
     color: var(--text-primary, #F8FAFC);
@@ -385,12 +398,115 @@
 }
 
 @keyframes spinnerRotate {
-    100% { transform: rotate(360deg); }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-text {
     font-size: 14px;
     color: var(--text-secondary, #94A3B8);
+}
+
+.dashboard-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.dashboard-toast.success { background: var(--success); }
+.dashboard-toast.error { background: var(--error); }
+.dashboard-toast.warning { background: #f59e0b; }
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attendance-chart-body {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    height: 380px;
+    width: 100%;
+    align-items: center;
+}
+
+.chart-container {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+}
+
+.chart-legend-custom {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    min-width: 0;
+}
+
+.legend-item-custom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.legend-dot-custom {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-label-custom {
+    font-size: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.marks-chart-body {
+    height: 380px;
+}
+
+.interactive-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.interactive-row:hover {
+    background: var(--bg-primary) !important;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.status-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* Tabs */
@@ -519,16 +635,25 @@
     border-radius: 2px;
 }
 
-.attendance-color { background: #3b82f6; }
-.cie-color { background: #a855f7; }
+.attendance-color {
+    background: #3b82f6;
+}
+
+.cie-color {
+    background: #a855f7;
+}
 
 /* Spinning animation for Refresh icon */
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .spinning {
     animation: spin 2s linear infinite;
 }
-

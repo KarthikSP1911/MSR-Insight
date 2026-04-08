@@ -213,7 +213,7 @@ export default function ReportComponent() {
     if (loading) {
         return (
             <div className="report-viewer-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'center', color: '#f97316' }}>
+                <div style={{ textAlign: 'center', color: 'var(--accent-primary)' }}>
                     <div className="spinner" />
                     <p style={{ marginTop: '1rem', fontSize: '1rem' }}>Generating report for <strong>{USN}</strong>...</p>
                 </div>

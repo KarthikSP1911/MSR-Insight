@@ -65,7 +65,7 @@ const InboxPanel: React.FC<InboxPanelProps> = ({ alerts, onRemove, isOpen, onClo
             </svg>
             <span>Inbox</span>
             {grouped.length > 0 && (
-              <span style={{ marginLeft: '8px', background: 'rgba(255,138,0,0.15)', color: 'var(--accent-primary)', fontSize: '0.75rem', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' }}>
+              <span className="inbox-badge">
                 {grouped.length}
               </span>
             )}
@@ -112,7 +112,7 @@ const InboxPanel: React.FC<InboxPanelProps> = ({ alerts, onRemove, isOpen, onClo
                     </div>
                   )}
 
-                  <span className="alert-time" style={{ display: 'block', marginTop: '8px' }}>{group.time}</span>
+                  <span className="alert-time">{group.time}</span>
                 </div>
               ))}
             </div>

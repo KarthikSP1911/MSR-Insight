@@ -20,7 +20,7 @@ const GRADE_COLORS: Record<string, string> = {
     'A+': '#3b82f6',
     'A': '#10b981',
     'B+': '#f59e0b',
-    'B': '#f97316',
+    'B': 'var(--accent-primary)',
     'C': '#ef4444',
 };
 
@@ -168,24 +168,14 @@ export default function StudentDashboard() {
         <div className="student-dashboard-container">
             {/* Custom Toast Notification */}
             {toast.show && (
-                <div style={{
-                    position: 'fixed', top: '24px', right: '24px', zIndex: 9999, padding: '12px 24px', borderRadius: '8px',
-                    background: toast.type === 'success' ? '#10b981' : toast.type === 'error' ? '#ef4444' : '#f59e0b',
-                    color: '#ffffff', fontWeight: 500, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
-                    animation: 'slideInRight 0.3s ease-out forwards'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className={`dashboard-toast ${toast.type}`}>
+                    <div className="toast-content">
                         {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
                         <span>{toast.message}</span>
                     </div>
                 </div>
             )}
-            <style>{`
-                @keyframes slideInRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `}</style>
+
 
             {/* Mobile Menu Toggle Button */}
             <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
@@ -286,20 +276,20 @@ export default function StudentDashboard() {
                                             <p className="chart-subtitle">Subject-wise attendance distribution</p>
                                         </div>
                                     </div>
-                                    <div className="chart-body" style={{ display: 'flex', flexDirection: 'row', gap: '32px', height: '380px', width: '100%', alignItems: 'center' }}>
-                                        <div style={{ flex: '1', height: '100%', minWidth: 0 }}>
+                                    <div className="chart-body attendance-chart-body">
+                                        <div className="chart-container">
                                             <ResponsiveContainer width="100%" height={380}>
-                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
-                                                    <RadialBar background={{ fill: 'rgba(255,255,255,0.03)' }} dataKey="attendance" cornerRadius={10} />
-                                                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} formatter={(val) => [`${val}%`, '']} />
+                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
+                                                    <RadialBar background={{ fill: 'var(--bg-primary)' }} dataKey="attendance" cornerRadius={10} />
+                                                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}%`, '']} />
                                                 </RadialBarChart>
                                             </ResponsiveContainer>
                                         </div>
-                                        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', minWidth: 0 }}>
+                                        <div className="chart-legend-custom">
                                             {currentSem.map((subject: any, index: number) => (
-                                                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8], flexShrink: 0 }}></div>
-                                                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subject.name}</div>
+                                                <div key={index} className="legend-item-custom">
+                                                    <div className="legend-dot-custom" style={{ backgroundColor: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }}></div>
+                                                    <div className="legend-label-custom">{subject.name}</div>
                                                 </div>
                                             ))}
                                         </div>
@@ -314,14 +304,14 @@ export default function StudentDashboard() {
                                             <p className="chart-subtitle">Subject-wise CIE scores out of 50</p>
                                         </div>
                                     </div>
-                                    <div className="chart-body" style={{ height: '380px' }}>
+                                    <div className="chart-body marks-chart-body">
                                         <ResponsiveContainer width="100%" height={380}>
                                             <BarChart data={currentSem} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                                <XAxis dataKey="code" stroke="#64748b" style={{ fontSize: '11px' }} />
-                                                <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="#64748b" style={{ fontSize: '12px' }} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} formatter={(val) => [`${val}/50`, 'Marks']} />
-                                                <Bar dataKey="marks" radius={[8, 8, 0, 0]} barSize={35} fill="#f97316" />
+                                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.3} vertical={false} />
+                                                <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
+                                                <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
+                                                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}/50`, 'Marks']} cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }} />
+                                                <Bar dataKey="marks" radius={[4, 4, 0, 0]} barSize={24} fill="var(--accent-primary)" />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -350,12 +340,12 @@ export default function StudentDashboard() {
                                                 else if (attLevel === 'warning' || cieLevel === 'warning') status = "Good";
 
                                                 return (
-                                                    <tr key={idx} onClick={() => setSelectedSubject(subject)} style={{ cursor: 'pointer' }} className="hover-row">
-                                                        <td style={{ color: 'var(--text-muted)' }}>{subject.code || '-'}</td>
-                                                        <td style={{ fontWeight: 500 }}>{subject.name}</td>
+                                                    <tr key={idx} onClick={() => setSelectedSubject(subject)} className="hover-row interactive-row">
+                                                        <td className="text-muted">{subject.code || '-'}</td>
+                                                        <td className="font-semibold">{subject.name}</td>
                                                         <td><span className={`pill ${attLevel}`}>{attPct}%</span></td>
                                                         <td><span className={`pill ${cieLevel}`}>{subject.marks || 0} / 50</span></td>
-                                                        <td><span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{status}</span></td>
+                                                        <td><span className="status-text">{status}</span></td>
                                                     </tr>
                                                 );
                                             })}

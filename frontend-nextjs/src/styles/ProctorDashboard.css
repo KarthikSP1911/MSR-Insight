@@ -1,8 +1,7 @@
-/* Dashboard Container */
 .proctor-dashboard {
-  max-width: 100%;
-  margin: 0;
-  padding: 2.5rem 80px;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
   min-height: calc(100vh - var(--nav-height));
   display: flex;
   flex-direction: column;
@@ -62,8 +61,10 @@
   background: var(--bg-card);
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px; /* Standardized to 8px */
-  font-weight: 500; /* Medium font weight */
+  border-radius: 8px;
+  /* Standardized to 8px */
+  font-weight: 500;
+  /* Medium font weight */
   font-size: 0.9rem;
   padding: 8px 12px;
   cursor: pointer;
@@ -86,27 +87,24 @@
 .filter-bar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 32px;
-  background: transparent;
 }
 
 .filter-item {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px; /* Standardized to 8px */
-  height: 44px;
+  border-radius: var(--radius-md);
+  height: 40px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 12px;
   transition: all 0.2s ease;
-  box-shadow: none; /* Removed shadow */
 }
 
 .filter-item:hover {
-  background: #1e293b;
+  background: var(--bg-surface);
   border-color: var(--border-bright);
-  transform: none; /* Removed lift */
 }
 
 .search-box {
@@ -202,58 +200,79 @@
 
 /* Student Card Redesign */
 .student-card {
-  background: #0F172A;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: 24px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
 
 .student-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  background: var(--bg-surface);
+  border-color: var(--border-bright);
 }
 
 .card-header {
-  margin-bottom: 16px; /* Name → details (16px) */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
 }
 
-.student-name {
-  font-size: 1.35rem;
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: #FFFFFF;
+  letter-spacing: 0.02em;
+}
+
+.status-ok { color: var(--accent-primary); background: var(--bg-surface); border: 1px solid var(--border-subtle); }
+.status-warn { color: #ffb690; background: rgba(255, 182, 144, 0.1); border: 1px solid rgba(255, 182, 144, 0.2); }
+.status-danger { color: #EF4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+.status-na { color: var(--text-muted); background: var(--bg-primary); border: 1px solid var(--border-subtle); }
+
+.student-card.status-danger { border-left: 3px solid #EF4444; }
+.student-card.status-warn { border-left: 3px solid #ffb690; }
+.student-card.status-ok { border-left: 3px solid var(--accent-primary); }
+
+.student-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
   margin-bottom: 0;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .card-body {
-  margin-bottom: 20px; /* Details → button (20px) */
+  margin-bottom: 20px;
+  /* Details → button (20px) */
 }
 
 .info-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Gap: 12–14px between rows */
+  gap: 12px;
+  /* Gap: 12–14px between rows */
 }
 
 .info-row {
   display: grid;
-  grid-template-columns: auto 1fr; /* Strict 2-column grid */
+  grid-template-columns: auto 1fr;
+  /* Strict 2-column grid */
   align-items: center;
   gap: 16px;
 }
 
 .info-label {
-  color: #94A3B8;
+  color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -262,32 +281,32 @@
 }
 
 .info-value {
-  color: #E5E7EB;
+  color: var(--text-secondary);
   font-weight: 600;
-  font-size: 0.95rem;
-  text-align: right; /* Values = right aligned */
+  font-size: 0.9rem;
+  text-align: right;
 }
 
 .card-footer {
-  margin-top: auto; /* Keep button pinned at bottom */
+  margin-top: auto;
+  /* Keep button pinned at bottom */
 }
 
 .view-btn {
   width: 100%;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.05); /* Solid subtle background */
-  color: var(--accent-primary);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px; /* Standardized to 8px */
-  font-weight: 500; /* Medium font weight */
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px; /* Improved icon spacing */
+  gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: none; /* Removed glow/shadow */
 }
 
 .btn-icon {
@@ -297,10 +316,9 @@
 }
 
 .student-card:hover .view-btn {
-  background: var(--accent-primary);
-  color: #FFF;
-  border-color: var(--accent-primary);
-  filter: brightness(1.1); /* Simple hover brightness */
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-bright);
 }
 
 .student-card:hover .btn-icon {
@@ -355,7 +373,7 @@
   width: 50px;
   height: 50px;
   border: 3px solid rgba(249, 115, 22, 0.1);
-  border-top-color: #f97316;
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
