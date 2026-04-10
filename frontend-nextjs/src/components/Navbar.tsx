@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import CustomDropdown from "./CustomDropdown";
 
@@ -63,11 +64,16 @@ const Navbar: React.FC<NavbarProps> = ({
               <span>&lt;--  Back</span>
             </Link>
           ) : (
-            <Link href="/">
-              <div className="logo-link">
-                <img src="/logo-icon.svg" alt="Logo" className="logo-img" />
+            <Link href="/" className="logo-link flex items-center gap-2" aria-label="Go to Smart Report home">
+                <Image
+                  src="/logo-icon.svg"
+                  alt="Smart Report logo"
+                  className="logo-img"
+                  width={24}
+                  height={24}
+                  priority
+                />
                 <span className="logo-text">Smart Report</span>
-              </div>
             </Link>
           )}
 
@@ -164,24 +170,30 @@ const Navbar: React.FC<NavbarProps> = ({
         }
 
         .nav-logo {
+          position: relative;
+          z-index: 100;
           display: flex;
           align-items: center;
           gap: 16px;
         }
 
         .logo-link {
-          display: inline-flex !important;
-          flex-direction: row !important;
-          align-items: center !important;
-          justify-content: flex-start !important;
-          gap: 8px !important;
+          display: inline-flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: flex-start;
+          gap: 8px;
           text-decoration: none;
+          position: relative;
           white-space: nowrap;
           cursor: pointer;
           background: transparent;
           border: none;
-          padding: 0;
+          padding: 8px 0;
           margin: 0;
+          position: relative;
+          z-index: 2;
+          pointer-events: auto;
         }
 
         .logo-img {
@@ -197,8 +209,9 @@ const Navbar: React.FC<NavbarProps> = ({
           font-size: 1.1rem;
           letter-spacing: -0.02em;
           flex-shrink: 0;
-          display: inline !important;
-          line-height: 1;
+          display: block;
+          line-height: 1.25;
+          pointer-events: none;
         }
 
         .navbar-back-link {
@@ -242,6 +255,9 @@ const Navbar: React.FC<NavbarProps> = ({
         }
 
         .nav-actions {
+          position: relative;
+          z-index: 1;
+          margin-right: 16px;
           display: flex;
           align-items: center;
           gap: 16px;
@@ -250,6 +266,7 @@ const Navbar: React.FC<NavbarProps> = ({
         .auth-links {
           display: flex;
           gap: 24px;
+          align-items: center;
         }
 
         .nav-link {
@@ -257,11 +274,35 @@ const Navbar: React.FC<NavbarProps> = ({
           text-decoration: none;
           font-size: 0.9rem;
           font-weight: 500;
-          transition: color 0.2s ease;
+          transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          min-height: 36px;
+          padding: 6px 12px;
+          position: relative;
+          z-index: 2;
+          border-radius: 999px;
+          border: 1px solid transparent;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover {
           color: #EDEDED;
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-link.active {
+          color: #EDEDED;
+          background: rgba(34, 211, 238, 0.18);
+          border-color: rgba(34, 211, 238, 0.65);
+          box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.15) inset, 0 4px 14px rgba(34, 211, 238, 0.2);
+        }
+
+        .nav-link::after {
+          content: none;
+        }
+
+        .nav-link.active::after {
+          content: none;
         }
 
         .proctor-actions, .student-actions {
