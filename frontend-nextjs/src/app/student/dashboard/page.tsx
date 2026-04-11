@@ -9,7 +9,8 @@ import {
 } from "recharts";
 import {
     Target, History, Award, TrendingUp, BookOpen,
-    Calendar, BarChart3, Menu, X, RefreshCw, CheckCircle2, AlertCircle
+    Calendar, BarChart3, Menu, X, RefreshCw, CheckCircle2, AlertCircle,
+    Layers
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -138,10 +139,7 @@ export default function StudentDashboard() {
         ? Math.round(currentSem.reduce((acc: any, curr: any) => acc + (curr.attendance || 0), 0) / currentSem.length)
         : 0;
 
-    const overallCIE = currentSem.length
-        ? Math.round(currentSem.reduce((acc: any, curr: any) => acc + (curr.marks || 0), 0) / currentSem.length)
-        : 0;
-
+    const currentCgpa = (detailsBlob.cgpa ?? detailedData?.cgpa ?? "").toString().trim() || null;
     const sgpaTrendData = [...examHistory].reverse().map(sem => ({
         name: sem.semester.split(' ')[0] + ' ' + (sem.semester.split(' ')[2]?.substring(2) || ''),
         sgpa: parseFloat(sem.sgpa),
@@ -219,6 +217,12 @@ export default function StudentDashboard() {
                                 <div className="header-content">
                                     <h1 className="page-title">Current Semester Performance</h1>
                                     <p className="page-subtitle">Detailed breakdown of your ongoing semester</p>
+                                    {typeof detailsBlob.class_details === "string" && detailsBlob.class_details.trim() ? (
+                                        <p className="page-meta">{detailsBlob.class_details.trim().replace(/\s+/g, " ")}</p>
+                                    ) : null}
+                                    {detailsBlob.last_updated ? (
+                                        <p className="page-meta page-meta--muted">Portal data synced: {detailsBlob.last_updated}</p>
+                                    ) : null}
                                 </div>
                             </div>
 
@@ -226,44 +230,52 @@ export default function StudentDashboard() {
                             <div className="stats-grid">
                                 <div className="stat-card">
                                     <div className="stat-header">
-                                        <span className="stat-label">Overall Attendance</span>
-                                        <Calendar className="stat-icon" />
-                                    </div>
-                                    <div className="stat-value">{overallAttendance}<span className="stat-max">%</span></div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${overallAttendance}%`, background: overallAttendance >= 75 ? 'var(--success)' : 'var(--error)' }}></div>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-header">
-                                        <span className="stat-label">Average CIE</span>
-                                        <Target className="stat-icon" />
-                                    </div>
-                                    <div className="stat-value">{overallCIE}<span className="stat-max">/50</span></div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${(overallCIE / 50) * 100}%`, background: '#f59e0b' }}></div>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-header">
-                                        <span className="stat-label">Latest SGPA</span>
+                                        <span className="stat-label">Current CGPA</span>
                                         <Award className="stat-icon" />
                                     </div>
-                                    <div className="stat-value">{latestSGPA}</div>
-                                    <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
-                                        {isImproved ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(180deg)' }} />}
-                                        {sgpaDiff} from last sem
+                                    <div className="stat-value">
+                                        {currentCgpa ?? "—"}
+                                        {currentCgpa ? <span className="stat-max">/10</span> : null}
                                     </div>
+                                    <p className="stat-footnote">Cumulative GPA from the portal</p>
                                 </div>
                                 <div className="stat-card">
                                     <div className="stat-header">
-                                        <span className="stat-label">Credits Earned</span>
+                                        <span className="stat-label">Credits earned</span>
                                         <BookOpen className="stat-icon" />
                                     </div>
                                     <div className="stat-value">{totalCredits}<span className="stat-max">/160</span></div>
                                     <div className="progress-bar">
                                         <div className="progress-fill" style={{ width: `${(totalCredits / 160) * 100}%`, background: '#8b5cf6' }}></div>
                                     </div>
+                                    <p className="stat-footnote">Total from completed semesters in history</p>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <span className="stat-label">Courses this semester</span>
+                                        <Layers className="stat-icon" />
+                                    </div>
+                                    <div className="stat-value">{currentSem.length}</div>
+                                    <p className="stat-footnote">Registered subjects (incl. labs &amp; electives)</p>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <span className="stat-label">Latest semester SGPA</span>
+                                        <TrendingUp className="stat-icon" />
+                                    </div>
+                                    <div className="stat-value">{examHistory.length > 0 ? latestSGPA : "—"}</div>
+                                    {examHistory.length > 1 ? (
+                                        <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
+                                            {isImproved ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(180deg)' }} />}
+                                            {sgpaDiff} vs previous
+                                        </div>
+                                    ) : (
+                                        <p className="stat-footnote">
+                                            {examHistory.length === 1
+                                                ? "Compares once more history is available"
+                                                : "No semester results in history yet"}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -281,7 +293,15 @@ export default function StudentDashboard() {
                                             <ResponsiveContainer width="100%" height={380}>
                                                 <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
                                                     <RadialBar background={{ fill: 'var(--bg-primary)' }} dataKey="attendance" cornerRadius={10} />
-                                                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}%`, '']} />
+                                                    <Tooltip 
+                                                        contentStyle={{ 
+                                                            backgroundColor: 'var(--bg-secondary)', 
+                                                            border: '1px solid var(--border-subtle)', 
+                                                            borderRadius: '12px'
+                                                        }} 
+                                                        itemStyle={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: '500' }}
+                                                        formatter={(val: any, name: any, props: any) => [`${val}%`, props.payload.name]}
+                                                    />
                                                 </RadialBarChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -384,7 +404,15 @@ export default function StudentDashboard() {
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="code" stroke="#94a3b8" />
                                                 <YAxis stroke="#94a3b8" domain={[0, 100]} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
+                                                <Tooltip 
+                                                    contentStyle={{ 
+                                                        backgroundColor: 'var(--bg-secondary)', 
+                                                        border: '1px solid var(--border-subtle)', 
+                                                        borderRadius: '12px', 
+                                                        color: 'var(--text-primary)' 
+                                                    }} 
+                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
+                                                />
                                                 <Bar dataKey="attendance" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
                                                 <Bar dataKey="ciePct" fill="#a855f7" radius={[4, 4, 0, 0]} barSize={20} />
                                             </BarChart>
@@ -403,7 +431,17 @@ export default function StudentDashboard() {
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="grade" stroke="#64748b" />
                                                 <YAxis stroke="#64748b" />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: 'var(--bg-secondary)',
+                                                        border: '1px solid var(--border-subtle)',
+                                                        borderRadius: '12px',
+                                                        color: '#ffffff',
+                                                    }}
+                                                    labelStyle={{ color: '#ffffff' }}
+                                                    itemStyle={{ color: '#ffffff' }}
+                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
+                                                />
                                                 <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                                                     {gradeChartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                                                 </Bar>
@@ -423,7 +461,15 @@ export default function StudentDashboard() {
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="name" stroke="#64748b" />
                                                 <YAxis stroke="#64748b" />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
+                                                <Tooltip 
+                                                    contentStyle={{ 
+                                                        backgroundColor: 'var(--bg-secondary)', 
+                                                        border: '1px solid var(--border-subtle)', 
+                                                        borderRadius: '12px', 
+                                                        color: 'var(--text-primary)' 
+                                                    }} 
+                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
+                                                />
                                                 <Bar dataKey="credits" fill="#10b981" radius={[8, 8, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
@@ -439,7 +485,7 @@ export default function StudentDashboard() {
                                         <TrendingUp className="insight-icon success" />
                                         <div>
                                             <div className="insight-label">Academic Standing</div>
-                                            <div className="insight-value">Your CGPA is {detailedData?.cgpa || latestSGPA}. {isImproved && sgpaDiff > "0" ? `Improved by ${sgpaDiff}!` : ""}</div>
+                                            <div className="insight-value">Your CGPA is {detailsBlob.cgpa || detailedData?.cgpa || latestSGPA}. {isImproved && sgpaDiff > "0" ? `Improved by ${sgpaDiff}!` : ""}</div>
                                         </div>
                                     </div>
                                     <div className="insight-item">

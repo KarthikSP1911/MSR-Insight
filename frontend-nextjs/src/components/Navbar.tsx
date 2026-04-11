@@ -42,7 +42,11 @@ const Navbar: React.FC<NavbarProps> = ({
   // Proctor ID extracted from URL if available
   const pathParts = pathname.split('/');
   const proctorId = pathParts[1] === 'proctor' ? pathParts[2] : null;
-  const studentUsn = typeof window !== 'undefined' ? localStorage.getItem("studentUsn") : null;
+  const [studentUsn, setStudentUsn] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setStudentUsn(localStorage.getItem("studentUsn"));
+  }, []);
 
   const academicYearOptions = [
     { value: "2027", label: "2027" },

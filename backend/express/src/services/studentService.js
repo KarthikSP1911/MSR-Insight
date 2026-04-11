@@ -46,19 +46,28 @@ class StudentService {
       const normalizedUsn = usn.toUpperCase();
 
       try {
+        // JSONB holds only academic payload — usn, name, current_year live on Student columns (no duplicate fields).
+        const detailsPayload = {
+          cgpa: studentData.cgpa,
+          class_details: studentData.class_details,
+          last_updated: studentData.last_updated,
+          subjects: studentData.subjects,
+          exam_history: studentData.exam_history || [],
+        };
+
         await prisma.student.upsert({
           where: { usn: normalizedUsn },
           update: {
             name: studentData.name,
             dob: studentData.dob,
-            details: studentData, // Store the entire object in JSONB
+            details: detailsPayload,
             current_year: studentData.current_year || 0,
           },
           create: {
             usn: normalizedUsn,
             name: studentData.name,
             dob: studentData.dob,
-            details: studentData,
+            details: detailsPayload,
             current_year: studentData.current_year || 0,
           },
         });

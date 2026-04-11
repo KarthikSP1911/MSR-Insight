@@ -120,18 +120,126 @@ class DataNormalizer {
             });
         }
 
+        const classDetails = scrapedRecord.class_details || "";
+        const currentYear = DataNormalizer.deriveCurrentYearFromClassDetails(classDetails);
+
         return {
             usn: scrapedRecord.usn,
             name: scrapedRecord.name,
             class_details: scrapedRecord.class_details,
             cgpa: scrapedRecord.cgpa,
             last_updated: scrapedRecord.last_updated,
+            current_year: currentYear,
             subjects: normalizedSubjects,
             exam_history: scrapedRecord.exam_history || []
         };
     }
+
+    /** B.E. programme: year = ceil(semester / 2), e.g. SEM 06 → year 3 */
+    static deriveCurrentYearFromClassDetails(classDetails) {
+        if (!classDetails || typeof classDetails !== "string") return 0;
+        const m = classDetails.match(/\bSEM\s*0*(\d+)\b/i);
+        if (!m) return 0;
+        const sem = parseInt(m[1], 10);
+        if (Number.isNaN(sem) || sem <= 0) return 0;
+        return Math.ceil(sem / 2);
+    }
 }
 
+/**
+ * Single source of truth for current-semester courses: same rows that expose
+ * attendance / CIE links. Avoids mismatch where generic <tr> scraping found
+ * codes but no HTTP fetches ran (all zeros in DB).
+ */
+const COURSE_CODE_RE = /^[0-9A-Z]{5,14}$/;
+
+const extractCourseRowsFromDashboard = ($dash) => {
+    const courses = [];
+    const pushRow = ($row) => {
+        const cols = $row.find("td");
+        if (cols.length < 2) return;
+        const rawCode = $dash(cols[0]).text().trim().split(/\s+/)[0];
+        const code = rawCode.replace(/[()]/g, "").toUpperCase();
+        if (!COURSE_CODE_RE.test(code)) return;
+        const name = $dash(cols[1]).text().trim();
+        const attLink =
+            $row.find('a[href*="task=attendencelist"], a[href*="attendencelist"]').first().attr("href") ||
+            "";
+        const cieLink =
+            $row.find('a[href*="task=ciedetails"], a[href*="ciedetails"]').first().attr("href") || "";
+        if (!attLink && !cieLink) return;
+        courses.push({ code, name, attLink, cieLink });
+    };
+
+    $dash('table[class*="dash_od_row"] tbody tr').each((_, row) => {
+        pushRow($dash(row));
+    });
+
+    if (courses.length === 0) {
+        $dash("table tbody tr").each((_, row) => {
+            const $row = $dash(row);
+            if (!$row.find('a[href*="attendencelist"], a[href*="ciedetails"]').length) return;
+            pushRow($row);
+        });
+    }
+
+    if (courses.length === 0) {
+        $dash("tr").each((_, row) => {
+            const $row = $dash(row);
+            const cols = $row.find("td");
+            if (cols.length < 2) return;
+            const rawCode = $dash(cols[0]).text().trim().split(/\s+/)[0];
+            const code = rawCode.replace(/[()]/g, "").toUpperCase();
+            if (!COURSE_CODE_RE.test(code)) return;
+            const name = $dash(cols[1]).text().trim();
+            const attLink =
+                $row.find('a[href*="task=attendencelist"], a[href*="attendencelist"]').first().attr("href") ||
+                "";
+            const cieLink =
+                $row.find('a[href*="task=ciedetails"], a[href*="ciedetails"]').first().attr("href") || "";
+            courses.push({ code, name, attLink, cieLink });
+        });
+    }
+
+    const seen = new Set();
+    return courses.filter((c) => {
+        if (seen.has(c.code)) return false;
+        seen.add(c.code);
+        return true;
+    });
+};
+
+const resolveParentsUrl = (href) => {
+    if (!href || typeof href !== "string") return "";
+    const h = href.trim();
+    if (h.startsWith("http://") || h.startsWith("https://")) return h;
+    if (h.startsWith("/")) return `https://parents.msrit.edu${h}`;
+    return `https://parents.msrit.edu/newparents/${h.replace(/^\.\//, "")}`;
+};
+
+/** Balanced-bracket extraction for `var chartData = [ ... ];` (CIE marks chart). */
+const extractChartDataJsonArray = (html) => {
+    if (!html) return null;
+    const markers = ["var chartData", "chartData"];
+    for (const m of markers) {
+        const startIdx = html.indexOf(m);
+        if (startIdx === -1) continue;
+        const from = html.indexOf("[", startIdx);
+        if (from === -1) continue;
+        let depth = 0;
+        for (let i = from; i < html.length; i++) {
+            const c = html[i];
+            if (c === "[") depth++;
+            else if (c === "]") {
+                depth--;
+                if (depth === 0) {
+                    return html.slice(from, i + 1);
+                }
+            }
+        }
+    }
+    return null;
+};
 
 // ---- Scraping Logic ----
 const getCompleteStudentData = async (usn, day, month, year) => {
@@ -173,22 +281,24 @@ const getCompleteStudentData = async (usn, day, month, year) => {
 
         console.log("[*] Parsing Dashboard Course Table...");
         const $dash = cheerio.load(content);
-        const fetchTasks = [];
 
-        $dash('table[class*="dash_od_row"] tbody tr').each((i, row) => {
-            const cols = $dash(row).find('td');
-            if (cols.length >= 6) {
-                const courseCode = $dash(cols[0]).text().trim();
-                
-                const attLink = $dash(cols[4]).find('a[href*="task=attendencelist"]').attr('href');
-                if (attLink) fetchTasks.push({ url: `https://parents.msrit.edu/newparents/${attLink}`, courseCode, type: 'attendance' });
-                
-                const cieLink = $dash(cols[5]).find('a[href*="task=ciedetails"]').attr('href');
-                if (cieLink) fetchTasks.push({ url: `https://parents.msrit.edu/newparents/${cieLink}`, courseCode, type: 'cie' });
-            }
-        });
+        const courseRows = extractCourseRowsFromDashboard($dash);
 
-        fetchTasks.push({ url: "https://parents.msrit.edu/newparents/index.php?option=com_history&task=getResult", courseCode: "EXAMS", type: "exams" });
+        /** One GET per unique URL; map HTML to every (courseCode, type) that needs it — avoids duplicate fetches when att & cie links match. */
+        const urlToTargets = new Map();
+        const pushTarget = (href, courseCode, type) => {
+            const url = resolveParentsUrl(href);
+            if (!url) return;
+            if (!urlToTargets.has(url)) urlToTargets.set(url, []);
+            urlToTargets.get(url).push({ courseCode, type });
+        };
+        for (const row of courseRows) {
+            if (row.attLink) pushTarget(row.attLink, row.code, "attendance");
+            if (row.cieLink) pushTarget(row.cieLink, row.code, "cie");
+        }
+
+        const examsUrl = "https://parents.msrit.edu/newparents/index.php?option=com_history&task=getResult";
+        urlToTargets.set(examsUrl, [{ courseCode: "EXAMS", type: "exams" }]);
 
         // HTTP Instance bypassing certs matching python session
         const axiosInstance = axios.create({
@@ -200,23 +310,27 @@ const getCompleteStudentData = async (usn, day, month, year) => {
             httpsAgent: new https.Agent({ rejectUnauthorized: false })
         });
 
-        const fetchPromises = fetchTasks.map(async task => {
+        const uniqueUrls = [...urlToTargets.keys()];
+        const fetchPromises = uniqueUrls.map(async (url) => {
             try {
-                // Introduce small delay simulating python random delay 100ms-500ms
-                await new Promise(r => setTimeout(r, Math.random() * 400 + 100));
-                const resp = await axiosInstance.get(task.url);
-                return { ...task, html: resp.data };
+                await new Promise((r) => setTimeout(r, Math.random() * 400 + 100));
+                const resp = await axiosInstance.get(url);
+                return { url, html: resp.data };
             } catch (err) {
-                return { ...task, html: "" };
+                return { url, html: "" };
             }
         });
 
-        const results = await Promise.all(fetchPromises);
+        const fetched = await Promise.all(fetchPromises);
+        const htmlByUrl = new Map(fetched.map((f) => [f.url, f.html]));
 
-        for (const res of results) {
-            if (res.type === "exams") scrapedData.exams = res.html;
-            else if (res.type === "attendance") scrapedData.attendance[res.courseCode] = res.html;
-            else if (res.type === "cie") scrapedData.cie[res.courseCode] = res.html;
+        for (const [url, targets] of urlToTargets) {
+            const html = htmlByUrl.get(url) ?? "";
+            for (const t of targets) {
+                if (t.type === "exams") scrapedData.exams = html;
+                else if (t.type === "attendance") scrapedData.attendance[t.courseCode] = html;
+                else if (t.type === "cie") scrapedData.cie[t.courseCode] = html;
+            }
         }
 
         return scrapedData;
@@ -237,16 +351,7 @@ const parseAndProcessData = (scrapedData) => {
     const usn = $dash("h2").first().text().trim() || "Unknown";
     const classInfo = $dash("p").first().text().trim() || "";
 
-    const subjectMap = {};
-    $dash("tr").each((i, row) => {
-        const cols = $dash(row).find("td");
-        if (cols.length >= 2) {
-            const code = $dash(cols[0]).text().trim();
-            if (/^[0-9A-Z]{5,10}$/.test(code)) {
-                subjectMap[code] = $dash(cols[1]).text().trim();
-            }
-        }
-    });
+    const courseRows = extractCourseRowsFromDashboard($dash);
 
     const parseAttendanceHtml = (code) => {
         const details = { present_classes: 0, absent_classes: 0, still_to_go: 0, classes: { present_dates: [], absent_dates: [] } };
@@ -259,12 +364,27 @@ const parseAndProcessData = (scrapedData) => {
                 if (spanMatch) details[key] = parseInt(spanMatch[1], 10);
             });
 
-            $('table[class*="cn-attend-list1"] tbody tr').each((i, r) => {
+            // Fallback when class names change: scan visible [n] counts near labels
+            const bodyText = $.root().text();
+            if (details.present_classes === 0) {
+                const pm = bodyText.match(/present[^[]*\[(\d+)\]/i);
+                if (pm) details.present_classes = parseInt(pm[1], 10);
+            }
+            if (details.absent_classes === 0) {
+                const am = bodyText.match(/absent[^[]*\[(\d+)\]/i);
+                if (am) details.absent_classes = parseInt(am[1], 10);
+            }
+            if (details.still_to_go === 0) {
+                const rm = bodyText.match(/(?:still\s*to\s*go|remaining)[^[]*\[(\d+)\]/i);
+                if (rm) details.still_to_go = parseInt(rm[1], 10);
+            }
+
+            $('table[class*="cn-attend-list1"] tbody tr, table[class*="attend-list1"] tbody tr').each((i, r) => {
                 const cols = $(r).find("td");
                 if (cols.length >= 2) details.classes.present_dates.push($(cols[1]).text().trim());
             });
 
-            $('table[class*="cn-attend-list2"] tbody tr').each((i, r) => {
+            $('table[class*="cn-attend-list2"] tbody tr, table[class*="attend-list2"] tbody tr').each((i, r) => {
                 const cols = $(r).find("td");
                 if (cols.length >= 2) details.classes.absent_dates.push($(cols[1]).text().trim());
             });
@@ -291,16 +411,16 @@ const parseAndProcessData = (scrapedData) => {
                 }
             }
 
-            const match = html.match(/var\s+chartData\s*=\s*(\[.*?\]);/s);
-            if (match) {
+            const chartJson = extractChartDataJsonArray(html);
+            if (chartJson) {
                 try {
-                    const cleanedJson = match[1].replace(/,\s*([}\]])/g, '$1');
+                    const cleanedJson = chartJson.replace(/,\s*([}\]])/g, "$1");
                     const parsed = JSON.parse(cleanedJson);
-                    tests = parsed.map(i => ({
+                    tests = parsed.map((i) => ({
                         test_name: i.xaxis || "",
                         class_average: i.col1 || 0,
                         max_marks: i.col2 || 0,
-                        marks_obtained: i.linevalue || 0
+                        marks_obtained: i.linevalue || 0,
                     }));
                 } catch (e) {
                     // Ignore JSON parsing errors
@@ -311,15 +431,15 @@ const parseAndProcessData = (scrapedData) => {
     };
 
     const currentSemesterData = [];
-    for (const [code, sName] of Object.entries(subjectMap)) {
-        const att = parseAttendanceHtml(code);
-        const { tests: cie, eligibility: elig } = parseCieHtml(code);
+    for (const row of courseRows) {
+        const att = parseAttendanceHtml(row.code);
+        const { tests: cie, eligibility: elig } = parseCieHtml(row.code);
         currentSemesterData.push({
-            code,
-            name: sName,
+            code: row.code,
+            name: row.name,
             eligibility: elig,
             attendance_details: att,
-            cie_details: { tests: cie }
+            cie_details: { tests: cie },
         });
     }
 
