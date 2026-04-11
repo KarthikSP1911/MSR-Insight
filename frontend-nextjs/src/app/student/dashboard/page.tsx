@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-    RadialBarChart, RadialBar, Cell, CartesianGrid
+    RadialBarChart, RadialBar, Cell, CartesianGrid, ComposedChart, Line, Legend
 } from "recharts";
 import {
     Target, History, Award, TrendingUp, BookOpen,
     Calendar, BarChart3, Menu, X, RefreshCw, CheckCircle2, AlertCircle,
-    Layers
+    Layers, Star, AlertTriangle
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -24,6 +24,17 @@ const GRADE_COLORS: Record<string, string> = {
     'B': 'var(--accent-primary)',
     'C': '#ef4444',
 };
+
+const CHART_COLORS = [
+    'var(--accent-primary)', 
+    '#6366F1', // Fixed: Working Indigo color instead of broken accent-dark
+    '#10b981', 
+    '#f59e0b', 
+    '#ef4444', 
+    '#ec4899', 
+    '#3b82f6', 
+    '#14b8a6',
+];
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -140,17 +151,18 @@ export default function StudentDashboard() {
         : 0;
 
     const currentCgpa = (detailsBlob.cgpa ?? detailedData?.cgpa ?? "").toString().trim() || null;
-    const sgpaTrendData = [...examHistory].reverse().map(sem => ({
+    const sgpaTrendData = examHistory.map(sem => ({
         name: sem.semester.split(' ')[0] + ' ' + (sem.semester.split(' ')[2]?.substring(2) || ''),
         sgpa: parseFloat(sem.sgpa),
         credits: parseInt(sem.credits_earned || 0)
     }));
 
-    const totalCredits = examHistory.reduce((acc: any, sem: any) => acc + parseInt(sem.credits_earned || 0), 0);
-    const latestSGPA = examHistory.length > 0 ? parseFloat(examHistory[0].sgpa) : 0;
-    const prevSGPA = examHistory.length > 1 ? parseFloat(examHistory[1].sgpa) : 0;
-    const sgpaDiff = (latestSGPA - prevSGPA).toFixed(2);
-    const isImproved = prevSGPA === 0 || parseFloat(sgpaDiff) >= 0;
+    const totalCredits = examHistory.reduce((acc: any, sem: any) => acc + (parseInt(sem.credits_earned) || 0), 0);
+    const latestSGPA = examHistory.length > 0 ? (parseFloat(examHistory[examHistory.length - 1].sgpa) || 0) : 0;
+    const prevSGPA = examHistory.length > 1 ? (parseFloat(examHistory[examHistory.length - 2].sgpa) || 0) : 0;
+    const sgpaDiffValue = latestSGPA - prevSGPA;
+    const sgpaDiff = (sgpaDiffValue >= 0 ? "+" : "") + sgpaDiffValue.toFixed(2);
+    const isImproved = latestSGPA >= prevSGPA;
 
     const allGrades = examHistory.flatMap((sem: any) => sem.courses?.map((c: any) => c.grade) || []);
     const gradeDistribution = allGrades.reduce((acc: any, grade: string) => {
@@ -161,6 +173,42 @@ export default function StudentDashboard() {
     const gradeChartData = Object.entries(gradeDistribution)
         .map(([grade, count]) => ({ grade, count, color: (GRADE_COLORS[grade] || '#64748b') as string }))
         .sort((a, b) => (b.count as number) - (a.count as number));
+
+    const internalComparisonData = currentSem.map((subj: any) => {
+        const getScores = (type: string) => {
+            const a = subj.assessments?.find((x: any) => x.type === type);
+            return { me: a?.obtained_marks || 0, avg: a?.class_average || 0 };
+        };
+
+        const t1 = getScores('T1');
+        const t2 = getScores('T2');
+        const aq1 = getScores('AQ1');
+        const aq2 = getScores('AQ2');
+
+        const calcTotal = (s1: number, s2: number, q1: number, q2: number) => {
+            const testAvg = (s1 > 0 && s2 > 0) ? Math.round((s1 + s2) / 2) : Math.max(s1, s2);
+            return testAvg + q1 + q2;
+        };
+
+        return {
+            code: subj.code,
+            name: subj.name,
+            studentScore: calcTotal(t1.me, t2.me, aq1.me, aq2.me),
+            classAverage: calcTotal(t1.avg, t2.avg, aq1.avg, aq2.avg),
+        };
+    }).filter((d: any) => d.studentScore > 0 || d.classAverage > 0);
+
+    const bestSubject = [...currentSem].filter(s => s.marks > 0 || (s.attendance && s.attendance > 0)).sort((a: any, b: any) => {
+        const scoreA = ((a.marks || 0) * 2) + (a.attendance || 0);
+        const scoreB = ((b.marks || 0) * 2) + (b.attendance || 0);
+        return scoreB - scoreA;
+    })[0];
+    
+    const weakestSubject = [...currentSem].filter(s => s.marks > 0 || (s.attendance && s.attendance > 0)).sort((a: any, b: any) => {
+        const scoreA = ((a.marks || 0) * 2) + (a.attendance || 0);
+        const scoreB = ((b.marks || 0) * 2) + (b.attendance || 0);
+        return scoreA - scoreB;
+    })[0];
 
     return (
         <div className="student-dashboard-container">
@@ -207,7 +255,12 @@ export default function StudentDashboard() {
                 <div className="content-wrapper">
                     {/* SUBJECT DETAIL VIEW */}
                     {selectedSubject && (
-                        <SubjectDetail subject={selectedSubject} onBack={() => setSelectedSubject(null)} />
+                        <SubjectDetail 
+                            subject={selectedSubject} 
+                            allSubjects={currentSem}
+                            onSubjectChange={setSelectedSubject}
+                            onBack={() => setSelectedSubject(null)} 
+                        />
                     )}
 
                     {/* CURRENT SEMESTER PERFORMANCE TAB */}
@@ -291,8 +344,14 @@ export default function StudentDashboard() {
                                     <div className="chart-body attendance-chart-body">
                                         <div className="chart-container">
                                             <ResponsiveContainer width="100%" height={380}>
-                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
-                                                    <RadialBar background={{ fill: 'var(--bg-primary)' }} dataKey="attendance" cornerRadius={10} />
+                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: CHART_COLORS[index % CHART_COLORS.length] }))}>
+                                                    <RadialBar 
+                                                        background={{ fill: 'var(--bg-primary)' }} 
+                                                        dataKey="attendance" 
+                                                        cornerRadius={10} 
+                                                        onClick={(data: any) => data && setSelectedSubject(data.payload)}
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
                                                     <Tooltip 
                                                         contentStyle={{ 
                                                             backgroundColor: 'var(--bg-secondary)', 
@@ -307,8 +366,8 @@ export default function StudentDashboard() {
                                         </div>
                                         <div className="chart-legend-custom">
                                             {currentSem.map((subject: any, index: number) => (
-                                                <div key={index} className="legend-item-custom">
-                                                    <div className="legend-dot-custom" style={{ backgroundColor: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }}></div>
+                                                <div key={index} className="legend-item-custom" onClick={() => setSelectedSubject(subject)} style={{ cursor: 'pointer' }}>
+                                                    <div className="legend-dot-custom" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}></div>
                                                     <div className="legend-label-custom">{subject.name}</div>
                                                 </div>
                                             ))}
@@ -331,7 +390,14 @@ export default function StudentDashboard() {
                                                 <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
                                                 <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
                                                 <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}/50`, 'Marks']} cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }} />
-                                                <Bar dataKey="marks" radius={[4, 4, 0, 0]} barSize={24} fill="var(--accent-primary)" />
+                                                <Bar 
+                                                    dataKey="marks" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={24} 
+                                                    fill="var(--accent-primary)" 
+                                                    onClick={(data: any) => data && setSelectedSubject(data.payload)}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -390,21 +456,22 @@ export default function StudentDashboard() {
                                 <div className="chart-card wide-chart">
                                     <div className="chart-header">
                                         <div>
-                                            <h3 className="chart-title">Attendance vs Internal Marks Correlation</h3>
-                                            <p className="chart-subtitle">Analyzing the relationship between attendance and performance</p>
+                                            <h3 className="chart-title">Internal Marks Comparison: You vs Class</h3>
+                                            <p className="chart-subtitle">Combined score (Avg of T1 &amp; T2 + Assessments) compared to class average</p>
                                         </div>
                                         <div className="chart-legend">
-                                            <div className="legend-item"><div className="legend-color attendance-color"></div><span>Attendance %</span></div>
-                                            <div className="legend-item"><div className="legend-color cie-color"></div><span>CIE Score</span></div>
+                                            <div className="legend-item"><div className="legend-color" style={{ backgroundColor: '#00ADB5' }}></div><span>Your Score</span></div>
+                                            <div className="legend-item"><div className="legend-color" style={{ backgroundColor: '#64748B' }}></div><span>Class Average</span></div>
                                         </div>
                                     </div>
                                     <div className="chart-body" style={{ height: '400px' }}>
                                         <ResponsiveContainer width="100%" height={400}>
-                                            <BarChart data={currentSem.map((s: any) => ({ ...s, ciePct: ((s.marks || 0) / 50) * 100 }))} margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
+                                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="code" stroke="#94a3b8" />
-                                                <YAxis stroke="#94a3b8" domain={[0, 100]} />
+                                                <YAxis stroke="#94a3b8" domain={[0, 50]} />
                                                 <Tooltip 
+                                                    labelFormatter={(label, payload) => payload?.[0]?.payload?.name || label}
                                                     contentStyle={{ 
                                                         backgroundColor: 'var(--bg-secondary)', 
                                                         border: '1px solid var(--border-subtle)', 
@@ -413,8 +480,30 @@ export default function StudentDashboard() {
                                                     }} 
                                                     cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
                                                 />
-                                                <Bar dataKey="attendance" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                                                <Bar dataKey="ciePct" fill="#a855f7" radius={[4, 4, 0, 0]} barSize={20} />
+                                                <Bar 
+                                                    dataKey="studentScore" 
+                                                    name="Your Score" 
+                                                    fill="#00ADB5" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={25} 
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(data: any) => {
+                                                        const subject = currentSem.find((s: any) => s.code === data.payload.code);
+                                                        if (subject) setSelectedSubject(subject);
+                                                    }}
+                                                />
+                                                <Bar 
+                                                    dataKey="classAverage" 
+                                                    name="Class Average" 
+                                                    fill="#64748B" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={25} 
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(data: any) => {
+                                                        const subject = currentSem.find((s: any) => s.code === data.payload.code);
+                                                        if (subject) setSelectedSubject(subject);
+                                                    }}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -450,17 +539,18 @@ export default function StudentDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Credits Progress */}
+                                {/* SGPA & Credits Trajectory */}
                                 <div className="chart-card">
                                     <div className="chart-header">
-                                        <h3 className="chart-title">Credits Progress</h3>
+                                        <h3 className="chart-title">SGPA & Credits Trajectory</h3>
                                     </div>
                                     <div className="chart-body">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={sgpaTrendData}>
+                                            <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="name" stroke="#64748b" />
-                                                <YAxis stroke="#64748b" />
+                                                <YAxis yAxisId="left" stroke="#64748b" />
+                                                <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" domain={[0, 10]} />
                                                 <Tooltip 
                                                     contentStyle={{ 
                                                         backgroundColor: 'var(--bg-secondary)', 
@@ -468,14 +558,16 @@ export default function StudentDashboard() {
                                                         borderRadius: '12px', 
                                                         color: 'var(--text-primary)' 
                                                     }} 
-                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
                                                 />
-                                                <Bar dataKey="credits" fill="#10b981" radius={[8, 8, 0, 0]} />
-                                            </BarChart>
+                                                <Legend verticalAlign="top" height={36} />
+                                                <Bar yAxisId="left" dataKey="credits" fill="rgba(16, 185, 129, 0.2)" radius={[4, 4, 0, 0]} name="Credits Earned" />
+                                                <Line yAxisId="right" type="monotone" dataKey="sgpa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="SGPA" />
+                                            </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
                             </div>
+
 
                             {/* Performance Insights */}
                             <div className="chart-card wide-chart" style={{ marginTop: '24px' }}>
@@ -485,7 +577,10 @@ export default function StudentDashboard() {
                                         <TrendingUp className="insight-icon success" />
                                         <div>
                                             <div className="insight-label">Academic Standing</div>
-                                            <div className="insight-value">Your CGPA is {detailsBlob.cgpa || detailedData?.cgpa || latestSGPA}. {isImproved && sgpaDiff > "0" ? `Improved by ${sgpaDiff}!` : ""}</div>
+                                             <div className="insight-value">
+                                                Your CGPA is {detailsBlob.cgpa || detailedData?.cgpa || latestSGPA}. 
+                                                {prevSGPA > 0 ? (sgpaDiffValue >= 0 ? ` Improved by ${sgpaDiffValue.toFixed(2)}` : ` Decreased by ${Math.abs(sgpaDiffValue).toFixed(2)}`) + ' compared to the previous semester.' : ""}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="insight-item">
@@ -495,6 +590,24 @@ export default function StudentDashboard() {
                                             <div className="insight-value">{overallAttendance >= 85 ? 'Excellent!' : overallAttendance >= 75 ? 'Adequate.' : 'Needs improvement!'}</div>
                                         </div>
                                     </div>
+                                    {bestSubject && (
+                                        <div className="insight-item">
+                                            <Star className="insight-icon" style={{ color: '#F59E0B' }} />
+                                            <div>
+                                                <div className="insight-label">Top Performing Subject</div>
+                                                <div className="insight-value">{bestSubject.name} ({bestSubject.code}) — {bestSubject.marks}/50 | {Math.round(bestSubject.attendance)}%</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {weakestSubject && weakestSubject.code !== bestSubject?.code && (
+                                        <div className="insight-item">
+                                            <AlertTriangle className="insight-icon" style={{ color: '#EF4444' }} />
+                                            <div>
+                                                <div className="insight-label">Requires Attention</div>
+                                                <div className="insight-value">{weakestSubject.name} ({weakestSubject.code}) — {weakestSubject.marks}/50 | {Math.round(weakestSubject.attendance)}%</div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
