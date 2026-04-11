@@ -43,10 +43,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 interface SubjectDetailProps {
   subject: any;
+  allSubjects: any[];
+  onSubjectChange: (subject: any) => void;
   onBack: () => void;
 }
 
-const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
+const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onSubjectChange, onBack }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [targetPct, setTargetPct] = useState(75);
@@ -128,7 +130,28 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, onBack }) => {
           <ArrowLeft size={16} /> Back
         </button>
         <div className="sd-subject-meta">
-          <h1 className="sd-subject-name">{subject.name}</h1>
+          <div className="sd-title-wrap">
+            <h1 className="sd-subject-name">{subject.name}</h1>
+            <div className="sd-switcher-container">
+              <select 
+                className="sd-subject-select"
+                value={subject.code}
+                onChange={(e) => {
+                  const selected = allSubjects.find(s => s.code === e.target.value);
+                  if (selected) onSubjectChange(selected);
+                }}
+              >
+                {allSubjects.map(s => (
+                  <option key={s.code} value={s.code}>
+                    {s.name} ({s.code})
+                  </option>
+                ))}
+              </select>
+              <div className="sd-switcher-trigger">
+                Switch Subject <ChevronRight size={14} className="sd-switcher-icon" />
+              </div>
+            </div>
+          </div>
           {subject.code && <span className="sd-subject-code">{subject.code}</span>}
         </div>
         <div className="sd-header-kpis">
