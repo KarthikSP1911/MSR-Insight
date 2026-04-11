@@ -33,6 +33,15 @@ const generateReport = async (req, res, next) => {
             reportInputData = dashboardData.details.details;
         }
 
+        if (reportInputData) {
+            // JSONB details omit duplicate identity fields; FastAI expects name/usn on the payload.
+            reportInputData = {
+                ...reportInputData,
+                name: reportInputData.name ?? dashboardData.name,
+                usn: reportInputData.usn ?? dashboardData.usn,
+            };
+        }
+
         if (!reportInputData || !reportInputData.subjects || reportInputData.subjects.length === 0) {
             console.warn(`[ReportController] No academic data available for ${usn}. Triggering scrape might be needed.`);
             return res.status(400).json({ 

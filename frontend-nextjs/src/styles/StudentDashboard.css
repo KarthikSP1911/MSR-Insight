@@ -110,6 +110,22 @@
     color: var(--text-secondary, #94A3B8);
 }
 
+.page-meta {
+    font-size: 14px;
+    color: var(--text-secondary, #94A3B8);
+    margin: 10px 0 0;
+    line-height: 1.45;
+}
+
+.page-meta--muted {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.header-content .page-meta + .page-meta {
+    margin-top: 6px;
+}
+
 .semester-badge {
     display: inline-flex;
     align-items: center;
@@ -196,6 +212,17 @@
     color: var(--text-muted, #64748B);
     margin-left: 4px;
     font-weight: 500;
+}
+
+.stat-footnote {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text-muted, #64748B);
+    margin: 0;
+}
+
+.stat-card .stat-footnote {
+    margin-top: auto;
 }
 
 .trend-badge {
