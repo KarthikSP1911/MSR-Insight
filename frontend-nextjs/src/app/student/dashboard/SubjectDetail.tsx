@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -52,6 +52,13 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [targetPct, setTargetPct] = useState(75);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [showAssessments, setShowAssessments] = useState(false);
+
+  // Scroll to top on mount or subject change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [subject]);
 
   if (!subject) return null;
 
@@ -173,7 +180,16 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
       <div className="sd-2x2-grid">
         <section className="sd-card sd-calendar-card">
           <div className="sd-card-header">
-            <h3 className="sd-card-title">Attendance</h3>
+            <div>
+              <h3 className="sd-card-title">Attendance</h3>
+              <p 
+                className="sd-card-subtitle sd-mobile-show-inline" 
+                style={{ color: 'var(--accent-primary)', opacity: 0.8, cursor: 'pointer', display: 'block' }}
+                onClick={() => setShowCalculator(prev => !prev)}
+              >
+                {showCalculator ? 'Hide Calculator' : 'Tap to Estimate Attendance'}
+              </p>
+            </div>
             <div className="sd-cal-nav">
               <button className="sd-cal-nav-btn" onClick={goToPrev}>
                 <ChevronLeft size={18} />
@@ -222,7 +238,7 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
           </div>
         </section>
 
-        <section className="sd-card sd-calc-card">
+        <section className={`sd-card sd-calc-card sd-calculation-card ${showCalculator ? 'sd-expanded' : ''}`}>
           <div className="sd-card-header">
             <div>
               <h3 className="sd-card-title">Attendance Calculator</h3>
@@ -341,7 +357,8 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
           <div className="sd-card-header">
             <div>
               <h3 className="sd-card-title">Test Scores</h3>
-              <p className="sd-card-subtitle">Assessment Performance Analysis</p>
+              <p className="sd-card-subtitle sd-mobile-hide">Assessment Performance Analysis</p>
+              <p className="sd-card-subtitle sd-mobile-show-inline" style={{ color: 'var(--accent-primary)', opacity: 0.8 }}>Tap graph to view table</p>
             </div>
             <div className="sd-chart-legend">
               <div className="sd-chart-legend-item">
@@ -358,7 +375,12 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
           {chartData.length > 0 ? (
             <div className="sd-chart-area">
               <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={chartData} margin={{ top: 10, right: 16, left: -20, bottom: 8 }}>
+                <LineChart 
+                  data={chartData} 
+                  margin={{ top: 10, right: 16, left: -20, bottom: 8 }}
+                  onClick={() => setShowAssessments(prev => !prev)}
+                  style={{ cursor: 'pointer' } as any}
+                >
                   <defs>
                     <filter id="sd-glow-blue">
                       <feGaussianBlur stdDeviation="3" result="blur" />
@@ -403,18 +425,24 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
           )}
         </section>
 
-        <section className="sd-card sd-table-card">
+        <section className={`sd-card sd-table-card sd-assessment-table ${showAssessments ? 'sd-expanded' : ''}`}>
           <div className="sd-table-header">
             <h3 className="sd-card-title">Recent Assessments</h3>
+            <p className="sd-card-subtitle sd-mobile-show-inline" style={{ color: 'var(--accent-primary)', fontSize: '10px' }}>Tap chart again to toggle visibility</p>
           </div>
           <div className="sd-table-scroll">
             <table className="sd-table">
               <thead>
                 <tr>
-                  <th className="sd-th">Assessment</th>
-                  <th className="sd-th sd-th-center">Your Marks</th>
-                  <th className="sd-th sd-th-center">Class Avg</th>
-                  <th className="sd-th sd-th-right">Diff</th>
+                  <th className="sd-th">
+                    <div className="sd-mobile-header-wrap">
+                      <span>Assessment</span>
+                      <span className="sd-mobile-show-inline sd-header-sub">Score | Avg</span>
+                    </div>
+                  </th>
+                  <th className="sd-th sd-th-center sd-mobile-hide">Your Marks</th>
+                  <th className="sd-th sd-th-center sd-mobile-hide">Class Avg</th>
+                  <th className="sd-th sd-th-right sd-mobile-hide">Diff</th>
                 </tr>
               </thead>
               <tbody>
@@ -432,19 +460,30 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
                           <div className="sd-assessment-icon" style={{ background: colors.bg, color: colors.color }}>
                             {ASSESSMENT_ICONS[a.type] || a.type}
                           </div>
-                          <div>
-                            <p className="sd-assessment-name">{ASSESSMENT_LABELS[a.type] || a.type}</p>
-                            <p className="sd-assessment-sub">Out of {maxMarks}</p>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div>
+                                <p className="sd-assessment-name">{ASSESSMENT_LABELS[a.type] || a.type}</p>
+                                <p className="sd-assessment-sub">Out of {maxMarks}</p>
+                              </div>
+                              <div className="sd-mobile-show-block" style={{ textAlign: 'right' }}>
+                                <div className="sd-mobile-score-wrap">
+                                  <span className="sd-marks-value">{obtained}</span>
+                                  <span className="sd-score-sep">|</span>
+                                  <span className="sd-avg-value">{classAvg.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td className="sd-td sd-td-center">
+                      <td className="sd-td sd-td-center sd-mobile-hide">
                         <span className="sd-marks-value">{obtained}/{maxMarks}</span>
                       </td>
-                      <td className="sd-td sd-td-center">
+                      <td className="sd-td sd-td-center sd-mobile-hide">
                         <span className="sd-avg-value">{classAvg.toFixed(1)}/{maxMarks}</span>
                       </td>
-                      <td className="sd-td sd-td-right">
+                      <td className="sd-td sd-td-right sd-mobile-hide">
                         <span className={`sd-diff-badge ${diff > 0 ? 'sd-diff-pos' : diff < 0 ? 'sd-diff-neg' : 'sd-diff-eq'}`}>
                           {diff > 0 ? '+' : ''}{diff.toFixed(1)}
                         </span>
