@@ -49,6 +49,14 @@ export default function StudentDashboard() {
     const [predictedGrades, setPredictedGrades] = useState<Record<string, string>>({});
     const [simulatedCredits, setSimulatedCredits] = useState<Record<string, number>>({});
     const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<any>(null);
+    const [selectedHistoryIdx, setSelectedHistoryIdx] = useState<number>(0);
+
+    // Scroll to top when subject changes
+    useEffect(() => {
+        if (selectedSubject) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [selectedSubject]);
 
     const showToast = (message: string, type = "info") => {
         setToast({ show: true, message, type });
@@ -402,7 +410,7 @@ export default function StudentDashboard() {
                                                 <Bar 
                                                     dataKey="marks" 
                                                     radius={[4, 4, 0, 0]} 
-                                                    barSize={24} 
+                                                    barSize={20} 
                                                     fill="var(--accent-primary)" 
                                                     onClick={(data: any) => data && setSelectedSubject(data.payload)}
                                                     style={{ cursor: 'pointer' }}
@@ -473,9 +481,9 @@ export default function StudentDashboard() {
                                             <div className="legend-item"><div className="legend-color" style={{ backgroundColor: '#64748B' }}></div><span>Class Average</span></div>
                                         </div>
                                     </div>
-                                    <div className="chart-body" style={{ height: '400px' }}>
+                                    <div className="chart-body">
                                         <ResponsiveContainer width="100%" height={400}>
-                                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
+                                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 10, bottom: 40, left: -20 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="code" stroke="#94a3b8" />
                                                 <YAxis stroke="#94a3b8" domain={[0, 50]} />
@@ -494,7 +502,7 @@ export default function StudentDashboard() {
                                                     name="Your Score" 
                                                     fill="#00ADB5" 
                                                     radius={[4, 4, 0, 0]} 
-                                                    barSize={25} 
+                                                    barSize={18} 
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={(data: any) => {
                                                         const subject = currentSem.find((s: any) => s.code === data.payload.code);
@@ -506,7 +514,7 @@ export default function StudentDashboard() {
                                                     name="Class Average" 
                                                     fill="#64748B" 
                                                     radius={[4, 4, 0, 0]} 
-                                                    barSize={25} 
+                                                    barSize={18} 
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={(data: any) => {
                                                         const subject = currentSem.find((s: any) => s.code === data.payload.code);
@@ -524,7 +532,7 @@ export default function StudentDashboard() {
                                         <h3 className="chart-title">Grade Distribution</h3>
                                     </div>
                                     <div className="chart-body">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height={300}>
                                             <BarChart data={gradeChartData}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="grade" stroke="#64748b" />
@@ -554,7 +562,7 @@ export default function StudentDashboard() {
                                         <h3 className="chart-title">SGPA & Credits Trajectory</h3>
                                     </div>
                                     <div className="chart-body">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height={300}>
                                             <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="name" stroke="#64748b" />
@@ -581,7 +589,7 @@ export default function StudentDashboard() {
                             {/* Performance Insights */}
                             <div className="chart-card wide-chart" style={{ marginTop: '24px' }}>
                                 <div className="chart-header"><h3 className="chart-title">Performance Insights</h3></div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                                <div className="insights-grid">
                                     <div className="insight-item">
                                         <TrendingUp className="insight-icon success" />
                                         <div>
@@ -699,7 +707,7 @@ export default function StudentDashboard() {
                                                                             onChange={(e) => setSimulatedCredits({...simulatedCredits, [subj.code]: parseInt(e.target.value)})}
                                                                             className="simulator-select credit-select"
                                                                         >
-                                                                            {[1,2,3,4].map(c => <option key={c} value={c}>{c} Credits</option>)}
+                                                                            {[0,1,2,3,4].map(c => <option key={c} value={c}>{c} Cr</option>)}
                                                                         </select>
                                                                         <select 
                                                                             value={predictedGrades[subj.code] || 'A'} 
@@ -923,33 +931,54 @@ export default function StudentDashboard() {
                                     <h3>No exam history available</h3>
                                 </div>
                             ) : (
-                                <div className="history-grid">
-                                    {[...examHistory].reverse().map((sem: any, idx: number) => (
-                                        <div key={idx} className="chart-card">
-                                            <div className="chart-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px' }}>
-                                                <div>
-                                                    <span className="pill" style={{ marginBottom: '8px' }}>Semester {examHistory.length - idx}</span>
-                                                    <h3 className="chart-title">{sem.semester}</h3>
+                                <div className="history-tab-container">
+                                    {/* Mobile Semester Selector */}
+                                    <div className="mobile-history-selector">
+                                        <label htmlFor="sem-select" className="stat-label" style={{ paddingLeft: '4px' }}>Select Semester</label>
+                                        <select 
+                                            id="sem-select"
+                                            className="sem-history-select" 
+                                            value={selectedHistoryIdx}
+                                            onChange={(e) => setSelectedHistoryIdx(parseInt(e.target.value))}
+                                        >
+                                            {[...examHistory].reverse().map((sem: any, idx: number) => (
+                                                <option key={idx} value={idx}>
+                                                    {sem.semester} (SGPA: {sem.sgpa})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="history-grid">
+                                        {[...examHistory].reverse().map((sem: any, idx: number) => (
+                                            <div key={idx} className={`chart-card history-card ${selectedHistoryIdx === idx ? 'mobile-show' : 'mobile-hide'}`}>
+                                                <div className="chart-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px' }}>
+                                                    <div>
+                                                        <span className="pill" style={{ marginBottom: '8px' }}>Semester {examHistory.length - idx}</span>
+                                                        <h3 className="chart-title">{sem.semester}</h3>
+                                                    </div>
+                                                    <div className="history-sgpa-badge">
+                                                        <div className="stat-label">SGPA</div>
+                                                        <div className="stat-value">{sem.sgpa}</div>
+                                                    </div>
                                                 </div>
-                                                <div style={{ textAlign: 'right' }}>
-                                                    <div className="stat-label">SGPA</div>
-                                                    <div className="stat-value" style={{ fontSize: '24px' }}>{sem.sgpa}</div>
+                                                <div className="dashboard-table-container">
+                                                    <table className="dashboard-table">
+                                                        <thead><tr><th>Code</th><th>Course</th><th style={{ textAlign: 'right' }}>Grade</th></tr></thead>
+                                                        <tbody>
+                                                            {sem.courses?.map((c: any, i: number) => (
+                                                                <tr key={i}>
+                                                                    <td style={{ color: 'var(--text-muted)' }}>{c.code}</td>
+                                                                    <td>{c.name}</td>
+                                                                    <td style={{ textAlign: 'right', fontWeight: 'bold', color: GRADE_COLORS[c.grade] || 'var(--text-primary)' }}>{c.grade}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
-                                            <table className="dashboard-table">
-                                                <thead><tr><th>Code</th><th>Course</th><th style={{ textAlign: 'right' }}>Grade</th></tr></thead>
-                                                <tbody>
-                                                    {sem.courses?.map((c: any, i: number) => (
-                                                        <tr key={i}>
-                                                            <td style={{ color: 'var(--text-muted)' }}>{c.code}</td>
-                                                            <td>{c.name}</td>
-                                                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: GRADE_COLORS[c.grade] || 'var(--text-primary)' }}>{c.grade}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -961,7 +990,8 @@ export default function StudentDashboard() {
                 .insight-item { padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; gap: 12px; }
                 
                 /* GitHub Heatmap Styles */
-                .github-heatmap-container { display: flex; flex-direction: column; gap: 8px; padding: 20px 10px; width: 100%; }
+                .github-heatmap-container { display: flex; flex-direction: column; gap: 8px; padding: 20px 10px; width: 100%; overflow-x: auto; scrollbar-width: none; }
+                .github-heatmap-container::-webkit-scrollbar { display: none; }
                 .heatmap-header-row { display: flex; margin-bottom: 20px; position: relative; height: 18px; width: 100%; }
                 .weeks-labels-container { display: flex; gap: 6px; flex: 1; }
                 .month-label-col { position: relative; flex: 1; }
@@ -1029,18 +1059,53 @@ export default function StudentDashboard() {
                 .subj-pickers { display: flex; gap: 12px; }
                 
                 .simulator-select {
-                    background: var(--bg-primary); border: 1px solid var(--border-subtle); color: var(--text-primary);
-                    padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer;
+                    background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);
+                    padding: 8px 28px 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer;
+                    appearance: none; -webkit-appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ADB5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 8px center;
+                    background-size: 14px;
                     transition: all 0.2s ease;
                 }
-                .simulator-select:hover { border-color: var(--text-secondary); background: var(--bg-secondary); }
-                .grade-select { min-width: 70px; text-align: center; }
-                .credit-select { color: var(--accent-primary); min-width: 100px; }
+                .simulator-select:hover { border-color: var(--accent-primary); background: var(--bg-secondary); }
+                .simulator-select:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.2); }
+                .grade-select { min-width: 60px; text-align: center; }
+                .credit-select { color: var(--accent-primary); min-width: 80px; }
                 .insight-icon { color: var(--accent-primary); flex-shrink: 0; }
                 .insight-label { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
                 .insight-value { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
                 .empty-history { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); text-align: center; gap: 16px; width: 100%; grid-column: 1/-1; }
                 .hover-row:hover { background: rgba(255,255,255,0.03); }
+
+                @media (max-width: 600px) {
+                    .predictor-layout { padding: 4px; gap: 12px; }
+                    .predictor-scoreboard { padding: 12px; gap: 8px; flex-direction: row; }
+                    .score-item { flex: 1; }
+                    .score-value { font-size: 32px; letter-spacing: -0.02em; }
+                    .score-label { font-size: 9px; margin-bottom: 4px; }
+                    .controls-header, .score-footer, .score-divider { display: none !important; }
+                    .subject-row { 
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 8px 12px; 
+                        align-items: center;
+                        gap: 12px;
+                    }
+                    .subj-pickers { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; }
+                    .simulator-select { width: auto; min-width: 0; padding: 6px 20px 6px 8px; font-size: 10px; background-size: 10px; background-position: right 4px center; border-radius: 6px; }
+                    .credit-select { min-width: 60px; }
+                    .grade-select { min-width: 50px; }
+                    .subj-name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+                    
+                    /* Force Heatmap to not break */
+                    .github-heatmap-container { padding: 12px 4px; }
+                    .heatmap-grid-core { width: max-content; min-width: 100%; }
+                    .weeks-container { width: max-content; }
+                    
+                    .insight-item { flex-direction: column; text-align: center; align-items: center; }
+                    .details-content { grid-template-columns: 1fr; gap: 12px; }
+                }
             `}</style>
         </div>
     );
