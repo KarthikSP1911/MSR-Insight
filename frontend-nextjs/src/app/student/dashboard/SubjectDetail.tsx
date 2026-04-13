@@ -117,7 +117,7 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
 
   const chartYMax = useMemo(() => {
     if (!chartData.length) return 30;
-    const max = Math.max(...chartData.flatMap(d => [d.obtained, d.classAvg]));
+    const max = Math.max(...chartData.flatMap((d: any) => [d.obtained, d.classAvg]));
     return Math.max(10, Math.ceil(max / 10) * 10);
   }, [chartData]);
 
