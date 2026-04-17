@@ -2,6 +2,14 @@
    SubjectDetail — Technical Dark Theme
    ========================================================================== */
 
+/* ── Utility Classes (Hidden by default on Desktop) ── */
+.sd-mobile-show-block,
+.sd-mobile-show-inline,
+.sd-mobile-show,
+.sd-mobile-flex {
+  display: none !important;
+}
+
 /* ── Page Shell ── */
 .sd-page {
   width: 100%;
@@ -129,6 +137,7 @@
 
 .sd-header-kpis {
   display: flex;
+  flex-wrap: wrap;
   gap: 24px;
   flex-shrink: 0;
 }
@@ -579,8 +588,6 @@
   color: #e1e2eb;
 }
 
-
-
 /* ── Chart Card ── */
 .sd-chart-card {
   display: flex;
@@ -601,15 +608,14 @@
 }
 
 .sd-chart-legend-line {
-  display: block;
-  width: 20px;
+  width: 12px;
   height: 3px;
   border-radius: 2px;
 }
 
 .sd-chart-legend-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #c6c6cd;
@@ -617,41 +623,8 @@
 
 .sd-chart-area {
   flex: 1;
-  min-height: 220px;
-}
-
-/* Custom Tooltip */
-.sd-chart-tooltip {
-  background: #191c22;
-  border: 1px solid rgba(69, 70, 77, 0.3);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-}
-
-.sd-tooltip-label {
-  font-weight: 700;
-  color: #e1e2eb;
-  margin-bottom: 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.sd-tooltip-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #c6c6cd;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.sd-tooltip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  min-height: 240px;
+  margin-bottom: 8px;
 }
 
 .sd-no-data {
@@ -659,143 +632,148 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 180px;
-  color: rgba(198, 198, 205, 0.5);
-  font-size: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-/* ── Assessment Table Card ── */
+/* ── Table Area ── */
 .sd-table-card {
-  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .sd-table-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid rgba(69, 70, 77, 0.15);
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .sd-table-scroll {
+  flex: 1;
   overflow-x: auto;
 }
 
 .sd-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
 }
 
 .sd-th {
-  padding: 14px 24px;
+  text-align: left;
+  padding: 12px;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #c6c6cd;
-  background: #191c22;
-  white-space: nowrap;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(69, 70, 77, 0.2);
 }
 
 .sd-th-center { text-align: center; }
 .sd-th-right  { text-align: right; }
 
 .sd-tr {
-  border-top: 1px solid rgba(69, 70, 77, 0.08);
-  transition: background 0.15s ease;
+  border-bottom: 1px solid rgba(69, 70, 77, 0.1);
+  transition: background 0.2s ease;
 }
 
-.sd-tr:hover {
-  background: rgba(50, 53, 60, 0.3);
-}
+.sd-tr:hover { background: rgba(225, 226, 235, 0.02); }
 
 .sd-td {
-  padding: 18px 24px;
-  font-size: 14px;
-  color: #e1e2eb;
+  padding: 16px 12px;
   vertical-align: middle;
 }
 
 .sd-td-center { text-align: center; }
 .sd-td-right  { text-align: right; }
 
-/* Assessment cell with icon */
 .sd-assessment-cell {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .sd-assessment-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
 .sd-assessment-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: #e1e2eb;
   margin: 0;
 }
 
-.sd-marks-value {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-/* Class avg column — muted */
-.sd-avg-value {
-  font-size: 14px;
-  font-weight: 500;
+.sd-assessment-sub {
+  font-size: 11px;
   color: var(--text-muted);
+  margin: 0;
 }
 
-/* Difference badges */
+.sd-marks-value { font-size: 14px; font-weight: 700; color: var(--accent-primary); }
+.sd-avg-value { font-size: 14px; font-weight: 600; color: var(--text-primary); opacity: 0.8; }
+
 .sd-diff-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
+  display: inline-block;
+  padding: 2px 8px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  min-width: 48px;
 }
 
-.sd-diff-pos {
-  background: var(--bg-surface);
-  color: var(--accent-primary);
-  border: 1px solid var(--border-subtle);
-}
-
-.sd-diff-neg {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.sd-diff-eq {
-  background: var(--bg-primary);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-}
+.sd-diff-pos { background: rgba(78,222,163,0.1); color: #4edea3; }
+.sd-diff-neg { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+.sd-diff-eq  { background: rgba(198,198,205,0.1); color: #c6c6cd; }
 
 .sd-table-empty {
-  padding: 48px 24px;
   text-align: center;
-  color: rgba(198, 198, 205, 0.5);
-  font-size: 14px;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ── Tooltip custom ── */
+.sd-chart-tooltip {
+  background: #1a1b1e;
+  border: 1px solid var(--border-subtle);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.sd-tooltip-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sd-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  margin: 4px 0;
+}
+
+.sd-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 /* ── Responsive ── */
@@ -807,23 +785,188 @@
   }
 }
 
-
 @media (max-width: 768px) {
   .sd-page-titlebar {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    width: 100%;
+    padding: 10px 0 30px;
+  }
+
+  .sd-back-btn {
+    align-self: flex-start; /* Still keep back button on left for standard UX */
+    margin-bottom: -10px;
+  }
+
+  .sd-subject-meta {
+    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px;
+  }
+
+  .sd-subject-name {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .sd-title-wrap {
+    align-items: center;
   }
 
   .sd-header-kpis {
-    gap: 16px;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 40px;
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(225, 226, 235, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(225, 226, 235, 0.05);
   }
 
   .sd-kpi {
-    align-items: flex-start;
+    align-items: center;
+    flex: none;
+  }
+
+  .sd-kpi:last-child {
+    align-items: center;
   }
 
   .sd-card {
     padding: 16px;
+  }
+
+  .sd-card-subtitle {
+    display: none !important;
+  }
+
+  .sd-chart-area {
+    min-height: 200px;
+  }
+
+  .sd-calc-stat-row {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .sd-calc-stat-val {
+    font-size: 16px;
+  }
+
+  .sd-cal-legend {
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .sd-legend-text {
+    font-size: 9px;
+  }
+
+  .sd-mobile-hide {
+    display: none !important;
+  }
+
+  .sd-mobile-show {
+    display: table-cell !important;
+  }
+
+  .sd-mobile-show-inline {
+    display: inline !important;
+  }
+
+  .sd-mobile-show-block {
+    display: block !important;
+  }
+
+  .sd-mobile-flex {
+    display: flex !important;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .sd-mobile-header-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .sd-header-sub {
+    font-size: 8px;
+    font-weight: 800;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .sd-mobile-score-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-weight: 700;
+  }
+
+  .sd-score-sep {
+    opacity: 0.2;
+    font-weight: 300;
+    font-size: 12px;
+  }
+
+  .sd-assessment-cell {
+    gap: 8px;
+  }
+
+  .sd-assessment-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+  }
+
+  .sd-assessment-name {
+    font-size: 11px;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sd-assessment-sub {
+    font-size: 9px;
+  }
+
+  .sd-assessment-table,
+  .sd-calculation-card {
+    display: none !important;
+  }
+
+  .sd-assessment-table.sd-expanded,
+  .sd-calculation-card.sd-expanded {
+    display: block !important;
+  }
+
+  .sd-toggle-btn {
+    padding: 8px 16px;
+    background: rgba(0, 173, 181, 0.1);
+    border: 1px solid rgba(0, 173, 181, 0.3);
+    border-radius: 8px;
+    color: var(--accent-primary);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .sd-toggle-btn:hover {
+    background: rgba(0, 173, 181, 0.2);
+    transform: translateY(-1px);
   }
 }

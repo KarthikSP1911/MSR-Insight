@@ -258,6 +258,39 @@ export default function StudentLogin() {
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                 }
+
+                @media (max-width: 768px) {
+                    .login-card {
+                        padding: 32px 24px;
+                        max-width: 380px;
+                        margin: 20px;
+                    }
+                    .login-title {
+                        font-size: 1.5rem;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .login-page {
+                        align-items: flex-start;
+                        padding-top: 40px;
+                    }
+                    .login-card {
+                        padding: 24px 20px;
+                        margin: 16px;
+                        border-radius: var(--radius-md);
+                    }
+                    .dob-grid {
+                        flex-direction: column;
+                        gap: 12px;
+                    }
+                    .login-title {
+                        font-size: 1.35rem;
+                    }
+                    .login-subtitle {
+                        font-size: 0.85rem;
+                    }
+                }
             `}</style>
         </div>
     );
