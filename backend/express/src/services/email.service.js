@@ -612,7 +612,7 @@ export const sendReportEmailViaResend = async (
 
               <div class="footer">
                 <p>
-                  ✉️ <strong>Smart Report Management System</strong><br>
+                  ✉️ <strong>MSR Insight Management System</strong><br>
                   M S Ramaiah Institute of Technology, Bangalore<br>
                   <em>This is an automated institutional notification. Please do not reply directly to this email.</em>
                 </p>

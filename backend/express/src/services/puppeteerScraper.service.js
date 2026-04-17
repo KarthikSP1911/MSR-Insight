@@ -251,7 +251,8 @@ const getCompleteStudentData = async (usn, day, month, year) => {
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
         const page = await browser.newPage();
-        await page.goto("https://parents.msrit.edu/newparents/", { waitUntil: 'load' });
+        await page.setDefaultNavigationTimeout(60000); // 60 seconds
+        await page.goto("https://parents.msrit.edu/newparents/", { waitUntil: 'domcontentloaded', timeout: 60000 });
 
         await page.type('#username', usn);
         await page.select('#dd', `${day} `);
@@ -259,7 +260,7 @@ const getCompleteStudentData = async (usn, day, month, year) => {
         await page.select('#yyyy', year);
         
         await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle0' }),
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 60000 }),
             page.evaluate(() => document.querySelector('.cn-login-btn').click())
         ]);
 
@@ -480,7 +481,7 @@ const parseAndProcessData = (scrapedData) => {
         usn,
         class_details: classInfo,
         cgpa: finalCgpa,
-        last_updated: new Date().toLocaleString(),
+        last_updated: new Date().toISOString(),
         current_semester: currentSemesterData,
         exam_history: semesterHistory
     };

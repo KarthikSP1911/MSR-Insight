@@ -1,4 +1,4 @@
-# Smart Report Generator 🎓
+# MSR Insight 🎓
 
 /* right me story
 

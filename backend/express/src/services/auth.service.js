@@ -51,14 +51,7 @@ class AuthService {
     await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
     await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
 
-    // Trigger background scrape to update JSONB details if needed/on login
-    try {
-      const { triggerScrape } = await import("./report.service.js");
-      // Fire and forget scrape in background
-      triggerScrape(normalizedUSN, dob).catch(e => console.error("[Login Scrape Error]", e.message));
-    } catch (e) {
-       console.error("[Login Scrape Import Error]", e);
-    }
+    // Scrape will be triggered by student dashboard if data is missing or stale. 
 
     return { 
       usn: normalizedUSN, 

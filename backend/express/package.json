@@ -1,7 +1,7 @@
 {
   "name": "express",
   "version": "1.0.0",
-  "description": "Express backend for Smart Report Generator",
+  "description": "Express backend for MSR Insight Management System",
   "type": "module",
   "main": "server.js",
   "scripts": {

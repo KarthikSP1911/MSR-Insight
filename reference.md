@@ -2,7 +2,7 @@ Here is the complete reference document:
 
 ---
 
-# Smart Report Generator — Complete Project Reference
+# MSR Insight — Complete Project Reference
 
 ---
 

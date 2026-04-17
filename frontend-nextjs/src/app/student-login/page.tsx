@@ -191,7 +191,7 @@ export default function StudentLogin() {
                     </button>
                     
                     <div className="login-footer">
-                        Secure academic access powered by Smart Report
+                        Secure academic access powered by MSR Insight
                     </div>
                 </form>
             </div>

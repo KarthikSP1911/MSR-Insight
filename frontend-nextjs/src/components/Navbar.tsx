@@ -73,18 +73,18 @@ const Navbar: React.FC<NavbarProps> = ({
             <Link 
               href="/" 
               className="logo-link flex items-center gap-2" 
-              aria-label="Go to Smart Report home"
+              aria-label="Go to MSR Insight home"
               onClick={() => setIsMenuOpen(false)}
             >
                 <Image
                   src="/logo-icon.svg"
-                  alt="Smart Report logo"
+                  alt="MSR Insight logo"
                   className="logo-img"
                   width={24}
                   height={24}
                   priority
                 />
-                <span className="logo-text">Smart Report</span>
+                <span className="logo-text">MSR Insight</span>
             </Link>
           )}
 

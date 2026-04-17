@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 class Settings:
-    PROJECT_NAME: str = "Smart Report Generator"
+    PROJECT_NAME: str = "MSR Insight"
     
     # Port configuration
     PORT: int = int(os.getenv("PORT", 8000))
