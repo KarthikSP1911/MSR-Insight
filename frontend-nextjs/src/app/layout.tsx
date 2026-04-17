@@ -3,7 +3,7 @@ import "./globals.css";
 import AppWrapper from "@/components/AppWrapper";
 
 export const metadata: Metadata = {
-  title: "Smart Report",
+  title: "MSR Insight",
   description: "Advanced Academic Reporting System",
 };
 

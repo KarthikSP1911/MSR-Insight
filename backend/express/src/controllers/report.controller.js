@@ -144,18 +144,44 @@ const triggerReportUpdate = async (req, res, next) => {
         const usn = req.body.usn?.toUpperCase();
         if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
+        const student = await studentService.getStudentDashboard(usn);
+        if (!student) return res.status(404).json({ success: false, message: "Student record not found" });
+
+        // Cooldown check (30 minutes = 1800000ms)
+        const COOLDOWN_MS = 30 * 60 * 1000;
+        const lastSyncStr = student.details?.last_updated;
+        
+        if (lastSyncStr) {
+            const lastSync = new Date(lastSyncStr).getTime();
+            const now = Date.now();
+            const diff = now - lastSync;
+
+            if (diff < COOLDOWN_MS) {
+                const remaining = COOLDOWN_MS - diff;
+                return res.status(429).json({
+                    success: false,
+                    allowed: false,
+                    message: `Rate limit exceeded. Please wait ${Math.ceil(remaining / 60000)}m before updating again.`,
+                    nextAllowedAt: new Date(lastSync + COOLDOWN_MS).toISOString()
+                });
+            }
+        }
+
         const user = await userRepository.findByUSN(usn);
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
+        console.log(`[ReportController] Triggering manual update for ${usn}...`);
         await triggerScrape(user.usn, user.dob);
         const dashboardData = await studentService.getStudentDashboard(usn);
 
         return res.status(200).json({
             success: true,
+            allowed: true,
             message: "Report updated",
             data: dashboardData,
         });
     } catch (error) {
+        console.error(`[ReportController] Update failed for ${req.body.usn}:`, error.message);
         next(error);
     }
 };

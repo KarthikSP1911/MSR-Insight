@@ -11,6 +11,7 @@ import { AppProvider, useAppContext, Alert } from "@/lib/AppContext";
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isReportPage = pathname.includes("/report/");
+  const isStudentDashboard = pathname.startsWith("/student/dashboard");
   const { academicYear, setAcademicYear, inboxOpen, setInboxOpen, alerts, setAlerts } = useAppContext();
 
   // Fetch live notifications for Proctor
@@ -97,7 +98,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-wrapper">
-      {!isReportPage && (
+      {!isReportPage && !isStudentDashboard && (
         <Navbar 
           academicYear={academicYear} 
           setAcademicYear={setAcademicYear} 
