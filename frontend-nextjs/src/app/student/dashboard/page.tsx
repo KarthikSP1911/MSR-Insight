@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-    RadialBarChart, RadialBar, Cell, CartesianGrid
+    RadialBarChart, RadialBar, Cell, CartesianGrid, ComposedChart, Line, Legend
 } from "recharts";
 import {
     Target, History, Award, TrendingUp, BookOpen,
-    Calendar, BarChart3, Menu, X, RefreshCw, CheckCircle2, AlertCircle
+    Calendar, BarChart3, Menu, X, RefreshCw, CheckCircle2, AlertCircle,
+    Layers, Star, AlertTriangle, Gamepad2, Sparkles
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -24,6 +25,17 @@ const GRADE_COLORS: Record<string, string> = {
     'C': '#ef4444',
 };
 
+const CHART_COLORS = [
+    'var(--accent-primary)', 
+    '#6366F1', // Fixed: Working Indigo color instead of broken accent-dark
+    '#10b981', 
+    '#f59e0b', 
+    '#ef4444', 
+    '#ec4899', 
+    '#3b82f6', 
+    '#14b8a6',
+];
+
 export default function StudentDashboard() {
     const router = useRouter();
     const [student, setStudent] = useState<any>(null);
@@ -34,6 +46,9 @@ export default function StudentDashboard() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [toast, setToast] = useState({ show: false, message: "", type: "info" });
     const [selectedSubject, setSelectedSubject] = useState<any>(null);
+    const [predictedGrades, setPredictedGrades] = useState<Record<string, string>>({});
+    const [simulatedCredits, setSimulatedCredits] = useState<Record<string, number>>({});
+    const [selectedHeatmapDay, setSelectedHeatmapDay] = useState<any>(null);
 
     const showToast = (message: string, type = "info") => {
         setToast({ show: true, message, type });
@@ -138,21 +153,22 @@ export default function StudentDashboard() {
         ? Math.round(currentSem.reduce((acc: any, curr: any) => acc + (curr.attendance || 0), 0) / currentSem.length)
         : 0;
 
-    const overallCIE = currentSem.length
-        ? Math.round(currentSem.reduce((acc: any, curr: any) => acc + (curr.marks || 0), 0) / currentSem.length)
-        : 0;
-
-    const sgpaTrendData = [...examHistory].reverse().map(sem => ({
+    const currentCgpa = (detailsBlob.cgpa ?? detailedData?.cgpa ?? "").toString().trim() || null;
+    const sgpaTrendData = examHistory.map((sem: any) => ({
         name: sem.semester.split(' ')[0] + ' ' + (sem.semester.split(' ')[2]?.substring(2) || ''),
         sgpa: parseFloat(sem.sgpa),
         credits: parseInt(sem.credits_earned || 0)
     }));
 
-    const totalCredits = examHistory.reduce((acc: any, sem: any) => acc + parseInt(sem.credits_earned || 0), 0);
-    const latestSGPA = examHistory.length > 0 ? parseFloat(examHistory[0].sgpa) : 0;
-    const prevSGPA = examHistory.length > 1 ? parseFloat(examHistory[1].sgpa) : 0;
-    const sgpaDiff = (latestSGPA - prevSGPA).toFixed(2);
-    const isImproved = prevSGPA === 0 || parseFloat(sgpaDiff) >= 0;
+    const totalCredits = examHistory.reduce((acc: any, sem: any) => acc + (parseInt(sem.credits_earned) || 0), 0);
+    const latestSGPA = examHistory.length > 0 ? (parseFloat(examHistory[examHistory.length - 1].sgpa) || 0) : 0;
+    const prevSGPA = examHistory.length > 1 ? (parseFloat(examHistory[examHistory.length - 2].sgpa) || 0) : 0;
+    const sgpaDiffValue = latestSGPA - prevSGPA;
+    const sgpaDiff = (sgpaDiffValue >= 0 ? "+" : "") + sgpaDiffValue.toFixed(2);
+    const isImproved = latestSGPA >= prevSGPA;
+    const usn = detailedData?.usn || detailsBlob.usn || "";
+    const isLateralEntry = /4\d{2}$/.test(usn);
+    const maxCredits = isLateralEntry ? 120 : 160;
 
     const allGrades = examHistory.flatMap((sem: any) => sem.courses?.map((c: any) => c.grade) || []);
     const gradeDistribution = allGrades.reduce((acc: any, grade: string) => {
@@ -163,6 +179,42 @@ export default function StudentDashboard() {
     const gradeChartData = Object.entries(gradeDistribution)
         .map(([grade, count]) => ({ grade, count, color: (GRADE_COLORS[grade] || '#64748b') as string }))
         .sort((a, b) => (b.count as number) - (a.count as number));
+
+    const internalComparisonData = currentSem.map((subj: any) => {
+        const getScores = (type: string) => {
+            const a = subj.assessments?.find((x: any) => x.type === type);
+            return { me: a?.obtained_marks || 0, avg: a?.class_average || 0 };
+        };
+
+        const t1 = getScores('T1');
+        const t2 = getScores('T2');
+        const aq1 = getScores('AQ1');
+        const aq2 = getScores('AQ2');
+
+        const calcTotal = (s1: number, s2: number, q1: number, q2: number) => {
+            const testAvg = (s1 > 0 && s2 > 0) ? Math.round((s1 + s2) / 2) : Math.max(s1, s2);
+            return testAvg + q1 + q2;
+        };
+
+        return {
+            code: subj.code,
+            name: subj.name,
+            studentScore: calcTotal(t1.me, t2.me, aq1.me, aq2.me),
+            classAverage: calcTotal(t1.avg, t2.avg, aq1.avg, aq2.avg),
+        };
+    }).filter((d: any) => d.studentScore > 0 || d.classAverage > 0);
+
+    const bestSubject = [...currentSem].filter(s => s.marks > 0 || (s.attendance && s.attendance > 0)).sort((a: any, b: any) => {
+        const scoreA = ((a.marks || 0) * 2) + (a.attendance || 0);
+        const scoreB = ((b.marks || 0) * 2) + (b.attendance || 0);
+        return scoreB - scoreA;
+    })[0];
+    
+    const weakestSubject = [...currentSem].filter(s => s.marks > 0 || (s.attendance && s.attendance > 0)).sort((a: any, b: any) => {
+        const scoreA = ((a.marks || 0) * 2) + (a.attendance || 0);
+        const scoreB = ((b.marks || 0) * 2) + (b.attendance || 0);
+        return scoreA - scoreB;
+    })[0];
 
     return (
         <div className="student-dashboard-container">
@@ -197,6 +249,9 @@ export default function StudentDashboard() {
                     <button className={`nav-button ${activeTab === 'history' ? 'active' : ''}`} onClick={() => handleTabChange('history')}>
                         <History size={20} /> <span>Exam History</span>
                     </button>
+                    <button className={`nav-button ${activeTab === 'simulator' ? 'active' : ''}`} onClick={() => handleTabChange('simulator')}>
+                        <Gamepad2 size={20} /> <span>Simulator</span>
+                    </button>
                     <button className="nav-button" onClick={handleUpdate} disabled={isUpdating}>
                         <RefreshCw size={20} className={isUpdating ? "spinning" : ""} />
                         <span>{isUpdating ? "Updating Data..." : "Update Dashboard"}</span>
@@ -209,7 +264,12 @@ export default function StudentDashboard() {
                 <div className="content-wrapper">
                     {/* SUBJECT DETAIL VIEW */}
                     {selectedSubject && (
-                        <SubjectDetail subject={selectedSubject} onBack={() => setSelectedSubject(null)} />
+                        <SubjectDetail 
+                            subject={selectedSubject} 
+                            allSubjects={currentSem}
+                            onSubjectChange={setSelectedSubject}
+                            onBack={() => setSelectedSubject(null)} 
+                        />
                     )}
 
                     {/* CURRENT SEMESTER PERFORMANCE TAB */}
@@ -219,6 +279,12 @@ export default function StudentDashboard() {
                                 <div className="header-content">
                                     <h1 className="page-title">Current Semester Performance</h1>
                                     <p className="page-subtitle">Detailed breakdown of your ongoing semester</p>
+                                    {typeof detailsBlob.class_details === "string" && detailsBlob.class_details.trim() ? (
+                                        <p className="page-meta">{detailsBlob.class_details.trim().replace(/\s+/g, " ")}</p>
+                                    ) : null}
+                                    {detailsBlob.last_updated ? (
+                                        <p className="page-meta page-meta--muted">Portal data synced: {detailsBlob.last_updated}</p>
+                                    ) : null}
                                 </div>
                             </div>
 
@@ -226,44 +292,52 @@ export default function StudentDashboard() {
                             <div className="stats-grid">
                                 <div className="stat-card">
                                     <div className="stat-header">
-                                        <span className="stat-label">Overall Attendance</span>
-                                        <Calendar className="stat-icon" />
-                                    </div>
-                                    <div className="stat-value">{overallAttendance}<span className="stat-max">%</span></div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${overallAttendance}%`, background: overallAttendance >= 75 ? 'var(--success)' : 'var(--error)' }}></div>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-header">
-                                        <span className="stat-label">Average CIE</span>
-                                        <Target className="stat-icon" />
-                                    </div>
-                                    <div className="stat-value">{overallCIE}<span className="stat-max">/50</span></div>
-                                    <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${(overallCIE / 50) * 100}%`, background: '#f59e0b' }}></div>
-                                    </div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-header">
-                                        <span className="stat-label">Latest SGPA</span>
+                                        <span className="stat-label">Current CGPA</span>
                                         <Award className="stat-icon" />
                                     </div>
-                                    <div className="stat-value">{latestSGPA}</div>
-                                    <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
-                                        {isImproved ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(180deg)' }} />}
-                                        {sgpaDiff} from last sem
+                                    <div className="stat-value">
+                                        {currentCgpa ?? "—"}
+                                        {currentCgpa ? <span className="stat-max">/10</span> : null}
                                     </div>
+                                    <p className="stat-footnote">Cumulative GPA from the portal</p>
                                 </div>
                                 <div className="stat-card">
                                     <div className="stat-header">
-                                        <span className="stat-label">Credits Earned</span>
+                                        <span className="stat-label">Credits earned</span>
                                         <BookOpen className="stat-icon" />
                                     </div>
-                                    <div className="stat-value">{totalCredits}<span className="stat-max">/160</span></div>
+                                    <div className="stat-value">{totalCredits}<span className="stat-max">/{maxCredits}</span></div>
                                     <div className="progress-bar">
-                                        <div className="progress-fill" style={{ width: `${(totalCredits / 160) * 100}%`, background: '#8b5cf6' }}></div>
+                                        <div className="progress-fill" style={{ width: `${(totalCredits / maxCredits) * 100}%`, background: '#8b5cf6' }}></div>
                                     </div>
+                                    <p className="stat-footnote">Total target is {maxCredits} for your entry type</p>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <span className="stat-label">Courses this semester</span>
+                                        <Layers className="stat-icon" />
+                                    </div>
+                                    <div className="stat-value">{currentSem.length}</div>
+                                    <p className="stat-footnote">Registered subjects (incl. labs &amp; electives)</p>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <span className="stat-label">Latest semester SGPA</span>
+                                        <TrendingUp className="stat-icon" />
+                                    </div>
+                                    <div className="stat-value">{examHistory.length > 0 ? latestSGPA : "—"}</div>
+                                    {examHistory.length > 1 ? (
+                                        <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
+                                            {isImproved ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(180deg)' }} />}
+                                            {sgpaDiff} vs previous
+                                        </div>
+                                    ) : (
+                                        <p className="stat-footnote">
+                                            {examHistory.length === 1
+                                                ? "Compares once more history is available"
+                                                : "No semester results in history yet"}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -279,16 +353,30 @@ export default function StudentDashboard() {
                                     <div className="chart-body attendance-chart-body">
                                         <div className="chart-container">
                                             <ResponsiveContainer width="100%" height={380}>
-                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }))}>
-                                                    <RadialBar background={{ fill: 'var(--bg-primary)' }} dataKey="attendance" cornerRadius={10} />
-                                                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}%`, '']} />
+                                                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={10} data={currentSem.map((entry: any, index: number) => ({ ...entry, fill: CHART_COLORS[index % CHART_COLORS.length] }))}>
+                                                    <RadialBar 
+                                                        background={{ fill: 'var(--bg-primary)' }} 
+                                                        dataKey="attendance" 
+                                                        cornerRadius={10} 
+                                                        onClick={(data: any) => data && setSelectedSubject(data.payload)}
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                    <Tooltip 
+                                                        contentStyle={{ 
+                                                            backgroundColor: 'var(--bg-secondary)', 
+                                                            border: '1px solid var(--border-subtle)', 
+                                                            borderRadius: '12px'
+                                                        }} 
+                                                        itemStyle={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: '500' }}
+                                                        formatter={(val: any, name: any, props: any) => [`${val}%`, props.payload.name]}
+                                                    />
                                                 </RadialBarChart>
                                             </ResponsiveContainer>
                                         </div>
                                         <div className="chart-legend-custom">
                                             {currentSem.map((subject: any, index: number) => (
-                                                <div key={index} className="legend-item-custom">
-                                                    <div className="legend-dot-custom" style={{ backgroundColor: ['var(--accent-primary)', 'var(--accent-dark)', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#14b8a6'][index % 8] }}></div>
+                                                <div key={index} className="legend-item-custom" onClick={() => setSelectedSubject(subject)} style={{ cursor: 'pointer' }}>
+                                                    <div className="legend-dot-custom" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}></div>
                                                     <div className="legend-label-custom">{subject.name}</div>
                                                 </div>
                                             ))}
@@ -311,7 +399,14 @@ export default function StudentDashboard() {
                                                 <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
                                                 <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
                                                 <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', color: 'var(--text-primary)' }} formatter={(val) => [`${val}/50`, 'Marks']} cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }} />
-                                                <Bar dataKey="marks" radius={[4, 4, 0, 0]} barSize={24} fill="var(--accent-primary)" />
+                                                <Bar 
+                                                    dataKey="marks" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={24} 
+                                                    fill="var(--accent-primary)" 
+                                                    onClick={(data: any) => data && setSelectedSubject(data.payload)}
+                                                    style={{ cursor: 'pointer' }}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -370,23 +465,54 @@ export default function StudentDashboard() {
                                 <div className="chart-card wide-chart">
                                     <div className="chart-header">
                                         <div>
-                                            <h3 className="chart-title">Attendance vs Internal Marks Correlation</h3>
-                                            <p className="chart-subtitle">Analyzing the relationship between attendance and performance</p>
+                                            <h3 className="chart-title">Internal Marks Comparison: You vs Class</h3>
+                                            <p className="chart-subtitle">Combined score (Avg of T1 &amp; T2 + Assessments) compared to class average</p>
                                         </div>
                                         <div className="chart-legend">
-                                            <div className="legend-item"><div className="legend-color attendance-color"></div><span>Attendance %</span></div>
-                                            <div className="legend-item"><div className="legend-color cie-color"></div><span>CIE Score</span></div>
+                                            <div className="legend-item"><div className="legend-color" style={{ backgroundColor: '#00ADB5' }}></div><span>Your Score</span></div>
+                                            <div className="legend-item"><div className="legend-color" style={{ backgroundColor: '#64748B' }}></div><span>Class Average</span></div>
                                         </div>
                                     </div>
                                     <div className="chart-body" style={{ height: '400px' }}>
                                         <ResponsiveContainer width="100%" height={400}>
-                                            <BarChart data={currentSem.map((s: any) => ({ ...s, ciePct: ((s.marks || 0) / 50) * 100 }))} margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
+                                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="code" stroke="#94a3b8" />
-                                                <YAxis stroke="#94a3b8" domain={[0, 100]} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
-                                                <Bar dataKey="attendance" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                                                <Bar dataKey="ciePct" fill="#a855f7" radius={[4, 4, 0, 0]} barSize={20} />
+                                                <YAxis stroke="#94a3b8" domain={[0, 50]} />
+                                                <Tooltip 
+                                                    labelFormatter={(label, payload) => payload?.[0]?.payload?.name || label}
+                                                    contentStyle={{ 
+                                                        backgroundColor: 'var(--bg-secondary)', 
+                                                        border: '1px solid var(--border-subtle)', 
+                                                        borderRadius: '12px', 
+                                                        color: 'var(--text-primary)' 
+                                                    }} 
+                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
+                                                />
+                                                <Bar 
+                                                    dataKey="studentScore" 
+                                                    name="Your Score" 
+                                                    fill="#00ADB5" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={25} 
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(data: any) => {
+                                                        const subject = currentSem.find((s: any) => s.code === data.payload.code);
+                                                        if (subject) setSelectedSubject(subject);
+                                                    }}
+                                                />
+                                                <Bar 
+                                                    dataKey="classAverage" 
+                                                    name="Class Average" 
+                                                    fill="#64748B" 
+                                                    radius={[4, 4, 0, 0]} 
+                                                    barSize={25} 
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={(data: any) => {
+                                                        const subject = currentSem.find((s: any) => s.code === data.payload.code);
+                                                        if (subject) setSelectedSubject(subject);
+                                                    }}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -403,7 +529,17 @@ export default function StudentDashboard() {
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="grade" stroke="#64748b" />
                                                 <YAxis stroke="#64748b" />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: 'var(--bg-secondary)',
+                                                        border: '1px solid var(--border-subtle)',
+                                                        borderRadius: '12px',
+                                                        color: '#ffffff',
+                                                    }}
+                                                    labelStyle={{ color: '#ffffff' }}
+                                                    itemStyle={{ color: '#ffffff' }}
+                                                    cursor={{ fill: 'var(--bg-primary)', opacity: 0.4 }}
+                                                />
                                                 <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                                                     {gradeChartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                                                 </Bar>
@@ -412,24 +548,35 @@ export default function StudentDashboard() {
                                     </div>
                                 </div>
 
-                                {/* Credits Progress */}
+                                {/* SGPA & Credits Trajectory */}
                                 <div className="chart-card">
                                     <div className="chart-header">
-                                        <h3 className="chart-title">Credits Progress</h3>
+                                        <h3 className="chart-title">SGPA & Credits Trajectory</h3>
                                     </div>
                                     <div className="chart-body">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={sgpaTrendData}>
+                                            <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                 <XAxis dataKey="name" stroke="#64748b" />
-                                                <YAxis stroke="#64748b" />
-                                                <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#ffffff' }} />
-                                                <Bar dataKey="credits" fill="#10b981" radius={[8, 8, 0, 0]} />
-                                            </BarChart>
+                                                <YAxis yAxisId="left" stroke="#64748b" />
+                                                <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" domain={[0, 10]} />
+                                                <Tooltip 
+                                                    contentStyle={{ 
+                                                        backgroundColor: 'var(--bg-secondary)', 
+                                                        border: '1px solid var(--border-subtle)', 
+                                                        borderRadius: '12px', 
+                                                        color: 'var(--text-primary)' 
+                                                    }} 
+                                                />
+                                                <Legend verticalAlign="top" height={36} />
+                                                <Bar yAxisId="left" dataKey="credits" fill="rgba(16, 185, 129, 0.2)" radius={[4, 4, 0, 0]} name="Credits Earned" />
+                                                <Line yAxisId="right" type="monotone" dataKey="sgpa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="SGPA" />
+                                            </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
                             </div>
+
 
                             {/* Performance Insights */}
                             <div className="chart-card wide-chart" style={{ marginTop: '24px' }}>
@@ -439,7 +586,10 @@ export default function StudentDashboard() {
                                         <TrendingUp className="insight-icon success" />
                                         <div>
                                             <div className="insight-label">Academic Standing</div>
-                                            <div className="insight-value">Your CGPA is {detailedData?.cgpa || latestSGPA}. {isImproved && sgpaDiff > "0" ? `Improved by ${sgpaDiff}!` : ""}</div>
+                                             <div className="insight-value">
+                                                Your CGPA is {detailsBlob.cgpa || detailedData?.cgpa || latestSGPA}. 
+                                                {prevSGPA > 0 ? (sgpaDiffValue >= 0 ? ` Improved by ${sgpaDiffValue.toFixed(2)}` : ` Decreased by ${Math.abs(sgpaDiffValue).toFixed(2)}`) + ' compared to the previous semester.' : ""}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="insight-item">
@@ -448,6 +598,311 @@ export default function StudentDashboard() {
                                             <div className="insight-label">Attendance Analysis</div>
                                             <div className="insight-value">{overallAttendance >= 85 ? 'Excellent!' : overallAttendance >= 75 ? 'Adequate.' : 'Needs improvement!'}</div>
                                         </div>
+                                    </div>
+                                    {bestSubject && (
+                                        <div className="insight-item">
+                                            <Star className="insight-icon" style={{ color: '#F59E0B' }} />
+                                            <div>
+                                                <div className="insight-label">Top Performing Subject</div>
+                                                <div className="insight-value">{bestSubject.name} ({bestSubject.code}) — {bestSubject.marks}/50 | {Math.round(bestSubject.attendance)}%</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {weakestSubject && weakestSubject.code !== bestSubject?.code && (
+                                        <div className="insight-item">
+                                            <AlertTriangle className="insight-icon" style={{ color: '#EF4444' }} />
+                                            <div>
+                                                <div className="insight-label">Requires Attention</div>
+                                                <div className="insight-value">{weakestSubject.name} ({weakestSubject.code}) — {weakestSubject.marks}/50 | {Math.round(weakestSubject.attendance)}%</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SIMULATOR TAB */}
+                    {!selectedSubject && activeTab === 'simulator' && (
+                        <div className="tab-content">
+                            <div className="page-header">
+                                <div className="header-content">
+                                    <h1 className="page-title">Interactive Simulator</h1>
+                                    <p className="page-subtitle">Experiment with your grades and explore your global attendance</p>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                {/* SGPA Predictor */}
+                                <div className="chart-card predictor-card">
+                                    <div className="chart-header">
+                                        <h3 className="chart-title"><Sparkles size={18} style={{ display: 'inline', color: '#10b981', marginRight: '6px', verticalAlign: '-3px' }} /> "What-If" Predictor</h3>
+                                        <p className="chart-subtitle">Precision Grade & Credit Simulation</p>
+                                    </div>
+                                    <div className="predictor-container">
+                                        {(() => {
+                                            const GRADE_POINTS: Record<string, number> = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'F': 0 };
+                                            let currentTotalPts = 0; 
+                                            let currentTotalCredits = 0;
+                                            
+                                            currentSem.forEach((subj: any) => {
+                                                const credits = simulatedCredits[subj.code] || 3; 
+                                                const g = predictedGrades[subj.code] || 'A';
+                                                currentTotalPts += (GRADE_POINTS[g] || 0) * credits;
+                                                currentTotalCredits += credits;
+                                            });
+                                            
+                                            const projSGPA = currentTotalCredits > 0 ? (currentTotalPts / currentTotalCredits) : 0;
+                                            const historicalCredits = totalCredits;
+                                            const earnedVal = parseFloat(currentCgpa || "0");
+                                            const projCGPA = (historicalCredits + currentTotalCredits) > 0 
+                                                ? ((historicalCredits * earnedVal) + (currentTotalCredits * projSGPA)) / (historicalCredits + currentTotalCredits)
+                                                : 0;
+
+                                            return (
+                                                <div className="predictor-layout">
+                                                    {/* Summary Scoreboard */}
+                                                    <div className="predictor-scoreboard">
+                                                        <div className="score-item sgpa">
+                                                            <div className="score-label">Projected SGPA</div>
+                                                            <div className="score-value">{projSGPA.toFixed(2)}</div>
+                                                        </div>
+                                                        <div className="score-divider" />
+                                                        <div className="score-item cgpa">
+                                                            <div className="score-label">Projected CGPA</div>
+                                                            <div className="score-value">{projCGPA.toFixed(2)}</div>
+                                                        </div>
+                                                        <div className="score-footer">
+                                                            Calculated for {currentSem.length} subjects
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Controls List */}
+                                                    <div className="predictor-controls">
+                                                        <div className="controls-header">
+                                                            <span>Subject Name</span>
+                                                            <div className="controls-labels">
+                                                                <span>Credits</span>
+                                                                <span>Grade</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="controls-scrollable">
+                                                            {currentSem.map((subj: any) => (
+                                                                <div key={subj.code} className="subject-row">
+                                                                    <div className="subj-info" title={`${subj.name} (${subj.code})`}>
+                                                                        <div className="subj-name">{subj.name}</div>
+                                                                        <div className="subj-code">{subj.code}</div>
+                                                                    </div>
+                                                                    <div className="subj-pickers">
+                                                                        <select 
+                                                                            value={simulatedCredits[subj.code] || 3} 
+                                                                            onChange={(e) => setSimulatedCredits({...simulatedCredits, [subj.code]: parseInt(e.target.value)})}
+                                                                            className="simulator-select credit-select"
+                                                                        >
+                                                                            {[1,2,3,4].map(c => <option key={c} value={c}>{c} Credits</option>)}
+                                                                        </select>
+                                                                        <select 
+                                                                            value={predictedGrades[subj.code] || 'A'} 
+                                                                            onChange={(e) => setPredictedGrades({...predictedGrades, [subj.code]: e.target.value})}
+                                                                            className="simulator-select grade-select"
+                                                                        >
+                                                                            {Object.keys(GRADE_COLORS).map(g => <option key={g} value={g}>{g}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+
+                                {/* Attendance Heatmap — GitHub Style */}
+                                <div className="chart-card wide-chart">
+                                    <div className="chart-header">
+                                        <h3 className="chart-title"><Calendar size={18} style={{ display: 'inline', color: '#10b981', marginRight: '6px', verticalAlign: '-3px' }} /> Global Attendance Heatmap</h3>
+                                        <p className="chart-subtitle">90-day record of your active participation</p>
+                                    </div>
+                                    <div className="chart-body" style={{ overflowX: 'auto', padding: '10px 0' }}>
+                                        {(() => {
+                                            const parseDStr = (s: string) => {
+                                                const p = s.split('-');
+                                                return new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime();
+                                            };
+
+                                            const allDates: number[] = [];
+                                            currentSem.forEach((subj: any) => {
+                                                (subj.attendance_details?.present_dates || []).forEach((d: string) => allDates.push(parseDStr(d)));
+                                                (subj.attendance_details?.absent_dates || []).forEach((d: string) => allDates.push(parseDStr(d)));
+                                            });
+
+                                            // Default to last 4 months if empty, else use the range found in data
+                                            const now = new Date();
+                                            const minTime = allDates.length ? Math.min(...allDates) : now.getTime() - (120 * 86400000);
+                                            const maxTime = allDates.length ? Math.max(...allDates, now.getTime()) : now.getTime();
+                                            
+                                            const startDate = new Date(minTime);
+                                            startDate.setDate(startDate.getDate() - startDate.getDay()); // Align to Sunday
+                                            
+                                            const endDate = new Date(maxTime);
+                                            endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // Align to Saturday
+                                            
+                                            const attendanceMap: Record<string, { present: number, absent: number, presentSubjects: string[], absentSubjects: string[] }> = {};
+                                            currentSem.forEach((subj: any) => {
+                                                (subj.attendance_details?.present_dates || []).forEach((d: string) => {
+                                                    if (!attendanceMap[d]) attendanceMap[d] = { present: 0, absent: 0, presentSubjects: [], absentSubjects: [] };
+                                                    attendanceMap[d].present += 1;
+                                                    attendanceMap[d].presentSubjects.push(subj.name);
+                                                });
+                                                (subj.attendance_details?.absent_dates || []).forEach((d: string) => {
+                                                    if (!attendanceMap[d]) attendanceMap[d] = { present: 0, absent: 0, presentSubjects: [], absentSubjects: [] };
+                                                    attendanceMap[d].absent += 1;
+                                                    attendanceMap[d].absentSubjects.push(subj.name);
+                                                });
+                                            });
+
+                                            const weeks: any[] = [];
+                                            let currentWeek: any[] = [];
+                                            const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
+
+                                            for (let i = 0; i <= totalDays; i++) {
+                                                const d = new Date(startDate);
+                                                d.setDate(startDate.getDate() + i);
+                                                const dStr = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+                                                const stats = attendanceMap[dStr] || { present: 0, absent: 0, presentSubjects: [], absentSubjects: [] };
+                                                
+                                                currentWeek.push({
+                                                    dateStr: dStr,
+                                                    niceDate: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                                                    present: stats.present,
+                                                    absent: stats.absent,
+                                                    presentSubjects: stats.presentSubjects,
+                                                    absentSubjects: stats.absentSubjects,
+                                                    dayIdx: d.getDay(),
+                                                    month: d.toLocaleDateString('en-US', { month: 'short' }),
+                                                    isFirstOfWeek: d.getDay() === 0,
+                                                    isFirstOfMonth: d.getDate() === 1 || (i === 0) || (d.getDate() <= 7 && d.getDay() === 0)
+                                                });
+
+                                                if (d.getDay() === 6 || i === totalDays) {
+                                                    weeks.push(currentWeek);
+                                                    currentWeek = [];
+                                                }
+                                            }
+
+                                            const getLevel = (p: number, a: number) => {
+                                                if (p === 0 && a === 0) return 0;
+                                                if (p === 0 && a > 0) return -1; // Specific for "only absences"
+                                                if (p === 1) return 1;
+                                                if (p === 2) return 2;
+                                                if (p === 3) return 3;
+                                                return 4;
+                                            };
+
+                                            const COLORS: Record<number, string> = {
+                                                [-1]: '#EF4444', // Red for only absent
+                                                0: 'var(--bg-primary)',
+                                                1: '#0e4429',
+                                                2: '#006d32',
+                                                3: '#26a641',
+                                                4: '#39d353'
+                                            };
+
+                                            return (
+                                                <div className="github-heatmap-container">
+                                                    <div className="heatmap-header-row">
+                                                        <div className="day-label-cols" />
+                                                        <div className="weeks-labels-container">
+                                                            {weeks.map((w, idx) => {
+                                                                const firstDay = w[0];
+                                                                const currentMonth = firstDay.month;
+                                                                const prevMonth = idx > 0 ? weeks[idx-1][0].month : null;
+                                                                const showMonth = idx === 0 || (currentMonth !== prevMonth);
+                                                                
+                                                                return (
+                                                                    <div key={idx} className="month-label-col">
+                                                                        {showMonth ? <span className="month-name-tag">{currentMonth}</span> : null}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    <div className="heatmap-grid-core">
+                                                        <div className="day-labels">
+                                                            <span>Sun</span>
+                                                            <span>Mon</span>
+                                                            <span>Tue</span>
+                                                            <span>Wed</span>
+                                                            <span>Thu</span>
+                                                            <span>Fri</span>
+                                                            <span>Sat</span>
+                                                        </div>
+                                                        <div className="weeks-container">
+                                                            {weeks.map((week, wIdx) => (
+                                                                <div key={wIdx} className="heatmap-column">
+                                                                    {Array.from({ length: 7 }).map((_, dIdx) => {
+                                                                        const day = week.find((d: any) => d.dayIdx === dIdx);
+                                                                        if (!day) return <div key={dIdx} className="heatmap-square empty" />;
+                                                                        const level = getLevel(day.present, day.absent);
+                                                                        const isSelected = selectedHeatmapDay?.dateStr === day.dateStr;
+                                                                        return (
+                                                                            <div 
+                                                                                key={dIdx} 
+                                                                                className={`heatmap-square level-${level} ${isSelected ? 'selected' : ''}`} 
+                                                                                style={{ background: COLORS[level], outline: isSelected ? '2px solid #fff' : 'none', cursor: 'pointer' }}
+                                                                                title={`${day.niceDate}: ${day.present} present, ${day.absent} absent`}
+                                                                                onClick={() => setSelectedHeatmapDay(day)}
+                                                                            />
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div className="heatmap-footer">
+                                                        <div className="legend">
+                                                            <span>Less</span>
+                                                            <div className="heatmap-square" style={{ background: COLORS[0] }} />
+                                                            <div className="heatmap-square" style={{ background: COLORS[1] }} />
+                                                            <div className="heatmap-square" style={{ background: COLORS[2] }} />
+                                                            <div className="heatmap-square" style={{ background: COLORS[3] }} />
+                                                            <div className="heatmap-square" style={{ background: COLORS[4] }} />
+                                                            <span>More</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Day Details Panel */}
+                                                    {selectedHeatmapDay && (
+                                                        <div className="heatmap-details-panel">
+                                                            <div className="details-header">
+                                                                <h4 className="details-title">Details for {selectedHeatmapDay.niceDate}</h4>
+                                                                <button className="close-details" onClick={() => setSelectedHeatmapDay(null)}>&times;</button>
+                                                            </div>
+                                                            <div className="details-content">
+                                                                <div className="details-section">
+                                                                    <div className="section-title" style={{ color: '#10b981' }}>Attended ({selectedHeatmapDay.present})</div>
+                                                                    {selectedHeatmapDay.presentSubjects.length > 0 ? (
+                                                                        <ul className="subject-list">
+                                                                            {selectedHeatmapDay.presentSubjects.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                                                                        </ul>
+                                                                    ) : <p className="no-data">No classes attended</p>}
+                                                                </div>
+                                                                <div className="details-section">
+                                                                    <div className="section-title" style={{ color: '#ef4444' }}>Missed ({selectedHeatmapDay.absent})</div>
+                                                                    {selectedHeatmapDay.absentSubjects.length > 0 ? (
+                                                                        <ul className="subject-list">
+                                                                            {selectedHeatmapDay.absentSubjects.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                                                                        </ul>
+                                                                    ) : <p className="no-data">No classes missed</p>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -504,6 +959,83 @@ export default function StudentDashboard() {
 
             <style jsx>{`
                 .insight-item { padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; gap: 12px; }
+                
+                /* GitHub Heatmap Styles */
+                .github-heatmap-container { display: flex; flex-direction: column; gap: 8px; padding: 20px 10px; width: 100%; }
+                .heatmap-header-row { display: flex; margin-bottom: 20px; position: relative; height: 18px; width: 100%; }
+                .weeks-labels-container { display: flex; gap: 6px; flex: 1; }
+                .month-label-col { position: relative; flex: 1; }
+                .month-name-tag { position: absolute; left: 0; top: 0; font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+                .day-label-cols { width: 40px; flex-shrink: 0; }
+                .heatmap-grid-core { display: flex; gap: 12px; width: 100%; }
+                .day-labels { display: flex; flex-direction: column; justify-content: space-between; padding: 6px 0; height: auto; width: 40px; flex-shrink: 0; aspect-ratio: 0.25; }
+                .day-labels span { font-size: 11px; color: var(--text-muted); line-height: 1; margin-bottom: 4px; }
+                .weeks-container { display: flex; gap: 6px; flex: 1; width: 100%; }
+                .heatmap-column { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+                .heatmap-square { width: 100%; aspect-ratio: 1; border-radius: 3px; max-width: 25px; min-width: 8px; }
+                .heatmap-square.empty { visibility: hidden; }
+                .heatmap-footer { display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
+                .legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+                .legend .heatmap-square { width: 14px; height: 14px; }
+
+                /* Heatmap Details Panel */
+                .heatmap-details-panel { margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; animation: fadeIn 0.3s ease; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                .details-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+                .details-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+                .close-details { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+                .details-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+                .subject-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+                .subject-list li { font-size: 13px; color: var(--text-secondary); padding: 4px 8px; background: rgba(255,255,255,0.02); border-radius: 4px; }
+                .no-data { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+                /* Premium Predictor Card Styles */
+                .predictor-layout { display: grid; grid-template-columns: 300px 1fr; gap: 32px; padding: 20px; }
+                @media (max-width: 900px) { .predictor-layout { grid-template-columns: 1fr; } }
+                
+                .predictor-scoreboard { 
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+                    border: 1px solid var(--border-subtle);
+                    border-radius: 16px;
+                    padding: 24px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .score-item { text-align: center; }
+                .score-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 8px; }
+                .score-value { font-size: 42px; font-weight: 900; line-height: 1; }
+                .sgpa .score-value { color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+                .cgpa .score-value { color: #8b5cf6; text-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+                .score-divider { width: 40px; height: 2px; background: var(--border-subtle); border-radius: 2px; }
+                .score-footer { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+
+                .predictor-controls { display: flex; flex-direction: column; gap: 16px; }
+                .controls-header { display: flex; justify-content: space-between; padding: 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; }
+                .controls-labels { display: flex; gap: 50px; margin-right: 40px; }
+                .controls-scrollable { maxHeight: 320px; overflow-Y: auto; padding-right: 12px; display: flex; flex-direction: column; gap: 8px; }
+                
+                .subject-row { 
+                    display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;
+                    background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 10px;
+                    transition: all 0.2s ease;
+                }
+                .subject-row:hover { background: rgba(255,255,255,0.04); border-color: var(--accent-primary); transform: translateX(4px); }
+                .subj-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+                .subj-code { font-size: 11px; color: var(--text-muted); }
+                .subj-pickers { display: flex; gap: 12px; }
+                
+                .simulator-select {
+                    background: var(--bg-primary); border: 1px solid var(--border-subtle); color: var(--text-primary);
+                    padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; outline: none; cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                .simulator-select:hover { border-color: var(--text-secondary); background: var(--bg-secondary); }
+                .grade-select { min-width: 70px; text-align: center; }
+                .credit-select { color: var(--accent-primary); min-width: 100px; }
                 .insight-icon { color: var(--accent-primary); flex-shrink: 0; }
                 .insight-label { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
                 .insight-value { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
