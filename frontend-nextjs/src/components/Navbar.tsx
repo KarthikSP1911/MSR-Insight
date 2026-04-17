@@ -21,6 +21,7 @@ const Navbar: React.FC<NavbarProps> = ({
   setInboxOpen,
   notificationCount
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -56,19 +57,25 @@ const Navbar: React.FC<NavbarProps> = ({
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
       <div className="container navbar-container">
         <div className="nav-logo">
           {isProcteeDetailsView ? (
             <Link
               href={`/proctor/${proctorId}/dashboard`}
               className="navbar-back-link"
+              onClick={() => setIsMenuOpen(false)}
             >
               
               <span>&lt;--  Back</span>
             </Link>
           ) : (
-            <Link href="/" className="logo-link flex items-center gap-2" aria-label="Go to Smart Report home">
+            <Link 
+              href="/" 
+              className="logo-link flex items-center gap-2" 
+              aria-label="Go to Smart Report home"
+              onClick={() => setIsMenuOpen(false)}
+            >
                 <Image
                   src="/logo-icon.svg"
                   alt="Smart Report logo"
@@ -89,13 +96,33 @@ const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        <div className="nav-actions">
+        <button 
+          className="menu-toggle" 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Toggle navigation menu"
+        >
+          <div className={`hamburger ${isMenuOpen ? 'open' : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </button>
+
+        <div className={`nav-actions ${isMenuOpen ? 'show' : ''}`}>
           {(isHome || isAuthPage) && !isReportPage && !isAdminPage && (
             <div className="auth-links">
-              <Link href="/student-login" className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}>
+              <Link 
+                href="/student-login" 
+                className={`nav-link ${isActive('/student-login') ? 'active' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Student Login
               </Link>
-              <Link href="/proctor-login" className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}>
+              <Link 
+                href="/proctor-login" 
+                className={`nav-link ${isActive('/proctor-login') ? 'active' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
                 Proctor Login
               </Link>
             </div>
@@ -141,12 +168,22 @@ const Navbar: React.FC<NavbarProps> = ({
                 <span className="meta-value">{studentUsn}</span>
               </div>
               <div className="divider"></div>
-              <button onClick={handleLogout} className="logout-btn">
+              <button 
+                onClick={() => {
+                  handleLogout();
+                  setIsMenuOpen(false);
+                }} 
+                className="logout-btn"
+              >
                 Logout
               </button>
             </div>
           )}
         </div>
+
+        {isMenuOpen && (
+          <div className="mobile-overlay" onClick={() => setIsMenuOpen(false)}></div>
+        )}
       </div>
 
       <style jsx>{`
@@ -400,6 +437,139 @@ const Navbar: React.FC<NavbarProps> = ({
         .logout-btn:hover {
           background: rgba(239, 68, 68, 0.2);
           border-color: #EF4444;
+        }
+
+        .menu-toggle {
+          display: none;
+          background: none;
+          border: none;
+          padding: 8px;
+          cursor: pointer;
+          z-index: 101;
+        }
+
+        .hamburger {
+          width: 24px;
+          height: 18px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .hamburger span {
+          display: block;
+          width: 100%;
+          height: 2px;
+          background-color: #EDEDED;
+          border-radius: 2px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hamburger.open span:nth-child(1) {
+          transform: translateY(8px) rotate(45deg);
+        }
+
+        .hamburger.open span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .hamburger.open span:nth-child(3) {
+          transform: translateY(-8px) rotate(-45deg);
+        }
+
+        @media (max-width: 1024px) {
+          .navbar-container {
+            padding: 0 20px;
+          }
+          
+          .menu-toggle {
+            display: block;
+          }
+
+          .nav-actions {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            background: #0A0A0A;
+            border-left: 1px solid #1F1F1F;
+            flex-direction: column;
+            padding: 80px 24px 24px;
+            align-items: flex-start;
+            gap: 32px;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            margin-right: 0;
+          }
+
+          .nav-actions.show {
+            transform: translateX(0);
+          }
+
+          .auth-links, .proctor-actions, .student-actions {
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+            gap: 16px;
+          }
+
+          .nav-link {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+          }
+
+          .divider {
+            width: 100%;
+            height: 1px;
+            margin: 4px 0;
+          }
+
+          .setup-item, .user-meta {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .setup-dropdown-wrap {
+            width: 140px;
+          }
+
+          .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+          }
+
+          .logout-btn {
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+          }
+
+          .role-badge {
+            padding-left: 12px;
+            gap: 4px;
+          }
+          
+          .badge-label {
+            display: none;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .navbar-container {
+            padding: 0 16px;
+          }
+          
+          .role-badge {
+            border-left: none;
+            padding-left: 0;
+          }
         }
       `}</style>
     </nav>
