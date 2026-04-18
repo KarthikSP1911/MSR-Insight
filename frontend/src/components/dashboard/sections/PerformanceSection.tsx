@@ -28,7 +28,10 @@ const CHART_COLORS = [
     '#ec4899', '#3b82f6', '#14b8a6',
 ];
 
-import { RadialBarChart, RadialBar, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+    RadialBarChart, RadialBar, Tooltip, ResponsiveContainer, 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid 
+} from "recharts";
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -161,6 +164,34 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </div>
+
+                {/* CIE Marks Chart */}
+                <div className="chart-card">
+                    <div className="chart-header">
+                        <div>
+                            <h3 className="chart-title">Internal Marks (CIE)</h3>
+                            <p className="chart-subtitle">Subject-wise CIE scores out of 50</p>
+                        </div>
+                    </div>
+                    <div className="chart-body marks-chart-body">
+                        <ResponsiveContainer width="100%" height={380}>
+                            <BarChart data={currentSem.map((s: any, i: number) => ({ ...s, fill: CHART_COLORS[i % CHART_COLORS.length] }))} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.3} vertical={false} />
+                                <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
+                                <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                <Bar 
+                                    dataKey="marks" 
+                                    radius={[4, 4, 0, 0]} 
+                                    barSize={20} 
+                                    fill="var(--accent-primary)" 
+                                    onClick={(data: any) => data && onSelectSubject(data.payload)}
+                                    style={{ cursor: 'pointer' }}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
