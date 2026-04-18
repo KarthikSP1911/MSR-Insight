@@ -50,6 +50,7 @@ export default function StudentDashboard() {
     const [predictedGrades, setPredictedGrades] = useState<Record<string, string>>({});
     const [simulatedCredits, setSimulatedCredits] = useState<Record<string, number>>({});
     const [selectedHistoryIdx, setSelectedHistoryIdx] = useState<number>(0);
+    const [updateStatus, setUpdateStatus] = useState<'loading' | 'success' | 'error' | null>(null);
 
     const { formatTime, isCooldownActive } = useCooldown(nextAllowedAt);
 
@@ -201,6 +202,41 @@ export default function StudentDashboard() {
     const handleTabChange = (tab: string) => { setActiveTab(tab); setIsMobileMenuOpen(false); };
     const handleLogout = () => { localStorage.clear(); router.push("/"); };
 
+    const handleUpdate = async () => {
+        if (isCooldownActive) return;
+        const sessionId = localStorage.getItem("studentSessionId");
+        if (!sessionId || !stdUsn) return;
+
+        setUpdateStatus('loading');
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/report/update`, 
+                { usn: stdUsn },
+                { headers: { "x-session-id": sessionId } }
+            );
+
+            if (response.data.success && response.data.data) {
+                setStudent(response.data.data);
+                setUpdateStatus('success');
+                
+                const lastSync = response.data.data.details?.last_updated || response.data.data.last_updated;
+                if (lastSync) {
+                    const next = new Date(new Date(lastSync).getTime() + 30 * 60 * 1000).toISOString();
+                    setNextAllowedAt(next);
+                }
+            } else {
+                setUpdateStatus('error');
+            }
+        } catch (err: any) {
+            console.error("Manual update failed:", err);
+            setUpdateStatus('error');
+            if (err.response?.status === 429 && err.response?.data?.nextAllowedAt) {
+                setNextAllowedAt(err.response.data.nextAllowedAt);
+            }
+        } finally {
+            setTimeout(() => setUpdateStatus(null), 3000);
+        }
+    };
+
     if (!mounted || loading || !student) return null;
 
     return (
@@ -242,8 +278,11 @@ export default function StudentDashboard() {
                             {activeTab === 'performance' && (
                                 <PerformanceSection
                                     student={student} currentSem={currentSem} overallAttendance={overallAttendance} totalCredits={totalCredits}
-                                    maxCredits={maxCredits} currentCgpa={currentCgpa} onSelectSubject={setSelectedSubject} handleUpdate={() => { }}
-                                    updateStatus={null} isCooldownActive={isCooldownActive} formatTime={formatTime}
+                                    maxCredits={maxCredits} currentCgpa={currentCgpa} onSelectSubject={setSelectedSubject} handleUpdate={handleUpdate}
+                                    updateStatus={updateStatus} isCooldownActive={isCooldownActive} formatTime={formatTime}
+                                    examHistory={examHistory} latestSGPA={latestSGPA}
+                                    isImproved={latestSGPA >= prevSGPA}
+                                    sgpaDiff={(latestSGPA - prevSGPA >= 0 ? "+" : "") + (latestSGPA - prevSGPA).toFixed(2)}
                                 />
                             )}
                             {activeTab === 'analytics' && (

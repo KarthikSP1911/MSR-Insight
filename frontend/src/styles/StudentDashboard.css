@@ -665,6 +665,52 @@
     text-overflow: ellipsis;
 }
 
+/* Custom Tooltip Styling */
+.custom-chart-tooltip {
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.tooltip-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+    margin: 0 !important;
+}
+
+.tooltip-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 4px 0;
+    width: 100%;
+}
+
+.tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    gap: 12px;
+}
+
+.tooltip-label {
+    color: var(--text-muted) !important;
+}
+
+.tooltip-value {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
 .marks-chart-body {
     height: 380px;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Award, BookOpen, Layers, Calendar } from "lucide-react";
+import { Award, BookOpen, Layers, Calendar, TrendingUp } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { UpdateButton } from "@/components/dashboard/UpdateButton";
 
@@ -17,6 +17,10 @@ interface PerformanceSectionProps {
     updateStatus: 'loading' | 'success' | 'error' | null;
     isCooldownActive: boolean;
     formatTime: string;
+    examHistory: any[];
+    latestSGPA: number;
+    sgpaDiff: string;
+    isImproved: boolean;
 }
 
 const CHART_COLORS = [
@@ -25,6 +29,33 @@ const CHART_COLORS = [
 ];
 
 import { RadialBarChart, RadialBar, Tooltip, ResponsiveContainer } from "recharts";
+
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div className="custom-chart-tooltip">
+                <p className="tooltip-title">{data.name}</p>
+                <div className="tooltip-divider"></div>
+                <div className="tooltip-row">
+                    <span className="tooltip-label">Code</span>
+                    <span className="tooltip-value">{data.code}</span>
+                </div>
+                <div className="tooltip-row">
+                    <span className="tooltip-label">Attendance</span>
+                    <span className="tooltip-value" style={{ color: data.fill }}>{data.attendance}%</span>
+                </div>
+                {data.marks !== undefined && (
+                    <div className="tooltip-row">
+                        <span className="tooltip-label">CIE Marks</span>
+                        <span className="tooltip-value">{data.marks}/50</span>
+                    </div>
+                )}
+            </div>
+        );
+    }
+    return null;
+};
 
 const PerformanceSection: React.FC<PerformanceSectionProps> = ({
     student,
@@ -37,7 +68,11 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
     handleUpdate,
     updateStatus,
     isCooldownActive,
-    formatTime
+    formatTime,
+    examHistory,
+    latestSGPA,
+    sgpaDiff,
+    isImproved
 }) => {
     return (
         <div className="tab-content">
@@ -84,13 +119,22 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                 </div>
                 <div className="stat-card">
                     <div className="stat-header">
-                        <span className="stat-label">Overall Attendance</span>
-                        <Calendar size={18} />
+                        <span className="stat-label">Latest semester SGPA</span>
+                        <TrendingUp className="stat-icon" />
                     </div>
-                    <div className="stat-value">{overallAttendance}%</div>
-                    <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${overallAttendance}%`, backgroundColor: overallAttendance >= 75 ? 'var(--success)' : 'var(--error)' }}></div>
-                    </div>
+                    <div className="stat-value">{examHistory.length > 0 ? latestSGPA : "—"}</div>
+                    {examHistory.length > 1 ? (
+                        <div className={`trend-badge ${isImproved ? 'positive' : 'negative'}`}>
+                            {isImproved ? <TrendingUp size={14} /> : <TrendingUp size={14} style={{ transform: 'rotate(180deg)' }} />}
+                            {sgpaDiff} vs previous
+                        </div>
+                    ) : (
+                        <p className="stat-footnote">
+                            {examHistory.length === 1
+                                ? "Compares once more history is available"
+                                : "No semester results in history yet"}
+                        </p>
+                    )}
                 </div>
             </div>
 
@@ -105,7 +149,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                             <ResponsiveContainer width="100%" height={380}>
                                 <RadialBarChart cx="50%" cy="50%" innerRadius="25%" outerRadius="100%" barSize={12} data={currentSem.map((s: any, i: number) => ({ ...s, fill: CHART_COLORS[i % CHART_COLORS.length] }))}>
                                     <RadialBar background={{ fill: 'rgba(255,255,255,0.03)' }} dataKey="attendance" cornerRadius={20} onClick={(d: any) => onSelectSubject(d.payload)} />
-                                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px' }} formatter={(val: any, name: any, props: any) => [`${val}%`, props.payload.name]} />
+                                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                 </RadialBarChart>
                             </ResponsiveContainer>
                         </div>
