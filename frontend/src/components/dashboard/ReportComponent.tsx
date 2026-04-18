@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
-import TiptapEditor from '@/components/Editor';
+import TiptapEditor from '@/components/dashboard/Editor';
 import { API_BASE_URL } from '@/config/api.config';
 import "@/styles/Report.css";
 

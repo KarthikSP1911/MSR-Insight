@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
-import DOBSelector from "@/components/DOBSelector";
+import DOBSelector from "@/components/dashboard/DOBSelector";
 import "@/styles/AdminPanel.css";
 
 /* ─── Toast Component ─── */
