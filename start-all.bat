@@ -8,7 +8,7 @@ echo Starting Express Backend...
 start "Express Backend" cmd /k "cd /d %ROOT%backend\express && node server.js"
 
 echo Starting Frontend...
-start "Frontend" cmd /k "cd /d %ROOT%frontend-nextjs && npm run dev"
+start "Frontend" cmd /k "cd /d %ROOT%frontend && npm run dev"
 
 echo All servers started!
 pause
