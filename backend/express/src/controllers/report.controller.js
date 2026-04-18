@@ -11,7 +11,7 @@ const generateReport = async (req, res, next) => {
     try {
         const usn = req.params.usn?.toUpperCase();
         console.log(`[ReportController] Request for USN: ${usn}`);
-        
+
         if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
         const dashboardData = await studentService.getStudentDashboard(usn);
@@ -23,7 +23,7 @@ const generateReport = async (req, res, next) => {
         // Robustly find the subjects array. 
         // It could be in student.details.subjects OR student.subjects if we change the schema.
         let reportInputData = null;
-        
+
         if (dashboardData.details && Array.isArray(dashboardData.details.subjects)) {
             reportInputData = dashboardData.details;
         } else if (Array.isArray(dashboardData.subjects)) {
@@ -44,14 +44,14 @@ const generateReport = async (req, res, next) => {
 
         if (!reportInputData || !reportInputData.subjects || reportInputData.subjects.length === 0) {
             console.warn(`[ReportController] No academic data available for ${usn}. Triggering scrape might be needed.`);
-            return res.status(400).json({ 
-                success: false, 
-                message: "This student has no academic records available to generate AI remarks. Please update student data first." 
+            return res.status(400).json({
+                success: false,
+                message: "This student has no academic records available to generate AI remarks. Please update student data first."
             });
         }
 
         console.log(`[ReportController] Calling AI service for ${usn} with ${reportInputData.subjects.length} subjects`);
-        
+
         try {
             const data = await getRemarkByUSN(usn, reportInputData);
             return res.status(200).json({
@@ -106,7 +106,7 @@ const getStudentDashboardReport = async (req, res, next) => {
 
         try {
             await triggerScrape(usn, user.dob);
-            
+
             // Fetch fresh data
             dashboardData = await studentService.getStudentDashboard(usn);
             if (dashboardData && dashboardData.details) {
@@ -118,8 +118,8 @@ const getStudentDashboardReport = async (req, res, next) => {
             }
         } catch (scrapeError) {
             console.error(`[ReportController] Scrape failed for ${usn}:`, scrapeError.message);
-            return res.status(502).json({ 
-                success: false, 
+            return res.status(502).json({
+                success: false,
                 message: "Could not retrieve academic data from the college portal. Please check your credentials.",
                 error: scrapeError.message
             });
@@ -128,8 +128,8 @@ const getStudentDashboardReport = async (req, res, next) => {
         return res.status(502).json({ success: false, message: "Data could not be retrieved from the scraper session." });
     } catch (error) {
         console.error(`[ReportController] Dashboard Error for ${req.params.usn}:`, error.message);
-        return res.status(500).json({ 
-            success: false, 
+        return res.status(500).json({
+            success: false,
             message: "Internal server error occurred while fetching dashboard data.",
             error: error.message
         });
@@ -150,7 +150,7 @@ const triggerReportUpdate = async (req, res, next) => {
         // Cooldown check (30 minutes = 1800000ms)
         const COOLDOWN_MS = 30 * 60 * 1000;
         const lastSyncStr = student.details?.last_updated;
-        
+
         if (lastSyncStr) {
             const lastSync = new Date(lastSyncStr).getTime();
             const now = Date.now();
