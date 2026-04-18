@@ -21,6 +21,24 @@ interface AnalyticsSectionProps {
     sgpaTrendData: any[];
 }
 
+const AnalyticsTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="custom-chart-tooltip">
+                <p className="tooltip-title">{label}</p>
+                <div className="tooltip-divider"></div>
+                {payload.map((item: any, index: number) => (
+                    <div key={index} className="tooltip-row">
+                        <span className="tooltip-label">{item.name}</span>
+                        <span className="tooltip-value" style={{ color: item.color || item.fill }}>{item.value}</span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
+
 const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
     studentName,
     internalComparisonData,
@@ -51,10 +69,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="code" stroke="#64748b" tick={{ fontSize: 12 }} />
                                 <YAxis domain={[0, 50]} stroke="#64748b" tick={{ fontSize: 12 }} />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }} 
-                                    cursor={false}
-                                />
+                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                 <Legend verticalAlign="top" height={40} />
                                 <Bar dataKey="studentScore" name="Your Score" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} barSize={24} />
                                 <Bar dataKey="classAverage" name="Class Average" fill="#475569" radius={[4, 4, 0, 0]} barSize={24} />
@@ -69,11 +84,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={gradeChartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis dataKey="grade" stroke="#64748b" /><YAxis stroke="#64748b" />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px' }} 
-                                    cursor={false}
-                                />
+                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>{gradeChartData.map((e, i) => <Cell key={i} fill={e.color} />)}</Bar>
                             </BarChart>
                         </ResponsiveContainer>
@@ -88,11 +99,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                 <XAxis dataKey="name" stroke="#64748b" />
                                 <YAxis yAxisId="left" stroke="#64748b" />
-                                <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" domain={[0, 10]} />
-                                <Tooltip 
-                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '12px' }} 
-                                    cursor={false}
-                                />
+                                <Tooltip content={<AnalyticsTooltip />} />
                                 <Legend verticalAlign="top" height={36} />
                                 <Bar yAxisId="left" dataKey="credits" fill="rgba(16, 185, 129, 0.2)" radius={[4, 4, 0, 0]} name="Credits Earned" />
                                 <Line yAxisId="right" type="monotone" dataKey="sgpa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="SGPA" />
