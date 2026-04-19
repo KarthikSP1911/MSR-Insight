@@ -438,8 +438,9 @@
 .chart-header {
     margin-bottom: 24px;
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .chart-title {
@@ -756,6 +757,7 @@
 /* Tabs */
 .tab-content {
     animation: fadeIn 0.3s ease;
+    
 }
 
 @keyframes fadeIn {
@@ -1312,11 +1314,11 @@
 }
 
 .section-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-size: 32px;
+    font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
 }
 
 .section-subtitle {
@@ -1865,7 +1867,7 @@
 .details-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .close-details { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
 .details-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.heatmap-details-panel .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
 .subject-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .subject-list li { font-size: 13px; color: var(--text-secondary); padding: 4px 8px; background: rgba(255,255,255,0.02); border-radius: 4px; }
 .no-data { font-size: 12px; color: var(--text-muted); font-style: italic; }
@@ -1993,4 +1995,4 @@
     .heatmap-square {
         min-width: 10px;
     }
-}
+}
