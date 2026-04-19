@@ -33,11 +33,11 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid 
 } from "recharts";
 
-const CustomTooltip = ({ active, payload }: any) => {
+const AttendanceTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="custom-chart-tooltip">
+            <div className="custom-chart-tooltip" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                 <p className="tooltip-title">{data.name}</p>
                 <div className="tooltip-divider"></div>
                 <div className="tooltip-row">
@@ -46,14 +46,29 @@ const CustomTooltip = ({ active, payload }: any) => {
                 </div>
                 <div className="tooltip-row">
                     <span className="tooltip-label">Attendance</span>
-                    <span className="tooltip-value" style={{ color: data.fill }}>{data.attendance}%</span>
+                    <span className="tooltip-value" style={{ color: data.fill || 'var(--accent-primary)' }}>{data.attendance}%</span>
                 </div>
-                {data.marks !== undefined && (
-                    <div className="tooltip-row">
-                        <span className="tooltip-label">CIE Marks</span>
-                        <span className="tooltip-value">{data.marks}/50</span>
-                    </div>
-                )}
+            </div>
+        );
+    }
+    return null;
+};
+
+const MarksTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div className="custom-chart-tooltip" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                <p className="tooltip-title">{data.name}</p>
+                <div className="tooltip-divider"></div>
+                <div className="tooltip-row">
+                    <span className="tooltip-label">Code</span>
+                    <span className="tooltip-value">{data.code}</span>
+                </div>
+                <div className="tooltip-row">
+                    <span className="tooltip-label">Internal Marks</span>
+                    <span className="tooltip-value" style={{ color: 'var(--accent-primary)' }}>{data.marks} / 50</span>
+                </div>
             </div>
         );
     }
@@ -144,15 +159,15 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 <div className="chart-card">
                     <div className="chart-header">
-                        <h3 className="chart-title">Academic Rhythm</h3>
-                        <p className="chart-subtitle">Attendance vs Marks Distribution</p>
+                        <h3 className="chart-title">Attendence Overview</h3>
+                        <p className="chart-subtitle">Subject-wise attendance distribution</p>
                     </div>
                     <div className="chart-body attendance-chart-body">
                         <div className="chart-container">
                             <ResponsiveContainer width="100%" height={380}>
                                 <RadialBarChart cx="50%" cy="50%" innerRadius="25%" outerRadius="100%" barSize={12} data={currentSem.map((s: any, i: number) => ({ ...s, fill: CHART_COLORS[i % CHART_COLORS.length] }))}>
-                                    <RadialBar background={{ fill: 'rgba(255,255,255,0.03)' }} dataKey="attendance" cornerRadius={20} onClick={(d: any) => onSelectSubject(d.payload)} />
-                                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                    <RadialBar background={{ fill: 'var(--bg-primary)' }} dataKey="attendance" cornerRadius={20} onClick={(d: any) => onSelectSubject(d.payload)} />
+                                    <Tooltip content={<AttendanceTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
                                 </RadialBarChart>
                             </ResponsiveContainer>
                         </div>
@@ -167,7 +182,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     </div>
                 </div>
 
-                {/* CIE Marks Chart */}
+               
                 <div className="chart-card">
                     <div className="chart-header">
                         <div>
@@ -177,11 +192,11 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     </div>
                     <div className="chart-body marks-chart-body">
                         <ResponsiveContainer width="100%" height={380}>
-                            <BarChart data={currentSem.map((s: any, i: number) => ({ ...s, fill: CHART_COLORS[i % CHART_COLORS.length] }))} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
+                            <BarChart data={currentSem} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.3} vertical={false} />
-                                <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="name" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
                                 <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                <Tooltip content={<MarksTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
                                 <Bar 
                                     dataKey="marks" 
                                     radius={[4, 4, 0, 0]} 
