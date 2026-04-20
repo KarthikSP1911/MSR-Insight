@@ -144,6 +144,51 @@
   border-bottom-left-radius: 2px;
 }
 
+/* Styled elements inside bot messages */
+.chatbot-message.bot strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.chatbot-message.bot .chat-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
+
+.chatbot-message.bot .chat-section-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  border-left: 2px solid var(--accent-primary);
+  padding-left: 6px;
+}
+
+.chatbot-message.bot .chat-bullet {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  padding-left: 14px;
+  margin-bottom: 3px;
+  line-height: 1.5;
+}
+
+.chatbot-message.bot .chat-line {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.chatbot-message.bot .chat-spacer {
+  height: 6px;
+}
+
 .chatbot-input-area {
   padding: 1.25rem;
   border-top: 1px solid var(--border-subtle);

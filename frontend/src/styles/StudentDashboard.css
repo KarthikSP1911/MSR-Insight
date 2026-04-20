@@ -1575,10 +1575,11 @@
     grid-template-columns: 280px 1fr; 
     gap: 48px; 
     padding: 8px; 
+    align-items: center; /* Vertically center the scoreboard relative to controls */
 }
 
 @media (max-width: 1024px) { 
-    .predictor-layout { grid-template-columns: 1fr; gap: 32px; } 
+    .predictor-layout { grid-template-columns: 1fr; gap: 32px; align-items: stretch; } 
 }
 
 .predictor-scoreboard { 

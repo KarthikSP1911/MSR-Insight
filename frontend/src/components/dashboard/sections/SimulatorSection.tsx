@@ -82,20 +82,18 @@ const SimulatorSection: React.FC<SimulatorSectionProps> = ({
 
         const now = new Date();
         const sixMonthsAgo = now.getTime() - (180 * 86400000);
-        const minTime = allTimepoints.length ? Math.min(...allTimepoints, sixMonthsAgo) : sixMonthsAgo;
-        const maxTime = allTimepoints.length ? Math.max(...allTimepoints, now.getTime()) : now.getTime();
+        const minTime = allTimepoints.length ? Math.min(...allTimepoints) : sixMonthsAgo;
         
         const startDate = new Date(minTime);
+        startDate.setDate(1); // Start from the 1st of the month data begins
         const startDay = startDate.getDay();
-        // Shift to Monday (1): if Sun (0), go back 6 days. Else go back (startDay - 1) days.
         const diffToMon = startDay === 0 ? 6 : startDay - 1;
         startDate.setDate(startDate.getDate() - diffToMon);
         
-        const endDate = new Date(maxTime);
-        const endDay = endDate.getDay();
-        // Shift to Sunday (0): if Mon-Sat (1-6), go forward (7 - endDay). Else already Sun.
-        const diffToSun = endDay === 0 ? 0 : 7 - endDay;
-        endDate.setDate(endDate.getDate() + diffToSun);
+        // To "fill the screen" as requested, we'll show exactly 24 weeks (approx 6 months) 
+        // starting from our calculated startDate.
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + (24 * 7)); 
 
         const calculatedWeeks: any[] = [];
         let currentWeek: any[] = [];
@@ -194,7 +192,7 @@ const SimulatorSection: React.FC<SimulatorSectionProps> = ({
                                                         onChange={(e) => setSimulatedCredits({...simulatedCredits, [subj.code]: parseInt(e.target.value)})}
                                                         className="simulator-select credit-select"
                                                     >
-                                                        {[1,2,3,4,5,6,7,8,9,10].map(c => <option key={c} value={c}>{c}</option>)}
+                                                        {[0,1,2,3,4,5].map(c => <option key={c} value={c}>{c}</option>)}
                                                     </select>
                                                     <select 
                                                         value={currentGrade} 

@@ -249,58 +249,79 @@ class ProctorController {
         const subjects = Array.isArray(details.subjects) ? details.subjects :
                          Array.isArray(details.current_semester) ? details.current_semester : [];
 
-        // Encode each subject: Name:att%,TotalMarks,T1,T2,T3,T4,AQ1,AQ2,AQ3
+        // Encode each subject more clearly for Local SLMs (Small Language Models)
         const subjectData = subjects.map(subj => {
           const att = parseFloat(String(subj.attendance ?? subj.attendance_details?.percentage ?? '').replace('%','').trim());
           const totalMarks = subj.marks ?? '-';
           const a = (subj.assessments || []).reduce((acc, x) => { acc[x.type] = x.obtained_marks ?? '-'; return acc; }, {});
           const shortName = (subj.name || subj.code || '?').slice(0, 22);
-          return `${shortName}:${isNaN(att)?'N/A':att}%,M=${totalMarks},T1=${a.T1??'-'},T2=${a.T2??'-'},T3=${a.T3??'-'},T4=${a.T4??'-'},AQ1=${a.AQ1??'-'},AQ2=${a.AQ2??'-'},AQ3=${a.AQ3??'-'}`;
-        }).join(' | ');
+          
+          return `[Subj: ${shortName} | Att: ${isNaN(att)?'N/A':att}% | TotalMarks: ${totalMarks} | T1=${a.T1??'-'} T2=${a.T2??'-'} AQ1=${a.AQ1??'-'} AQ2=${a.AQ2??'-'}]`;
+        }).join('\n    ');
 
         // Semester-wise CGPA history
         const examHistory = Array.isArray(details.exam_history)
-          ? details.exam_history.map(e => `${e.semester||e.sem||'?'}:${e.sgpa||e.cgpa||'N/A'}`).join(',')
+          ? details.exam_history.map(e => `Sem${e.semester||e.sem||'?'}:${e.sgpa||e.cgpa||'N/A'}`).join(', ')
           : 'N/A';
 
         const cgpa = details.cgpa || 'N/A';
         const classInfo = (details.class_details || '').slice(0, 30);
 
         return [
-          `STUDENT:${s.name}|USN:${s.usn}|Year:${s.current_year||'N/A'}|Class:${classInfo}`,
-          `  Contact:Ph=${s.phone||'N/A'},Em=${s.email||'N/A'},DOB=${s.dob||'N/A'}`,
-          `  CGPA:${cgpa}|SemHistory:${examHistory}`,
-          `  Subjects:${subjectData}`
+          `--- STUDENT RECORD: ${s.name} ---`,
+          `  USN: ${s.usn} | Year: ${s.current_year||'N/A'} | Class: ${classInfo}`,
+          `  Contact: Phone=${s.phone||'N/A'}, Email=${s.email||'N/A'}`,
+          `  Overall CGPA: ${cgpa} | Previous Sems: ${examHistory}`,
+          `  Subject Details:`,
+          `    ${subjectData}`
         ].join('\n');
       });
 
       const studentContexttext = studentLines.length > 0
-        ? studentLines.join('\n---\n')
+        ? studentLines.join('\n\n')
         : 'No students assigned.';
 
-      // 3. Initialize Gemini
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      // 4. Query-specific prompt — answer ONLY what was asked
+      const consolidatedPrompt = `You are "Insight AI", a concise academic assistant for a college proctor.
 
-      // 4. Compact but complete prompt
-      const consolidatedPrompt = `You are an academic assistant in a proctor dashboard. Answer ONLY from the student records below. No SQL, no generic explanations.
-Subject format: Name:Attendance%,TotalMarks,T1=CIE1,T2=CIE2,T3=CIE3,T4=CIE4,AQ1,AQ2,AQ3. "-" means not yet conducted. CIE marks are out of 30.
-Also available: contact info, DOB, CGPA, per-semester SGPA history.
+RULES:
+1. NEVER use markdown tables.
+2. Use **bold** for student name only. Use "- " for bullet list items.
+3. For section headers (CGPA, Attendance, Marks etc), write as "- SectionName:" (ending with colon).
+4. ANSWER ONLY WHAT WAS ASKED. Follow these rules precisely:
+   - "marks" or "CIE": show ONLY test marks (T1, T2, AQ1, AQ2) per subject.
+   - "attendance": show ONLY attendance % per subject.
+   - "CGPA": show ONLY CGPA and semester history.
+   - "analysis" or "detailed performance": show full breakdown (CGPA, all subjects, marks, attendance, observations).
+   - "performing" or "how is" or "tell me about [student]": give a SHORT SUMMARY using 5-6 bullets max:
+     * CGPA
+     * Average attendance (mention if any subject is below 75%)
+     * Best performing subject (highest T1)
+     * Any concern (0% attendance or 0 marks subjects)
+     * 1-line overall verdict
+   - Simple greetings: reply conversationally, no student data.
+5. DECLINE general knowledge or non-academic questions.
+6. T1, T2 = Internal CIE exam marks (out of 30). AQ1, AQ2 = Assignment marks.
 
 STUDENT RECORDS:
 ${studentContexttext}
 
-QUESTION: ${message}
-Answer concisely. Use student names clearly.`;
+USER MESSAGE: ${message}
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [{ role: 'user', parts: [{ text: consolidatedPrompt }] }]
+YOUR REPLY:`;
+
+      // Importing axios using dynamic import to support ES Modules
+      const { default: axios } = await import('axios');
+      
+      const response = await axios.post(process.env.OLLAMA_API_URL, {
+        model: 'gemma4:e2b', // Using the exact tag from your Ollama models list
+        prompt: consolidatedPrompt,
+        stream: false
       });
 
       return res.status(200).json({
         success: true,
-        data: { text: response.text }
+        data: { text: response.data.response }
       });
 
     } catch (error) {
