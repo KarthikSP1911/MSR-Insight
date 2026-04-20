@@ -7,6 +7,7 @@ import { API_BASE_URL } from "@/config/api.config";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import { useAppContext } from "@/lib/AppContext";
 import "@/styles/ProctorDashboard.css";
+import ProctorChatbot from "@/components/dashboard/ProctorChatbot";
 
 /**
  * ProctorDashboard: Displays the list of students assigned to a proctor.
@@ -241,6 +242,7 @@ export default function ProctorDashboard() {
                     </div>
                 )}
             </div>
+            <ProctorChatbot proctorId={proctorId} />
         </div>
     );
 }
