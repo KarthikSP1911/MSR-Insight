@@ -147,8 +147,8 @@ const triggerReportUpdate = async (req, res, next) => {
         const student = await studentService.getStudentDashboard(usn);
         if (!student) return res.status(404).json({ success: false, message: "Student record not found" });
 
-        // Cooldown check (30 minutes = 1800000ms)
-        const COOLDOWN_MS = 30 * 60 * 1000;
+        // Cooldown check (5 minutes = 300000ms)
+        const COOLDOWN_MS = 5 * 60 * 1000;
         const lastSyncStr = student.details?.last_updated;
 
         if (lastSyncStr) {

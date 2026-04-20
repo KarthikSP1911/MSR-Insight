@@ -210,6 +210,104 @@ class ProctorController {
       return res.status(200).json({ success: true, data: [] }); // safe fallback
     }
   }
+
+  async handleChat(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const { message, academicYear = "2027" } = req.body;
+      const normalizedProctorId = proctorId.toUpperCase();
+
+      if (!message) {
+        return res.status(400).json({ success: false, message: "Message is required." });
+      }
+
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ success: false, message: "Gemini API Key is not configured." });
+      }
+
+      // 1. Fetch assigned students
+      const students = await prisma.student.findMany({
+        where: {
+          proctor_maps: {
+            some: {
+              proctor_id: normalizedProctorId,
+              academic_year: academicYear
+            }
+          }
+        },
+        select: { usn: true, name: true, phone: true, email: true, dob: true, current_year: true, details: true }
+      });
+
+      // 2. Build a rich but compact data structure — full info, minimal tokens
+      const studentLines = students.map(s => {
+        let details = s.details;
+        if (typeof details === 'string') {
+          try { details = JSON.parse(details); } catch(e) { details = {}; }
+        }
+        if (details.details && typeof details.details === 'object') details = details.details;
+
+        const subjects = Array.isArray(details.subjects) ? details.subjects :
+                         Array.isArray(details.current_semester) ? details.current_semester : [];
+
+        // Encode each subject: Name:att%,TotalMarks,T1,T2,T3,T4,AQ1,AQ2,AQ3
+        const subjectData = subjects.map(subj => {
+          const att = parseFloat(String(subj.attendance ?? subj.attendance_details?.percentage ?? '').replace('%','').trim());
+          const totalMarks = subj.marks ?? '-';
+          const a = (subj.assessments || []).reduce((acc, x) => { acc[x.type] = x.obtained_marks ?? '-'; return acc; }, {});
+          const shortName = (subj.name || subj.code || '?').slice(0, 22);
+          return `${shortName}:${isNaN(att)?'N/A':att}%,M=${totalMarks},T1=${a.T1??'-'},T2=${a.T2??'-'},T3=${a.T3??'-'},T4=${a.T4??'-'},AQ1=${a.AQ1??'-'},AQ2=${a.AQ2??'-'},AQ3=${a.AQ3??'-'}`;
+        }).join(' | ');
+
+        // Semester-wise CGPA history
+        const examHistory = Array.isArray(details.exam_history)
+          ? details.exam_history.map(e => `${e.semester||e.sem||'?'}:${e.sgpa||e.cgpa||'N/A'}`).join(',')
+          : 'N/A';
+
+        const cgpa = details.cgpa || 'N/A';
+        const classInfo = (details.class_details || '').slice(0, 30);
+
+        return [
+          `STUDENT:${s.name}|USN:${s.usn}|Year:${s.current_year||'N/A'}|Class:${classInfo}`,
+          `  Contact:Ph=${s.phone||'N/A'},Em=${s.email||'N/A'},DOB=${s.dob||'N/A'}`,
+          `  CGPA:${cgpa}|SemHistory:${examHistory}`,
+          `  Subjects:${subjectData}`
+        ].join('\n');
+      });
+
+      const studentContexttext = studentLines.length > 0
+        ? studentLines.join('\n---\n')
+        : 'No students assigned.';
+
+      // 3. Initialize Gemini
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+      // 4. Compact but complete prompt
+      const consolidatedPrompt = `You are an academic assistant in a proctor dashboard. Answer ONLY from the student records below. No SQL, no generic explanations.
+Subject format: Name:Attendance%,TotalMarks,T1=CIE1,T2=CIE2,T3=CIE3,T4=CIE4,AQ1,AQ2,AQ3. "-" means not yet conducted. CIE marks are out of 30.
+Also available: contact info, DOB, CGPA, per-semester SGPA history.
+
+STUDENT RECORDS:
+${studentContexttext}
+
+QUESTION: ${message}
+Answer concisely. Use student names clearly.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: [{ text: consolidatedPrompt }] }]
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { text: response.text }
+      });
+
+    } catch (error) {
+      console.error("[Proctor Chat] Error:", error.message);
+      return res.status(500).json({ success: false, message: "Failed to generate AI response." });
+    }
+  }
 }
 
 export default new ProctorController();
