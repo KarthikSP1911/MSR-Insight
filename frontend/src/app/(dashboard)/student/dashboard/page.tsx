@@ -21,6 +21,8 @@ import PerformanceSection from "@/components/dashboard/sections/PerformanceSecti
 import AnalyticsSection from "@/components/dashboard/sections/AnalyticsSection";
 import HistorySection from "@/components/dashboard/sections/HistorySection";
 import SimulatorSection from "@/components/dashboard/sections/SimulatorSection";
+import LoadingScreen from "@/components/dashboard/LoadingScreen";
+
 
 const GRADE_COLORS: Record<string, string> = {
     'O': '#8b5cf6',
@@ -164,9 +166,10 @@ export default function StudentDashboard() {
 
                     const lastSync = data.details?.last_updated || data.last_updated;
                     if (lastSync) {
-                        const next = new Date(new Date(lastSync).getTime() + 30 * 60 * 1000).toISOString();
+                        const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
                         setNextAllowedAt(next);
                     }
+
                 } else {
                     // If success is false or no data, redirect to login
                     localStorage.clear();
@@ -220,9 +223,10 @@ export default function StudentDashboard() {
                 
                 const lastSync = response.data.data.details?.last_updated || response.data.data.last_updated;
                 if (lastSync) {
-                    const next = new Date(new Date(lastSync).getTime() + 30 * 60 * 1000).toISOString();
+                    const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
                     setNextAllowedAt(next);
                 }
+
             } else {
                 setUpdateStatus('error');
             }
@@ -237,7 +241,8 @@ export default function StudentDashboard() {
         }
     };
 
-    if (!mounted || loading || !student) return null;
+    if (!mounted || loading || !student) return <LoadingScreen />;
+
 
     return (
         <div className="student-dashboard-container">

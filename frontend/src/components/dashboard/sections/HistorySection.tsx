@@ -69,14 +69,14 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                 <div className="history-grid">
                     {reversedHistory.map((sem: any, idx: number) => (
                         <div key={idx} className={`chart-card history-card ${selectedHistoryIdx === idx ? 'mobile-show' : 'mobile-hide'}`}>
-                            <div className="chart-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div className="chart-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                 <div>
                                     <span className="pill" style={{ marginBottom: '8px', display: 'inline-block' }}>Semester {examHistory.length - idx}</span>
-                                    <h3 className="chart-title">{sem.semester}</h3>
+                                    <h3 className="chart-title" style={{ margin: 0 }}>{sem.semester}</h3>
                                 </div>
-                                <div className="history-sgpa-badge" style={{ textAlign: 'right' }}>
+                                <div className="history-sgpa-badge" style={{ textAlign: 'right', flexShrink: 0 }}>
                                     <div className="stat-label" style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>SGPA</div>
-                                    <div className="stat-value" style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-primary)' }}>{sem.sgpa}</div>
+                                    <div className="stat-value" style={{ fontSize: '24px', fontWeight: '800', color: 'var(--accent-primary)', lineHeight: 1 }}>{sem.sgpa}</div>
                                 </div>
                             </div>
                             <div className="dashboard-table-container">

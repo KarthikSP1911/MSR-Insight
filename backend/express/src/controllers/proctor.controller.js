@@ -210,6 +210,125 @@ class ProctorController {
       return res.status(200).json({ success: true, data: [] }); // safe fallback
     }
   }
+
+  async handleChat(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const { message, academicYear = "2027" } = req.body;
+      const normalizedProctorId = proctorId.toUpperCase();
+
+      if (!message) {
+        return res.status(400).json({ success: false, message: "Message is required." });
+      }
+
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ success: false, message: "Gemini API Key is not configured." });
+      }
+
+      // 1. Fetch assigned students
+      const students = await prisma.student.findMany({
+        where: {
+          proctor_maps: {
+            some: {
+              proctor_id: normalizedProctorId,
+              academic_year: academicYear
+            }
+          }
+        },
+        select: { usn: true, name: true, phone: true, email: true, dob: true, current_year: true, details: true }
+      });
+
+      // 2. Build a rich but compact data structure — full info, minimal tokens
+      const studentLines = students.map(s => {
+        let details = s.details;
+        if (typeof details === 'string') {
+          try { details = JSON.parse(details); } catch(e) { details = {}; }
+        }
+        if (details.details && typeof details.details === 'object') details = details.details;
+
+        const subjects = Array.isArray(details.subjects) ? details.subjects :
+                         Array.isArray(details.current_semester) ? details.current_semester : [];
+
+        // Encode each subject more clearly for Local SLMs (Small Language Models)
+        const subjectData = subjects.map(subj => {
+          const att = parseFloat(String(subj.attendance ?? subj.attendance_details?.percentage ?? '').replace('%','').trim());
+          const totalMarks = subj.marks ?? '-';
+          const a = (subj.assessments || []).reduce((acc, x) => { acc[x.type] = x.obtained_marks ?? '-'; return acc; }, {});
+          const shortName = (subj.name || subj.code || '?').slice(0, 22);
+          
+          return `[Subj: ${shortName} | Att: ${isNaN(att)?'N/A':att}% | TotalMarks: ${totalMarks} | T1=${a.T1??'-'} T2=${a.T2??'-'} AQ1=${a.AQ1??'-'} AQ2=${a.AQ2??'-'}]`;
+        }).join('\n    ');
+
+        // Semester-wise CGPA history
+        const examHistory = Array.isArray(details.exam_history)
+          ? details.exam_history.map(e => `Sem${e.semester||e.sem||'?'}:${e.sgpa||e.cgpa||'N/A'}`).join(', ')
+          : 'N/A';
+
+        const cgpa = details.cgpa || 'N/A';
+        const classInfo = (details.class_details || '').slice(0, 30);
+
+        return [
+          `--- STUDENT RECORD: ${s.name} ---`,
+          `  USN: ${s.usn} | Year: ${s.current_year||'N/A'} | Class: ${classInfo}`,
+          `  Contact: Phone=${s.phone||'N/A'}, Email=${s.email||'N/A'}`,
+          `  Overall CGPA: ${cgpa} | Previous Sems: ${examHistory}`,
+          `  Subject Details:`,
+          `    ${subjectData}`
+        ].join('\n');
+      });
+
+      const studentContexttext = studentLines.length > 0
+        ? studentLines.join('\n\n')
+        : 'No students assigned.';
+
+      // 4. Query-specific prompt — answer ONLY what was asked
+      const consolidatedPrompt = `You are "Insight AI", a concise academic assistant for a college proctor.
+
+RULES:
+1. NEVER use markdown tables.
+2. Use **bold** for student name only. Use "- " for bullet list items.
+3. For section headers (CGPA, Attendance, Marks etc), write as "- SectionName:" (ending with colon).
+4. ANSWER ONLY WHAT WAS ASKED. Follow these rules precisely:
+   - "marks" or "CIE": show ONLY test marks (T1, T2, AQ1, AQ2) per subject.
+   - "attendance": show ONLY attendance % per subject.
+   - "CGPA": show ONLY CGPA and semester history.
+   - "analysis" or "detailed performance": show full breakdown (CGPA, all subjects, marks, attendance, observations).
+   - "performing" or "how is" or "tell me about [student]": give a SHORT SUMMARY using 5-6 bullets max:
+     * CGPA
+     * Average attendance (mention if any subject is below 75%)
+     * Best performing subject (highest T1)
+     * Any concern (0% attendance or 0 marks subjects)
+     * 1-line overall verdict
+   - Simple greetings: reply conversationally, no student data.
+5. DECLINE general knowledge or non-academic questions.
+6. T1, T2 = Internal CIE exam marks (out of 30). AQ1, AQ2 = Assignment marks.
+
+STUDENT RECORDS:
+${studentContexttext}
+
+USER MESSAGE: ${message}
+
+YOUR REPLY:`;
+
+      // Importing axios using dynamic import to support ES Modules
+      const { default: axios } = await import('axios');
+      
+      const response = await axios.post(process.env.OLLAMA_API_URL, {
+        model: 'gemma4:e2b', // Using the exact tag from your Ollama models list
+        prompt: consolidatedPrompt,
+        stream: false
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: { text: response.data.response }
+      });
+
+    } catch (error) {
+      console.error("[Proctor Chat] Error:", error.message);
+      return res.status(500).json({ success: false, message: "Failed to generate AI response." });
+    }
+  }
 }
 
 export default new ProctorController();

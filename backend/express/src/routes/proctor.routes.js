@@ -9,5 +9,6 @@ router.use(verifySession);
 router.get("/:proctorId/dashboard", proctorController.getDashboard);
 router.get("/:proctorId/student/:studentUsn", proctorController.getProctee);
 router.get("/:proctorId/notifications", proctorController.getNotifications);
+router.post("/:proctorId/chat", proctorController.handleChat);
 
 export default router;
