@@ -57,19 +57,3 @@ model ProctorStudentMap {
   @@unique([student_id, academic_year])
   @@map("proctor_student_map")
 }
-
-model ScrapeMetric {
-  id                  Int       @id @default(autoincrement())
-  usn                 String
-  strategy            String    // "traditional" | "piggyback"
-  initiated_at        DateTime  @default(now())
-  completed_at        DateTime?
-  latency_ms          Int?
-  freshness_offset_ms Int?
-  detected            Boolean   @default(false)
-  navigator_webdriver Boolean?
-  error_message       String?
-  payload_size_bytes  Int?
-
-  @@map("scrape_metrics")
-}
