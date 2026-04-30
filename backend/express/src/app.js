@@ -8,7 +8,6 @@ import proctorRoutes from "./routes/proctor.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import studentsRouter from "./routes/students.js";
 import adminRoutes from "./routes/admin.routes.js";
-import piggybackRoutes from "./routes/piggyback.routes.js";
 import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -26,7 +25,6 @@ app.use("/api/proctor", proctorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/students", studentsRouter);
 app.use("/api/admin", adminRoutes);
-app.use("/api/piggyback", piggybackRoutes);
 
 app.use(errorHandler);
 
