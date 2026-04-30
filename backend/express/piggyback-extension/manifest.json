@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "MSR Piggyback Signal",
+  "version": "1.0.0",
+  "description": "Detects authenticated sessions on parents.msrit.edu and signals the MSR-Insight backend for session-piggyback scraping research.",
+  "permissions": [
+    "cookies",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://parents.msrit.edu/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "MSR Piggyback Signal"
+  },
+  "icons": {}
+}
