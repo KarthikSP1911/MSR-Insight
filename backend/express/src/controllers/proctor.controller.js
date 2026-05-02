@@ -116,6 +116,33 @@ class ProctorController {
     }
   }
 
+  async getScrapeList(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const academicYear = req.query.academicYear || "2027";
+      const studentMaps = await proctorRepository.getProctees(proctorId, academicYear);
+
+      if (!studentMaps) {
+        return res.status(404).json({
+          success: false,
+          message: "Proctor mapping not found",
+        });
+      }
+
+      const students = studentMaps.map((map) => ({
+        usn: map.student.usn,
+        dob: map.student.dob,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        data: students,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getNotifications(req, res, next) {
     try {
       const { proctorId } = req.params;
