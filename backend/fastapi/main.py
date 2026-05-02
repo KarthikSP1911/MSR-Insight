@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.report_router import router as report_router
+from routers.rag_router import router as rag_router
 from config.settings import settings
 
 app = FastAPI(title=settings.PROJECT_NAME)
@@ -15,6 +16,7 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(report_router)
+app.include_router(rag_router)
 
 @app.get("/api/health")
 def health_check():
