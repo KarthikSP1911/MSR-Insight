@@ -74,6 +74,20 @@
   letter-spacing: 0.05em;
 }
 
+.header-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-status-text {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
 .pulse-dot {
   width: 8px;
   height: 8px;

@@ -23,6 +23,7 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [syncInfo, setSyncInfo] = useState<{ last_sync: string | null; is_syncing: boolean } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -33,8 +34,18 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      fetchSyncStatus();
     }
   }, [messages, isOpen]);
+
+  const fetchSyncStatus = async () => {
+    try {
+      const response = await axios.get(`${FASTAPI_BASE_URL}/api/rag/sync/status`);
+      setSyncInfo(response.data);
+    } catch (err) {
+      console.error("Failed to fetch sync status:", err);
+    }
+  };
 
   const handleToggle = () => setIsOpen(!isOpen);
 
@@ -83,7 +94,19 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
         <div className="chatbot-header">
           <div className="chatbot-header-title">
             <div className="pulse-dot"></div>
-            Insight AI
+            <div className="header-text-group">
+              <span>Insight AI</span>
+              {syncInfo?.last_sync && (
+                <span className="sync-status-text">
+                  Updated: {new Date(syncInfo.last_sync).toLocaleString([], { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+              )}
+            </div>
           </div>
           <button className="close-btn" onClick={handleToggle} title="Close Chat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
