@@ -1,13 +1,13 @@
 from typing import Any
 from .prompt_builder import PromptBuilder
-from .llm_provider import OllamaLLMProvider
+from .llm_provider import GroqLLMProvider
 
 
 class AIService:
     """Service to handle AI-based student performance reporting."""
 
     def __init__(self) -> None:
-        self.llm_provider = OllamaLLMProvider()
+        self.llm_provider = GroqLLMProvider()
 
     def generate_remark(self, data: dict[str, Any]) -> dict[str, Any]:
         """Validates input, generates a prompt, and returns AI-generated remarks with student details."""

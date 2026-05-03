@@ -90,7 +90,7 @@ class AuthController {
       const result = await authService.proctorLogin(proctorId, password);
       
       // Trigger RAG sync on login so vectors are fresh for the session
-      // notifyRagSync();
+      notifyRagSync();
 
       return res.status(200).json({
         success: true,

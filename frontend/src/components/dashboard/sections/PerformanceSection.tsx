@@ -194,7 +194,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                         <ResponsiveContainer width="100%" height={380}>
                             <BarChart data={currentSem} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.3} vertical={false} />
-                                <XAxis dataKey="name" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
                                 <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
                                 <Tooltip content={<MarksTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
                                 <Bar 

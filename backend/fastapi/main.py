@@ -18,13 +18,13 @@ app.add_middleware(
 app.include_router(report_router)
 app.include_router(rag_router)
 
-@app.on_event("startup")
-async def startup_event():
-    """Trigger initial RAG sync on startup."""
-    print("--- Triggering initial RAG sync on startup ---")
-    import threading
-    # Run in a separate thread to not block the main event loop startup
-    threading.Thread(target=rag_service.sync_data, daemon=True).start()
+# @app.on_event("startup")
+# async def startup_event():
+#     """Trigger initial RAG sync on startup."""
+#     print("--- Triggering initial RAG sync on startup ---")
+#     import threading
+#     # Run in a separate thread to not block the main event loop startup
+#     threading.Thread(target=rag_service.sync_data, daemon=True).start()
 
 @app.get("/api/health")
 def health_check():
