@@ -29,7 +29,7 @@ class Settings:
     # RAG configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
     OLLAMA_API_URL: str = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
-    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "gemma:4b")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     CHROMA_PERSIST_DIR: str = os.path.join(DATA_DIR, "chroma_db")
 
