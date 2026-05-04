@@ -47,4 +47,20 @@ const triggerScrape = async (usn, dob) => {
     }
 };
 
-export { getRemarkByUSN, triggerScrape };
+/**
+ * Notifies FastAPI to sync its RAG vector store in the background.
+ * Fire and forget (don't wait for completion).
+ */
+const notifyRagSync = async () => {
+    try {
+        console.log(`[ReportService] Notifying FastAPI to sync RAG: ${FASTAPI_BASE_URL}/api/rag/sync`);
+        // We use a fire-and-forget approach or at least don't block the caller
+        fastApi.post(`/api/rag/sync`).catch(err => {
+            console.error("[ReportService] Background RAG sync notification failed:", err.message);
+        });
+    } catch (error) {
+        console.error("[ReportService] Error in notifyRagSync:", error.message);
+    }
+};
+
+export { getRemarkByUSN, triggerScrape, notifyRagSync };

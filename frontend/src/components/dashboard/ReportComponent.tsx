@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import TiptapEditor from '@/components/dashboard/Editor';
+import LoadingScreen from '@/components/dashboard/LoadingScreen';
 import { API_BASE_URL } from '@/config/api.config';
 import "@/styles/Report.css";
 
@@ -211,14 +212,7 @@ export default function ReportComponent() {
     };
 
     if (loading) {
-        return (
-            <div className="report-viewer-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ textAlign: 'center', color: 'var(--accent-primary)' }}>
-                    <div className="spinner" />
-                    <p style={{ marginTop: '1rem', fontSize: '1rem' }}>Generating report for <strong>{USN}</strong>...</p>
-                </div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     if (error) {
@@ -378,7 +372,6 @@ export default function ReportComponent() {
                                             <th>Subject Name</th>
                                             <th>Attendance (%)</th>
                                             <th>Score (CIE)</th>
-                                            <th>Grade</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -388,15 +381,10 @@ export default function ReportComponent() {
                                                 <td>{item.subject}</td>
                                                 <td>{item.attendance}%</td>
                                                 <td>{item.score} / 50</td>
-                                                <td>
-                                                    <span className={`grade-badge ${item.grade.toLowerCase().replace('+', 'plus')}`}>
-                                                        {item.grade}
-                                                    </span>
-                                                </td>
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                                                <td colSpan={4} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
                                                     No academic data available for the current semester.
                                                 </td>
                                             </tr>

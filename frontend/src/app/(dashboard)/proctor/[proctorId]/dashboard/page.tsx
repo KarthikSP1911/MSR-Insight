@@ -146,7 +146,8 @@ export default function ProctorDashboard() {
     }
 
     return (
-        <div className="proctor-dashboard fade-in">
+        <>
+            <div className="proctor-dashboard fade-in">
             <section className="filter-bar">
                 <div className="filter-item search-box">
                     <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -242,7 +243,8 @@ export default function ProctorDashboard() {
                     </div>
                 )}
             </div>
+            </div>
             <ProctorChatbot proctorId={proctorId} />
-        </div>
+        </>
     );
 }

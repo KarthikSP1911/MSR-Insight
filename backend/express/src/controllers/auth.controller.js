@@ -1,4 +1,5 @@
 import authService from "../services/auth.service.js";
+import { notifyRagSync } from "../services/report.service.js";
 
 class AuthController {
   async register(req, res, next) {
@@ -87,6 +88,9 @@ class AuthController {
       }
 
       const result = await authService.proctorLogin(proctorId, password);
+      
+      // Trigger RAG sync on login so vectors are fresh for the session
+      notifyRagSync();
 
       return res.status(200).json({
         success: true,

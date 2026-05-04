@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { API_BASE_URL } from "@/config/api.config";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { API_BASE_URL, FASTAPI_BASE_URL } from "@/config/api.config";
 import "@/styles/ProctorChatbot.css";
 
 interface Message {
@@ -21,6 +23,7 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [syncInfo, setSyncInfo] = useState<{ last_sync: string | null; is_syncing: boolean } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -31,8 +34,18 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      fetchSyncStatus();
     }
   }, [messages, isOpen]);
+
+  const fetchSyncStatus = async () => {
+    try {
+      const response = await axios.get(`${FASTAPI_BASE_URL}/api/rag/sync/status`);
+      setSyncInfo(response.data);
+    } catch (err) {
+      console.error("Failed to fetch sync status:", err);
+    }
+  };
 
   const handleToggle = () => setIsOpen(!isOpen);
 
@@ -46,16 +59,13 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
     setIsLoading(true);
 
     try {
-      const sessionId = localStorage.getItem("proctorSessionId");
-      
-      const response = await axios.post(`${API_BASE_URL}/api/proctor/${proctorId}/chat`, {
-        message: userText
-      }, {
-        headers: { "x-session-id": sessionId || "" }
+      const response = await axios.post(`${FASTAPI_BASE_URL}/api/rag/chat`, {
+        question: userText,
+        proctor_id: proctorId
       });
 
-      if (response.data.success) {
-        setMessages(prev => [...prev, { text: response.data.data.text, isUser: false }]);
+      if (response.data && response.data.answer) {
+        setMessages(prev => [...prev, { text: response.data.answer, isUser: false }]);
       } else {
         setMessages(prev => [...prev, { text: "Sorry, I couldn't process that request properly.", isUser: false }]);
       }
@@ -69,55 +79,13 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
 
   // Smart line-by-line parser for local SLM output
   const renderMessage = (text: string) => {
-    const lines = text.split('\n');
-    const htmlLines: string[] = [];
-
-    lines.forEach((line) => {
-      const trimmed = line.trim();
-
-      // Skip empty lines
-      if (!trimmed) {
-        htmlLines.push('<div class="chat-spacer"></div>');
-        return;
-      }
-
-      // Inline bold: **...**
-      const inlineBold = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-      // 1. Bold-only heading line e.g. "**AJAY KUMAR**"
-      if (/^\*\*.*\*\*$/.test(trimmed)) {
-        htmlLines.push(`<div class="chat-heading">${inlineBold(trimmed)}</div>`);
-        return;
-      }
-
-      // 2. Dash bullet ending with ":" (with or without ** bold) → section label
-      // Handles: "- Attendance:" AND "- **Attendance:**"
-      const stripped = trimmed.replace(/\*\*/g, '');
-      if (/^- .+:$/.test(stripped)) {
-        const label = inlineBold(trimmed.slice(2));
-        htmlLines.push(`<div class="chat-section-label">${label}</div>`);
-        return;
-      }
-
-      // 3. Normal dash bullet e.g. "- Machine Learning: 88%"
-      if (/^- /.test(trimmed)) {
-        const content = inlineBold(trimmed.slice(2));
-        htmlLines.push(`<div class="chat-bullet">• ${content}</div>`);
-        return;
-      }
-
-      // 4. Numbered list e.g. "1. Observation"
-      if (/^\d+\.\s/.test(trimmed)) {
-        const content = inlineBold(trimmed.replace(/^\d+\.\s/, ''));
-        htmlLines.push(`<div class="chat-bullet">${content}</div>`);
-        return;
-      }
-
-      // 5. Plain text
-      htmlLines.push(`<div class="chat-line">${inlineBold(trimmed)}</div>`);
-    });
-
-    return <div dangerouslySetInnerHTML={{ __html: htmlLines.join('') }} />;
+    return (
+      <div className="markdown-container">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {text}
+        </ReactMarkdown>
+      </div>
+    );
   };
 
   return (
@@ -126,7 +94,19 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
         <div className="chatbot-header">
           <div className="chatbot-header-title">
             <div className="pulse-dot"></div>
-            Insight AI
+            <div className="header-text-group">
+              <span>Insight AI</span>
+              {syncInfo?.last_sync && (
+                <span className="sync-status-text">
+                  Updated: {new Date(syncInfo.last_sync).toLocaleString([], { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+              )}
+            </div>
           </div>
           <button className="close-btn" onClick={handleToggle} title="Close Chat">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
