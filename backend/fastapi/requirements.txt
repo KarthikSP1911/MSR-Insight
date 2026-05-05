@@ -4,3 +4,8 @@ groq
 python-dotenv
 pydantic
 pydantic-settings
+psycopg2
+langchain_core
+langchain_chroma
+langchain_google_genai
+langchain_community
