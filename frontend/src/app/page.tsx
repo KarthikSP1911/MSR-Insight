@@ -36,7 +36,7 @@ export default function Home() {
     ];
 
     return (
-        <div className="landing-page">
+        <div className="landing-page">  
             <HomeNavbar />
             <style jsx global>{`
                 html, body {
