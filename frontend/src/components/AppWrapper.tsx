@@ -10,14 +10,9 @@ import { AppProvider, useAppContext, Alert } from "@/lib/AppContext";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [mounted, setMounted] = React.useState(false);
   const isReportPage = pathname.includes("/report/");
   const isStudentDashboard = pathname.startsWith("/student/dashboard");
   const { academicYear, setAcademicYear, inboxOpen, setInboxOpen, alerts, setAlerts } = useAppContext();
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Fetch live notifications for Proctor
   useEffect(() => {
@@ -105,7 +100,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-wrapper">
-      {mounted && !isReportPage && !isStudentDashboard && !isHomePage && (
+      {!isReportPage && !isStudentDashboard && !isHomePage && (
         <Navbar 
           academicYear={academicYear} 
           setAcademicYear={setAcademicYear} 
