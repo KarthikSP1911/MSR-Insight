@@ -87,12 +87,13 @@ export const generatePDFFromHTML = async (
               background: white;
               width: 794px;
               min-height: 1123px;
-              padding: 50px 60px;
+              padding: 36px 48px;
               color: #1e293b;
               margin: 0 auto;
               box-sizing: border-box;
               display: flex;
               flex-direction: column;
+              font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             }
 
             .sheet-header {
@@ -100,56 +101,57 @@ export const generatePDFFromHTML = async (
               align-items: center;
               width: 100%;
               gap: 14px;
-              margin-bottom: 10px;
+              margin-bottom: 14px;
             }
 
             .college-logo-img {
-              height: 75px;
+              height: 78px;
               width: auto;
               object-fit: contain;
               flex-shrink: 0;
-              margin-right: 12px;
+              margin-right: 0;
             }
 
             .college-info h1 {
-              font-size: 1.25rem;
+              font-size: 1.2rem;
               margin: 0;
               color: #0f172a;
-              letter-spacing: 0.02em;
+              letter-spacing: 0.01em;
               font-weight: 700;
             }
 
             .college-info h2 {
-              font-size: 0.85rem;
-              color: #64748b;
+              font-size: 0.75rem;
+              color: #363b42;
               margin: 1px 0 4px 0;
-              font-weight: 500;
+              font-weight: 600;
             }
 
             .student-meta {
-              font-size: 0.75rem;
-              color: #475569;
+              font-size: 0.7rem;
+              color: #393f48;
               font-weight: 500;
-              margin: 2px 0;
+              margin: 1px 0;
               letter-spacing: 0.01em;
+              line-height: 1.4;
             }
 
             .divider {
               border: none;
-              border-top: 1.5px solid #e2e8f0;
-              margin: 8px 0 12px 0;
+              border-top: 1px solid #e5e7eb;
+              margin: 5px 0 18px 0;
             }
 
             .table-section {
-              margin-bottom: 20px;
+              margin-bottom: 24px;
             }
 
             .table-section h3 {
-              font-size: 0.8rem;
-              margin-bottom: 6px;
+              font-size: 0.75rem;
+              margin-bottom: 10px;
               color: #334155;
               text-transform: uppercase;
-              letter-spacing: 0.05em;
+              letter-spacing: 0.06em;
               font-weight: 700;
             }
 
@@ -157,37 +159,57 @@ export const generatePDFFromHTML = async (
               width: 100%;
               border-collapse: collapse;
               margin-bottom: 8px;
-              border: 1px solid #94a3b8;
+              border: 1px solid #000000;
               font-size: 0.75rem;
             }
 
             .marks-table th,
             .marks-table td {
-              border: 1px solid #94a3b8;
-              padding: 5px 10px;
+              border: 1px solid hsl(240, 5%, 4%);
+              padding: 10px 12px;
               text-align: left;
             }
 
             .marks-table th {
-              background: #f1f5f9;
-              color: #475569;
-              font-size: 0.68rem;
+              background: #f9fafb;
+              color: #32373e;
+              font-size: 0.78rem;
               text-transform: uppercase;
               font-weight: 700;
               letter-spacing: 0.04em;
             }
 
+            /* Center-align Attendance and Score columns */
+            .marks-table th:nth-child(3),
+            .marks-table th:nth-child(4),
+            .marks-table td:nth-child(3),
+            .marks-table td:nth-child(4) {
+              text-align: center;
+            }
+
+            /* Center the row-number column */
+            .marks-table th:nth-child(1),
+            .marks-table td:nth-child(1) {
+              text-align: center;
+              width: 36px;
+            }
+
             .marks-table td {
               font-size: 0.78rem;
-              color: #334155;
+              color: #1e293b;
+            }
+
+            /* Low-attendance row: light red background highlight only */
+            .marks-table tr.low-attendance td {
+              background: #fee2e2;
+              color: #991b1b;
             }
 
             .grade-badge {
-              padding: 2px 7px;
-              border-radius: 3px;
+              padding: 2px 8px;
+              border-radius: 4px;
               font-weight: 700;
-              font-size: 0.65rem;
-              letter-spacing: 0.03em;
+              font-size: 0.7rem;
               display: inline-block;
             }
 
@@ -221,38 +243,35 @@ export const generatePDFFromHTML = async (
             .remarks-section {
               display: flex;
               flex-direction: column;
-              gap: 10px;
-              margin-top: 16px;
-              margin-bottom: 24px;
+              gap: 20px;
             }
 
             .editable-remarks-container h4 {
-              font-size: 0.75rem;
+              font-size: 0.8rem;
               color: #000000;
-              margin-bottom: 4px;
+              margin-bottom: 8px;
               text-transform: uppercase;
-              letter-spacing: 0.04em;
               font-weight: 700;
             }
 
             .tiptap-editor-container {
-              border: 2px solid #334155;
+              border: 1px solid #2a2f36;
               border-radius: 8px;
               overflow: hidden;
-              background: #ffffff;
+              background: #f8fafc;
             }
 
             .tiptap-content {
-              padding: 10px;
-              min-height: 80px;
+              padding: 12px;
+              min-height: 100px;
               font-size: 0.85rem;
-              line-height: 1.5;
-              color: #000000;
+              color: #0f172a;
+              font-weight: 500;
             }
 
             .tiptap-content p {
-              color: #000000;
-              margin: 0 0 8px 0;
+              color: #0f172a;
+              line-height: 1.6;
             }
 
             .tiptap-content p:last-child {
