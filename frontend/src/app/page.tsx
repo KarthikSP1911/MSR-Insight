@@ -58,38 +58,7 @@ export default function Home() {
                                     success with technical precision.
                                 </p>
 
-                                <div className="flex items-center gap-4 mt-6">
-
-                                    {/* Primary CTA */}
-                                    <Link
-                                        href="/student-login"
-                                        className="group inline-flex items-center gap-2 px-6 py-3 rounded-lg 
-               bg-gradient-to-r from-cyan-400 to-teal-500 
-               text-black font-semibold 
-               hover:shadow-lg hover:shadow-cyan-500/30 
-               transition-all duration-300 ease-out 
-               hover:scale-[1.03]"
-                                    >
-                                        Start as Student
-                                        <ArrowRight
-                                            size={18}
-                                            className="transition-transform duration-300 group-hover:translate-x-1 "
-                                        />
-                                    </Link>
-
-                                    {/* Secondary CTA */}
-                                    <Link
-                                        href="/proctor-login"
-                                        className="inline-flex items-center px-6 py-3 rounded-lg 
-               border border-zinc-700 text-zinc-300 
-               hover:text-white hover:border-zinc-500 
-               hover:bg-zinc-900/50 
-               transition-all duration-300"
-                                    >
-                                        Proctor Portal
-                                    </Link>
-
-                                </div>
+                                <div></div>
                             </div>
 
                             <div className="hero-visual fade-up-animate delay-1">
@@ -106,8 +75,8 @@ export default function Home() {
                                         <div className="floating-ui-element stat-panel">
                                             <PieChart size={20} className="text-cyan" />
                                             <div>
-                                                <div className="ui-label">Avg. CGPA</div>
-                                                <div className="ui-value">8.92</div>
+                                                <div className="ui-label"></div>
+                                                <div className="ui-value"></div>
                                             </div>
                                         </div>
                                         <div className="floating-ui-element activity-panel">
