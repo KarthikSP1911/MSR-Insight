@@ -2,6 +2,7 @@ import { getRemarkByUSN, triggerScrape } from "../services/report.service.js";
 import userRepository from "../repositories/user.repository.js";
 import studentService from "../services/studentService.js";
 import { sendReportToAllParents } from "../services/email.service.js";
+import { processWhatsAppReport } from "../services/whatsapp.service.js";
 import prisma from "../config/db.config.js";
 
 /**
@@ -250,4 +251,70 @@ const sendReportViaEmail = async (req, res, next) => {
     }
 };
 
-export { generateReport, getStudentDashboardReport, triggerReportUpdate, sendReportViaEmail };
+/**
+ * Prepares and optionally sends the report via WhatsApp to parents
+ */
+const sendReportViaWhatsApp = async (req, res, next) => {
+    try {
+        const { usn, htmlContent } = req.body;
+
+        if (!usn) {
+            return res.status(400).json({ success: false, message: "USN is required" });
+        }
+
+        if (!htmlContent) {
+            return res.status(400).json({ success: false, message: "HTML report content is required" });
+        }
+
+        const usn_upper = usn.toUpperCase();
+
+        // Fetch student data
+        const student = await prisma.student.findUnique({
+            where: { usn: usn_upper },
+            select: {
+                usn: true,
+                name: true,
+                parents: {
+                    select: {
+                        name: true,
+                        relation: true,
+                        phone: true,
+                        email: true,
+                    },
+                },
+            },
+        });
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found" });
+        }
+
+        if (!student.parents || student.parents.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No parents found for this student. Cannot send WhatsApp notification.",
+            });
+        }
+
+        // Generate report and process/dispatch to parents
+        const whatsappResult = await processWhatsAppReport(
+            usn_upper,
+            student.name,
+            student.parents,
+            htmlContent
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: whatsappResult.isTwilioConfigured
+                ? "Report sent successfully via Twilio WhatsApp API!"
+                : "WhatsApp report processed successfully!",
+            data: whatsappResult,
+        });
+    } catch (error) {
+        console.error(`[ReportController] Error processing report via WhatsApp:`, error.message);
+        next(error);
+    }
+};
+
+export { generateReport, getStudentDashboardReport, triggerReportUpdate, sendReportViaEmail, sendReportViaWhatsApp };
