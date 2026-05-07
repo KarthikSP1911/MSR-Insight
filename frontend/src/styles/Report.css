@@ -328,8 +328,8 @@
     color: #1e293b;
 }
 
-/* Low-attendance row: light red background highlight only */
-.marks-table tr.low-attendance td {
+/* Low-attendance cell: light red background highlight only */
+.marks-table td.low-attendance {
     background: #fee2e2;
     color: #991b1b;
 }

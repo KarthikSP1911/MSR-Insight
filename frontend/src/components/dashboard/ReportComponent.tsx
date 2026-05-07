@@ -376,10 +376,10 @@ export default function ReportComponent() {
                                     </thead>
                                     <tbody>
                                         {marksData.length > 0 ? marksData.map((item, index) => (
-                                            <tr key={index} className={item.attendance < 75 ? 'low-attendance' : ''}>
+                                            <tr key={index}>
                                                 <td>{index + 1}</td>
                                                 <td>{item.subject}</td>
-                                                <td>{item.attendance}%</td>
+                                                <td className={item.attendance < 75 ? 'low-attendance' : ''}>{item.attendance}%</td>
                                                 <td>{item.score} / 50</td>
                                             </tr>
                                         )) : (
