@@ -11,6 +11,7 @@ router.delete("/proctors/:proctorId", adminController.removeProctor);
 // Proctor-Student management
 router.get("/proctors/:proctorId/students", adminController.listProctorStudents);
 router.post("/proctors/:proctorId/students", adminController.assignStudent);
+router.post("/proctors/:proctorId/students/bulk", adminController.assignMultipleStudents);
 router.delete("/proctors/:proctorId/students/:usn", adminController.removeStudent);
 
 // Unassigned students

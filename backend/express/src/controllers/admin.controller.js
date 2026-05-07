@@ -229,6 +229,67 @@ class AdminController {
   }
 
   /**
+   * POST /api/admin/proctors/:proctorId/students/bulk
+   * Assign multiple students to a proctor
+   */
+  async assignMultipleStudents(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const { usns, academicYear = "2027" } = req.body;
+
+      if (!usns || !Array.isArray(usns) || usns.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "A list of USNs is required",
+        });
+      }
+
+      const normalizedProctorId = proctorId.toUpperCase();
+      
+      const proctor = await prisma.proctor.findUnique({
+        where: { proctor_id: normalizedProctorId },
+      });
+
+      if (!proctor) {
+        return res.status(404).json({
+          success: false,
+          message: "Proctor not found",
+        });
+      }
+
+      const assignments = [];
+      for (const usn of usns) {
+        const normalizedUsn = usn.toUpperCase();
+        const assignment = await prisma.proctorStudentMap.upsert({
+          where: {
+            student_id_academic_year: {
+              student_id: normalizedUsn,
+              academic_year: academicYear,
+            },
+          },
+          update: {
+            proctor_id: normalizedProctorId,
+          },
+          create: {
+            proctor_id: normalizedProctorId,
+            student_id: normalizedUsn,
+            academic_year: academicYear,
+          },
+        });
+        assignments.push(assignment);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `${assignments.length} students assigned to proctor successfully`,
+        data: assignments,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * DELETE /api/admin/proctors/:proctorId/students/:usn
    */
   async removeStudent(req, res, next) {

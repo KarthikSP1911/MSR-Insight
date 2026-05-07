@@ -300,6 +300,11 @@ export default function AdminPanel() {
   const [search, setSearch] = useState("");
   const [academicYear, setAcademicYear] = useState("2027");
 
+  const [unassignedStudents, setUnassignedStudents] = useState<any[]>([]);
+  const [selectedUnassignedUsns, setSelectedUnassignedUsns] = useState<string[]>([]);
+  const [selectedProctorForBulk, setSelectedProctorForBulk] = useState<string>("");
+  const [bulkAssigning, setBulkAssigning] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("adminAuthenticated") !== "true") {
@@ -354,10 +359,67 @@ export default function AdminPanel() {
     }
   }, [academicYear]);
 
+  const fetchUnassignedStudents = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/admin/students/unassigned?academicYear=${academicYear}`);
+      if (res.data.success) {
+        setUnassignedStudents(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch unassigned students", err);
+    }
+  }, [academicYear]);
+
   useEffect(() => {
     fetchProctors();
     fetchStats();
-  }, [fetchProctors, fetchStats]);
+    fetchUnassignedStudents();
+  }, [fetchProctors, fetchStats, fetchUnassignedStudents]);
+
+  const handleBulkAssign = async () => {
+    if (selectedUnassignedUsns.length === 0) {
+      showToast("Please select at least one student", "error");
+      return;
+    }
+    if (!selectedProctorForBulk) {
+      showToast("Please select a proctor", "error");
+      return;
+    }
+
+    setBulkAssigning(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/admin/proctors/${selectedProctorForBulk}/students/bulk`, {
+        usns: selectedUnassignedUsns,
+        academicYear
+      });
+      showToast(`Successfully assigned ${selectedUnassignedUsns.length} students`, "success");
+      setSelectedUnassignedUsns([]);
+      setSelectedProctorForBulk("");
+      fetchProctors();
+      fetchStats();
+      fetchUnassignedStudents();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to assign students", "error");
+    } finally {
+      setBulkAssigning(false);
+    }
+  };
+
+  const handleSelectAllUnassigned = () => {
+    if (selectedUnassignedUsns.length === unassignedStudents.length) {
+      setSelectedUnassignedUsns([]);
+    } else {
+      setSelectedUnassignedUsns(unassignedStudents.map(s => s.usn));
+    }
+  };
+
+  const handleSelectUnassigned = (usn: string) => {
+    if (selectedUnassignedUsns.includes(usn)) {
+      setSelectedUnassignedUsns(selectedUnassignedUsns.filter(u => u !== usn));
+    } else {
+      setSelectedUnassignedUsns([...selectedUnassignedUsns, usn]);
+    }
+  };
 
   const handleAddProctor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -560,6 +622,78 @@ export default function AdminPanel() {
                 showToast={showToast}
               />
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Unassigned Students Section */}
+      <div className="admin-section" style={{ marginTop: '2rem' }}>
+        <div className="admin-section-header">
+          <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+            Unassigned Students
+          </h2>
+        </div>
+        
+        {unassignedStudents.length === 0 ? (
+          <div className="empty-students">No unassigned students found.</div>
+        ) : (
+          <div className="unassigned-students-container" style={{ padding: '1rem', background: 'var(--card-bg)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+            <div className="bulk-assign-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <select 
+                value={selectedProctorForBulk} 
+                onChange={(e) => setSelectedProctorForBulk(e.target.value)}
+                className="input-field"
+                style={{ maxWidth: '300px' }}
+              >
+                <option value="">-- Select Proctor --</option>
+                {proctors.map(p => (
+                  <option key={p.proctorId} value={p.proctorId}>{p.name || p.proctorId} ({p.studentCount})</option>
+                ))}
+              </select>
+              <button 
+                className="btn btn-primary btn-sm"
+                onClick={handleBulkAssign}
+                disabled={bulkAssigning || selectedUnassignedUsns.length === 0 || !selectedProctorForBulk}
+              >
+                {bulkAssigning ? "Assigning..." : `Assign Selected (${selectedUnassignedUsns.length})`}
+              </button>
+            </div>
+            
+            <div className="unassigned-list" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    <th style={{ padding: '0.75rem 0.5rem', width: '40px' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedUnassignedUsns.length === unassignedStudents.length && unassignedStudents.length > 0}
+                        onChange={handleSelectAllUnassigned}
+                      />
+                    </th>
+                    <th style={{ padding: '0.75rem 0.5rem' }}>USN</th>
+                    <th style={{ padding: '0.75rem 0.5rem' }}>Name</th>
+                    <th style={{ padding: '0.75rem 0.5rem' }}>DOB</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {unassignedStudents.map(student => (
+                    <tr key={student.usn} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '0.75rem 0.5rem' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedUnassignedUsns.includes(student.usn)}
+                          onChange={() => handleSelectUnassigned(student.usn)}
+                        />
+                      </td>
+                      <td style={{ padding: '0.75rem 0.5rem' }}><strong>{student.usn}</strong></td>
+                      <td style={{ padding: '0.75rem 0.5rem' }}>{student.name}</td>
+                      <td style={{ padding: '0.75rem 0.5rem' }}>{student.dob}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
