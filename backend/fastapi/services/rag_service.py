@@ -3,7 +3,7 @@ import json
 import psycopg2
 from typing import Any, List, Dict
 from langchain_core.documents import Document
-from langchain_chroma import Chroma
+from langchain_postgres.vectorstores import PGVector
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.chat_models import ChatOllama
@@ -246,11 +246,17 @@ class RAGService:
     @property
     def vector_store(self):
         if self._vector_store is None:
-            print(f"Initializing ChromaDB with collection: student_data_v2")
-            self._vector_store = Chroma(
+            print(f"Initializing PGVector with collection: student_data_v2")
+            
+            db_url = settings.DATABASE_URL
+            if db_url and db_url.startswith("postgresql://"):
+                db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+                
+            self._vector_store = PGVector(
+                connection=db_url,
+                embeddings=self.embeddings,
                 collection_name="student_data_v2",
-                embedding_function=self.embeddings,
-                persist_directory=settings.CHROMA_PERSIST_DIR,
+                use_jsonb=True,
             )
         return self._vector_store
 
@@ -299,33 +305,23 @@ class RAGService:
                 print(f"Generated {len(all_documents)} total chunks")
 
                 if all_documents:
-                    print("Updating Vector Store (ChromaDB)...")
+                    print("Updating Vector Store (PGVector in Neon)...")
                     
                     try:
-                        # Try to clear existing data
-                        try:
-                            existing_data = self.vector_store.get()
-                            if existing_data and existing_data['ids']:
-                                print(f"Clearing {len(existing_data['ids'])} existing chunks...")
-                                self.vector_store.delete(ids=existing_data['ids'])
-                        except Exception:
-                            pass # Might be new or incompatible
+                        # Drop tables to clear existing chunks cleanly
+                        print("Dropping existing PGVector tables for a clean sync...")
+                        self.vector_store.drop_tables()
+                        # Re-initialize store to recreate tables on next access
+                        self._vector_store = None
+                    except Exception as e:
+                        print(f"Notice: Could not drop tables (might not exist yet): {e}")
 
-                        # Add new documents
+                    try:
+                        # Add new documents (will recreate tables automatically)
                         self.vector_store.add_documents(all_documents)
                     except Exception as e:
-                        # If dimension mismatch (e.g. switching from Gemini to Ollama)
-                        if "dimension" in str(e).lower():
-                            print(f"Dimension mismatch detected ({e}). Resetting ChromaDB...")
-                            self._vector_store = None
-                            if os.path.exists(settings.CHROMA_PERSIST_DIR):
-                                import shutil
-                                shutil.rmtree(settings.CHROMA_PERSIST_DIR)
-                            os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
-                            # Re-add to a fresh store
-                            self.vector_store.add_documents(all_documents)
-                        else:
-                            raise e
+                        print(f"Error adding documents to PGVector: {e}")
+                        raise e
 
                 from datetime import datetime
                 self._last_sync_time = datetime.now().isoformat()
@@ -387,15 +383,33 @@ Output:
             retriever_list = []
             weights = []
 
-            # 2. Fetch all docs for this proctor for BM25
+            # 2. Fetch all docs for this proctor directly from Postgres for BM25
             try:
-                collection_data = self.vector_store.get(where={"proctor_id": proctor_id})
-                if collection_data and collection_data['documents']:
-                    all_proctor_docs = [
-                        Document(page_content=doc, metadata=meta)
-                        for doc, meta in zip(collection_data['documents'], collection_data['metadatas'])
-                    ]
-                    
+                import psycopg2
+                import json
+                conn = psycopg2.connect(settings.DATABASE_URL)
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT s.usn, s.name, s.current_year, s.details,
+                           p.proctor_id, p.academic_year
+                    FROM students s
+                    JOIN proctor_student_map p ON s.usn = p.student_id
+                    WHERE p.proctor_id = %s
+                """, (proctor_id,))
+                rows = cursor.fetchall()
+                cursor.close()
+                conn.close()
+
+                all_proctor_docs = []
+                for usn, name, current_year, details, p_id, academic_year in rows:
+                    if isinstance(details, str):
+                        details = json.loads(details)
+                    student_chunks = build_chunks_for_student(
+                        usn, name, current_year, details, p_id, academic_year
+                    )
+                    all_proctor_docs.extend(student_chunks)
+
+                if all_proctor_docs:
                     bm25_retriever = BM25Retriever.from_documents(all_proctor_docs)
                     bm25_retriever.k = 5
                     retriever_list.append(bm25_retriever)
