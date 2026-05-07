@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/config/api.config";
@@ -11,6 +11,14 @@ export default function ProctorLogin() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        const sessionId = localStorage.getItem("proctorSessionId");
+        const existingProctorId = localStorage.getItem("proctorId");
+        if (sessionId && existingProctorId) {
+            router.push(`/proctor/${existingProctorId}/dashboard`);
+        }
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -82,7 +90,7 @@ export default function ProctorLogin() {
                     <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
                         {loading ? "Verifying..." : "Sign In"}
                     </button>
-                    
+
                     <div className="login-footer">
                         Protected administrative area
                     </div>
