@@ -104,7 +104,7 @@ export default function ProcteeDetails() {
 
                 <div className="details-grid">
                     {/* PERSONAL INFORMATION CARD */}
-                    <div className="info-card">
+                    <div className="info-card justify-start">
                         <div className="card-header">
                             <div className="accent-line"></div>
                             <h2>Personal Information</h2>

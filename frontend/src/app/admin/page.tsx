@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
+import { useRouter } from "next/navigation";
 import DOBSelector from "@/components/dashboard/DOBSelector";
 import "@/styles/AdminPanel.css";
 
@@ -293,10 +294,24 @@ function ProctorCard({
 
 /* ─── Main Admin Panel ─── */
 export default function AdminPanel() {
+  const router = useRouter();
   const [proctors, setProctors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [academicYear, setAcademicYear] = useState("2027");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("adminAuthenticated") !== "true") {
+        router.push("/admin-login");
+      }
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminAuthenticated");
+    router.push("/admin-login");
+  };
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newProctorId, setNewProctorId] = useState("");
@@ -417,6 +432,9 @@ export default function AdminPanel() {
             <option value="2028">Year 2028</option>
             <option value="2029">Year 2029</option>
           </select>
+          <button className="btn btn-sm btn-ghost" onClick={handleLogout} style={{ marginLeft: "8px", color: "var(--error)" }}>
+            Logout
+          </button>
         </div>
       </div>
 
