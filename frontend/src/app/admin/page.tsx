@@ -7,6 +7,15 @@ import { useRouter } from "next/navigation";
 import DOBSelector from "@/components/dashboard/DOBSelector";
 import "@/styles/AdminPanel.css";
 
+/* ─── Helper Functions ─── */
+const formatName = (name: string) => {
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 /* ─── Toast Component ─── */
 function Toast({ message, type, onClose }: { message: string; type: string; onClose: () => void }) {
   useEffect(() => {
@@ -70,15 +79,9 @@ function ProctorCard({
   const [newStudentUsn, setNewStudentUsn] = useState("");
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentDob, setNewStudentDob] = useState("");
+  const [newStudentPhone, setNewStudentPhone] = useState("");
+  const [newStudentEmail, setNewStudentEmail] = useState("");
   const [assigning, setAssigning] = useState(false);
-
-  const formatName = (name: string) => {
-    return name
-      .toLowerCase()
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
 
   const fetchStudents = useCallback(async () => {
     setLoadingStudents(true);
@@ -112,6 +115,8 @@ function ProctorCard({
       const body = {
         usn: newStudentUsn.trim().toUpperCase(),
         name: formatName(newStudentName.trim()),
+        phone: newStudentPhone.trim(),
+        email: newStudentEmail.trim(),
         academicYear: academicYear
       };
 
@@ -127,6 +132,8 @@ function ProctorCard({
       setNewStudentUsn("");
       setNewStudentName("");
       setNewStudentDob("");
+      setNewStudentPhone("");
+      setNewStudentEmail("");
       setShowAddStudent(false);
       fetchStudents();
       onStudentAssigned();
@@ -209,9 +216,9 @@ function ProctorCard({
           </div>
 
           {showAddStudent && (
-            <form className="add-student-form" onSubmit={handleAssignStudent}>
+            <form className="add-student-form-grid" onSubmit={handleAssignStudent}>
               <div className="form-group">
-                <label className="field-label">USN</label>
+                <label className="field-label">USN *</label>
                 <input
                   type="text"
                   placeholder="e.g. 1MS24CS001"
@@ -223,7 +230,7 @@ function ProctorCard({
                 />
               </div>
               <div className="form-group">
-                <label className="field-label">Full Name</label>
+                <label className="field-label">Full Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. John Doe"
@@ -233,18 +240,39 @@ function ProctorCard({
                   required
                 />
               </div>
-              <div className="form-group full-width">
-                <label className="field-label">Date of Birth</label>
-                <div className="dob-row">
-                  <DOBSelector value={newStudentDob} onChange={setNewStudentDob} />
-                    <button
-                      type="submit"
-                      className="btn btn-primary btn-sm assign-btn"
-                      disabled={assigning}
-                    >
-                    {assigning ? "..." : "Assign Student"}
-                  </button>
-                </div>
+              <div className="form-group">
+                <label className="field-label">Phone</label>
+                <input
+                  type="text"
+                  placeholder="Optional"
+                  className="input-field"
+                  value={newStudentPhone}
+                  onChange={(e) => setNewStudentPhone(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="field-label">Email</label>
+                <input
+                  type="email"
+                  placeholder="Optional"
+                  className="input-field"
+                  value={newStudentEmail}
+                  onChange={(e) => setNewStudentEmail(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="field-label">Date of Birth *</label>
+                <DOBSelector value={newStudentDob} onChange={setNewStudentDob} />
+              </div>
+              <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm assign-btn"
+                  style={{ width: '100%', height: '38px' }}
+                  disabled={assigning}
+                >
+                  {assigning ? "..." : "Assign Student"}
+                </button>
               </div>
             </form>
           )}
@@ -300,6 +328,12 @@ export default function AdminPanel() {
   const [search, setSearch] = useState("");
   const [academicYear, setAcademicYear] = useState("2027");
 
+  const [unassignedStudents, setUnassignedStudents] = useState<any[]>([]);
+  const [selectedUnassignedUsns, setSelectedUnassignedUsns] = useState<string[]>([]);
+  const [selectedProctorForBulk, setSelectedProctorForBulk] = useState<string>("");
+  const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "proctors" | "unassigned" | "parents">("overview");
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       if (localStorage.getItem("adminAuthenticated") !== "true") {
@@ -317,9 +351,52 @@ export default function AdminPanel() {
   const [newProctorId, setNewProctorId] = useState("");
   const [newProctorName, setNewProctorName] = useState("");
   const [newProctorPassword, setNewProctorPassword] = useState("");
+  const [newProctorPhone, setNewProctorPhone] = useState("");
+  const [newProctorEmail, setNewProctorEmail] = useState("");
   const [addingProctor, setAddingProctor] = useState(false);
 
+  /* ─── Parent Form States ─── */
+  const [showAddParentForm, setShowAddParentForm] = useState(false);
+  const [newParentUsn, setNewParentUsn] = useState("");
+  const [newParentRelation, setNewParentRelation] = useState("Father");
+  const [newParentName, setNewParentName] = useState("");
+  const [newParentPhone, setNewParentPhone] = useState("");
+  const [newParentEmail, setNewParentEmail] = useState("");
+  const [addingParent, setAddingParent] = useState(false);
+
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+
+  const handleAddParent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newParentUsn.trim() || !newParentRelation.trim() || !newParentName.trim() || !newParentPhone.trim() || !newParentEmail.trim()) {
+      showToast("All parent fields are required", "error");
+      return;
+    }
+
+    setAddingParent(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/admin/parents`, {
+        usn: newParentUsn.trim().toUpperCase(),
+        relation: newParentRelation.trim(),
+        name: formatName(newParentName.trim()),
+        phone: newParentPhone.trim(),
+        email: newParentEmail.trim(),
+      });
+
+      showToast(`Parent details for student ${newParentUsn.toUpperCase()} added successfully`, "success");
+      setNewParentUsn("");
+      setNewParentRelation("Father");
+      setNewParentName("");
+      setNewParentPhone("");
+      setNewParentEmail("");
+      setShowAddParentForm(false);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to add parent details", "error");
+    } finally {
+      setAddingParent(false);
+    }
+  };
+
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void; onCancel: () => void } | null>(null);
   const [stats, setStats] = useState({
     totalProctors: 0,
@@ -354,10 +431,67 @@ export default function AdminPanel() {
     }
   }, [academicYear]);
 
+  const fetchUnassignedStudents = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/admin/students/unassigned?academicYear=${academicYear}`);
+      if (res.data.success) {
+        setUnassignedStudents(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch unassigned students", err);
+    }
+  }, [academicYear]);
+
   useEffect(() => {
     fetchProctors();
     fetchStats();
-  }, [fetchProctors, fetchStats]);
+    fetchUnassignedStudents();
+  }, [fetchProctors, fetchStats, fetchUnassignedStudents]);
+
+  const handleBulkAssign = async () => {
+    if (selectedUnassignedUsns.length === 0) {
+      showToast("Please select at least one student", "error");
+      return;
+    }
+    if (!selectedProctorForBulk) {
+      showToast("Please select a proctor", "error");
+      return;
+    }
+
+    setBulkAssigning(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/admin/proctors/${selectedProctorForBulk}/students/bulk`, {
+        usns: selectedUnassignedUsns,
+        academicYear
+      });
+      showToast(`Successfully assigned ${selectedUnassignedUsns.length} students`, "success");
+      setSelectedUnassignedUsns([]);
+      setSelectedProctorForBulk("");
+      fetchProctors();
+      fetchStats();
+      fetchUnassignedStudents();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to assign students", "error");
+    } finally {
+      setBulkAssigning(false);
+    }
+  };
+
+  const handleSelectAllUnassigned = () => {
+    if (selectedUnassignedUsns.length === unassignedStudents.length) {
+      setSelectedUnassignedUsns([]);
+    } else {
+      setSelectedUnassignedUsns(unassignedStudents.map(s => s.usn));
+    }
+  };
+
+  const handleSelectUnassigned = (usn: string) => {
+    if (selectedUnassignedUsns.includes(usn)) {
+      setSelectedUnassignedUsns(selectedUnassignedUsns.filter(u => u !== usn));
+    } else {
+      setSelectedUnassignedUsns([...selectedUnassignedUsns, usn]);
+    }
+  };
 
   const handleAddProctor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,12 +503,16 @@ export default function AdminPanel() {
         proctorId: newProctorId.trim().toUpperCase(),
         password: newProctorPassword.trim(),
         name: newProctorName.trim() || undefined,
+        phone: newProctorPhone.trim() || undefined,
+        email: newProctorEmail.trim() || undefined,
       });
 
       showToast(`Proctor ${newProctorId.toUpperCase()} added successfully`, "success");
       setNewProctorId("");
       setNewProctorName("");
       setNewProctorPassword("");
+      setNewProctorPhone("");
+      setNewProctorEmail("");
       setShowAddForm(false);
       fetchProctors();
       fetchStats();
@@ -415,154 +553,406 @@ export default function AdminPanel() {
   });
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-header">
-        <h1>
-          <span className="accent">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-          </span> Admin Panel
-        </h1>
-        <div className="admin-header-actions">
-          <select
-            className="year-selector"
-            value={academicYear}
-            onChange={(e) => setAcademicYear(e.target.value)}
+    <div className="admin-container">
+      {/* Left Sidebar */}
+      <aside className="admin-sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+          </div>
+          <h1>Admin Panel</h1>
+        </div>
+
+        <nav className="sidebar-nav">
+          <button 
+            type="button"
+            className={`nav-item ${activeTab === "overview" ? "active" : ""}`}
+            onClick={() => setActiveTab("overview")}
           >
-            <option value="2027">Year 2027</option>
-            <option value="2028">Year 2028</option>
-            <option value="2029">Year 2029</option>
-          </select>
-          <button className="btn btn-sm btn-ghost" onClick={handleLogout} style={{ marginLeft: "8px", color: "var(--error)" }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="9" y1="3" x2="9" y2="21" /><line x1="15" y1="3" x2="15" y2="21" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" /></svg>
+            Overview
+          </button>
+          
+          <button 
+            type="button"
+            className={`nav-item ${activeTab === "proctors" ? "active" : ""}`}
+            onClick={() => setActiveTab("proctors")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            Proctors
+          </button>
+          
+          <button 
+            type="button"
+            className={`nav-item ${activeTab === "unassigned" ? "active" : ""}`}
+            onClick={() => setActiveTab("unassigned")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" /></svg>
+            Unassigned
+          </button>
+          
+          <button 
+            type="button"
+            className={`nav-item ${activeTab === "parents" ? "active" : ""}`}
+            onClick={() => setActiveTab("parents")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            Parents
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <button className="logout-button" onClick={handleLogout}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
             Logout
           </button>
         </div>
-      </div>
+      </aside>
 
-      <div className="admin-stats">
-        <div className="stat-card">
-          <div className="stat-icon orange">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+      {/* Right Content Pane */}
+      <main className="admin-content-pane">
+        <header className="content-pane-header">
+          <div className="pane-title">
+            <h2>
+              {activeTab === "overview" && "Dashboard Overview"}
+              {activeTab === "proctors" && "Proctor Management"}
+              {activeTab === "unassigned" && "Unassigned Students Assignment"}
+              {activeTab === "parents" && "Parent Registration"}
+            </h2>
           </div>
-          <div>
-            <div className="stat-value">{stats.totalProctors}</div>
-            <div className="stat-label">Total Proctors</div>
+          <div className="pane-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <select
+              className="year-selector"
+              value={academicYear}
+              onChange={(e) => setAcademicYear(e.target.value)}
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-sm)', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="2027">Year 2027</option>
+              <option value="2028">Year 2028</option>
+              <option value="2029">Year 2029</option>
+            </select>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon green">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
-          </div>
-          <div>
-            <div className="stat-value">{stats.totalStudents}</div>
-            <div className="stat-label">Total Students</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon blue">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg>
-          </div>
-          <div>
-            <div className="stat-value">{stats.unassignedCount}</div>
-            <div className="stat-label">Unassigned Students ({academicYear})</div>
-          </div>
-        </div>
-      </div>
+        </header>
 
-      <div className="admin-section">
-        <div className="admin-section-header">
-          <h2>
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-            Proctor Management
-          </h2>
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            <div className="admin-search">
-              <span className="search-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-              </span>
-              <input
-                type="text"
-                placeholder="Search proctors..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddForm(!showAddForm)}>
-              {showAddForm ? "Cancel" : "+ Add Proctor"}
-            </button>
-          </div>
-        </div>
-
-        {showAddForm && (
-          <form className="add-proctor-form" onSubmit={handleAddProctor}>
-            <h3>Add New Proctor</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Proctor ID *</label>
-                <input
-                  type="text"
-                  placeholder="e.g. P001"
-                  value={newProctorId}
-                  onChange={(e) => setNewProctorId(e.target.value.toUpperCase())}
-                  required
-                  autoFocus
-                />
+        <div className="pane-body">
+          {/* OVERVIEW TAB */}
+          {activeTab === "overview" && (
+            <div className="overview-tab" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div className="admin-stats">
+                <div className="stat-card">
+                  <div className="stat-icon orange">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                  </div>
+                  <div>
+                    <div className="stat-value">{stats.totalProctors}</div>
+                    <div className="stat-label">Total Proctors</div>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon green">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>
+                  </div>
+                  <div>
+                    <div className="stat-value">{stats.totalStudents}</div>
+                    <div className="stat-label">Total Students</div>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-icon blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1Z" /><path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" /></svg>
+                  </div>
+                  <div>
+                    <div className="stat-value">{stats.unassignedCount}</div>
+                    <div className="stat-label">Unassigned Students ({academicYear})</div>
+                  </div>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Smith"
-                  value={newProctorName}
-                  onChange={(e) => setNewProctorName(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  placeholder="Set password"
-                  value={newProctorPassword}
-                  onChange={(e) => setNewProctorPassword(e.target.value)}
-                  required
-                />
+
+              <div className="welcome-card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '2.5rem', marginTop: '2rem', textAlign: 'center' }}>
+                <h3 style={{ fontSize: '1.6rem', marginBottom: '1rem', color: 'var(--accent-primary)', fontWeight: 700 }}>Welcome to the Smart Report Admin Panel</h3>
+                <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: '1.6', fontSize: '1rem' }}>
+                  Use the left sidebar sections to oversee student tracking. You can organize Proctors, assign students in bulk, and complete Parent registration entries seamlessly.
+                </p>
               </div>
             </div>
-            <div className="form-actions">
-              <button type="submit" className="btn btn-primary btn-sm" disabled={addingProctor}>
-                {addingProctor ? "Adding..." : "Add Proctor"}
-              </button>
-              <button type="button" className="btn btn-sm btn-ghost" onClick={() => setShowAddForm(false)}>Cancel</button>
-            </div>
-          </form>
-        )}
+          )}
 
-        {loading ? (
-          <div className="admin-loading">
-            <div className="spinner"></div>
-            <span>Loading {academicYear} data...</span>
-          </div>
-        ) : filteredProctors.length === 0 ? (
-          <div className="empty-students">
-            {proctors.length === 0
-              ? "No proctors added yet."
-              : "No proctors match your search."}
-          </div>
-        ) : (
-          <div className="proctor-list">
-            {filteredProctors.map((p) => (
-              <ProctorCard
-                key={p.proctorId}
-                proctor={p}
-                academicYear={academicYear}
-                onDelete={handleDeleteProctor}
-                onStudentAssigned={() => { fetchProctors(); fetchStats(); }}
-                onStudentRemoved={() => { fetchProctors(); fetchStats(); }}
-                showToast={showToast}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          {/* PROCTORS TAB */}
+          {activeTab === "proctors" && (
+            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div className="admin-section-header">
+                <h2>Proctor Management</h2>
+                <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                  <div className="admin-search">
+                    <span className="search-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search proctors..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </div>
+                  <button className="btn btn-primary btn-sm" onClick={() => setShowAddForm(!showAddForm)}>
+                    {showAddForm ? "Cancel" : "+ Add Proctor"}
+                  </button>
+                </div>
+              </div>
+
+              {showAddForm && (
+                <form className="add-proctor-form-grid" onSubmit={handleAddProctor}>
+                  <div className="form-header-row" style={{ gridColumn: '1 / -1', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Add New Proctor</h3>
+                    <button type="button" className="close-btn" onClick={() => setShowAddForm(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label className="field-label">Proctor ID *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. P001"
+                      className="input-field"
+                      value={newProctorId}
+                      onChange={(e) => setNewProctorId(e.target.value.toUpperCase())}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="field-label">Full Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dr. Smith"
+                      className="input-field"
+                      value={newProctorName}
+                      onChange={(e) => setNewProctorName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="field-label">Password *</label>
+                    <input
+                      type="password"
+                      placeholder="Set password"
+                      className="input-field"
+                      value={newProctorPassword}
+                      onChange={(e) => setNewProctorPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="field-label">Phone</label>
+                    <input
+                      type="text"
+                      placeholder="Optional"
+                      className="input-field"
+                      value={newProctorPhone}
+                      onChange={(e) => setNewProctorPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="field-label">Email</label>
+                    <input
+                      type="email"
+                      placeholder="Optional"
+                      className="input-field"
+                      value={newProctorEmail}
+                      onChange={(e) => setNewProctorEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '38px' }} disabled={addingProctor}>
+                      {addingProctor ? "Adding..." : "Add Proctor"}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {loading ? (
+                <div className="admin-loading">
+                  <div className="spinner"></div>
+                  <span>Loading {academicYear} data...</span>
+                </div>
+              ) : filteredProctors.length === 0 ? (
+                <div className="empty-students">
+                  {proctors.length === 0
+                    ? "No proctors added yet."
+                    : "No proctors match your search."}
+                </div>
+              ) : (
+                <div className="proctor-list">
+                  {filteredProctors.map((p) => (
+                    <ProctorCard
+                      key={p.proctorId}
+                      proctor={p}
+                      academicYear={academicYear}
+                      onDelete={handleDeleteProctor}
+                      onStudentAssigned={() => { fetchProctors(); fetchStats(); }}
+                      onStudentRemoved={() => { fetchProctors(); fetchStats(); }}
+                      showToast={showToast}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* UNASSIGNED STUDENTS TAB */}
+          {activeTab === "unassigned" && (
+            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div className="admin-section-header">
+                <h2>Unassigned Students</h2>
+              </div>
+              
+              {unassignedStudents.length === 0 ? (
+                <div className="empty-students">No unassigned students found.</div>
+              ) : (
+                <div className="unassigned-students-container" style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="bulk-assign-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select 
+                      value={selectedProctorForBulk} 
+                      onChange={(e) => setSelectedProctorForBulk(e.target.value)}
+                      className="input-field"
+                      style={{ maxWidth: '300px' }}
+                    >
+                      <option value="">-- Select Proctor --</option>
+                      {proctors.map(p => (
+                        <option key={p.proctorId} value={p.proctorId}>{p.name || p.proctorId} ({p.studentCount})</option>
+                      ))}
+                    </select>
+                    <button 
+                      className="btn btn-primary btn-sm"
+                      onClick={handleBulkAssign}
+                      disabled={bulkAssigning || selectedUnassignedUsns.length === 0 || !selectedProctorForBulk}
+                    >
+                      {bulkAssigning ? "Assigning..." : `Assign Selected (${selectedUnassignedUsns.length})`}
+                    </button>
+                  </div>
+                  
+                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                          <th style={{ padding: '0.75rem 0.5rem', width: '40px' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedUnassignedUsns.length === unassignedStudents.length && unassignedStudents.length > 0}
+                              onChange={handleSelectAllUnassigned}
+                            />
+                          </th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>USN</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Name</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>DOB</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {unassignedStudents.map(student => (
+                          <tr key={student.usn} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={selectedUnassignedUsns.includes(student.usn)}
+                                onChange={() => handleSelectUnassigned(student.usn)}
+                              />
+                            </td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}><strong>{student.usn}</strong></td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>{student.name}</td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>{student.dob}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PARENTS TAB */}
+          {activeTab === "parents" && (
+            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+              <div className="admin-section-header">
+                <h2>Parent Registration</h2>
+              </div>
+
+              <form className="add-student-form-grid" onSubmit={handleAddParent} style={{ background: 'var(--bg-secondary)', padding: '2rem', border: '1px solid var(--border-subtle)' }}>
+                <div className="form-group">
+                  <label className="field-label">Student USN *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1MS24CS001"
+                    className="input-field"
+                    value={newParentUsn}
+                    onChange={(e) => setNewParentUsn(e.target.value.toUpperCase())}
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="field-label">Parent Name *</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Robert Doe"
+                    className="input-field"
+                    value={newParentName}
+                    onChange={(e) => setNewParentName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="field-label">Relation *</label>
+                  <select
+                    className="input-field"
+                    value={newParentRelation}
+                    onChange={(e) => setNewParentRelation(e.target.value)}
+                    required
+                    style={{ height: '38px' }}
+                  >
+                    <option value="Father">Father</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Guardian">Guardian</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="field-label">Phone *</label>
+                  <input
+                    type="text"
+                    placeholder="Enter 10-digit phone"
+                    className="input-field"
+                    value={newParentPhone}
+                    onChange={(e) => setNewParentPhone(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="field-label">Email *</label>
+                  <input
+                    type="email"
+                    placeholder="e.g. parent@example.com"
+                    className="input-field"
+                    value={newParentEmail}
+                    onChange={(e) => setNewParentEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ width: '100%', height: '38px' }}
+                    disabled={addingParent}
+                  >
+                    {addingParent ? "Adding..." : "Add Parent Details"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      </main>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {confirmDialog && <ConfirmDialog title={confirmDialog.title} message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={confirmDialog.onCancel} />}

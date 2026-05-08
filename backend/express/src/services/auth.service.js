@@ -37,11 +37,22 @@ class AuthService {
     }
 
     // Single query check for both USN and DOB
-    const user = await userRepository.findByCredentials(usn, dob);
+    let user = await userRepository.findByCredentials(usn, dob);
 
     if (!user) {
-      console.warn(`[Student Auth] Failed attempt for ${usn} with DOB ${dob}`);
-      throw new Error("Invalid USN or Date of Birth");
+      console.warn(`[Student Auth] User not found. Attempting to scrape and register ${usn} with DOB ${dob}`);
+      try {
+        const { scrapeAndSyncStudent } = await import("./puppeteerScraper.service.js");
+        await scrapeAndSyncStudent(usn, dob);
+        // After successful sync, fetch user again
+        user = await userRepository.findByCredentials(usn, dob);
+        if (!user) {
+          throw new Error("Failed to create user after scraping.");
+        }
+      } catch (err) {
+        console.error(`[Student Auth] Scraping failed for ${usn}: ${err.message}`);
+        throw new Error("Invalid USN or Date of Birth");
+      }
     }
 
     const normalizedUSN = user.usn.toUpperCase();

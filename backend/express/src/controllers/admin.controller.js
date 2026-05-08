@@ -163,7 +163,7 @@ class AdminController {
   async assignStudent(req, res, next) {
     try {
       const { proctorId } = req.params;
-      const { usn, dob, academicYear = "2027", name } = req.body;
+      const { usn, dob, academicYear = "2027", name, phone, email } = req.body;
 
       if (!usn) {
         return res.status(400).json({
@@ -190,11 +190,16 @@ class AdminController {
       // 2. Upsert the student record
       const student = await prisma.student.upsert({
         where: { usn: normalizedUsn },
-        update: {}, // Maintain details if exists
+        update: {
+          phone: phone || undefined,
+          email: email || undefined,
+        }, // Maintain details if exists, but update phone/email if provided
         create: {
           usn: normalizedUsn,
           name: name || normalizedUsn,
           dob,
+          phone: phone || null,
+          email: email || null,
           current_year: 1,
           details: {},
         },
@@ -222,6 +227,67 @@ class AdminController {
         success: true,
         message: "Student assigned to proctor successfully",
         data: assignment,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/admin/proctors/:proctorId/students/bulk
+   * Assign multiple students to a proctor
+   */
+  async assignMultipleStudents(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const { usns, academicYear = "2027" } = req.body;
+
+      if (!usns || !Array.isArray(usns) || usns.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "A list of USNs is required",
+        });
+      }
+
+      const normalizedProctorId = proctorId.toUpperCase();
+      
+      const proctor = await prisma.proctor.findUnique({
+        where: { proctor_id: normalizedProctorId },
+      });
+
+      if (!proctor) {
+        return res.status(404).json({
+          success: false,
+          message: "Proctor not found",
+        });
+      }
+
+      const assignments = [];
+      for (const usn of usns) {
+        const normalizedUsn = usn.toUpperCase();
+        const assignment = await prisma.proctorStudentMap.upsert({
+          where: {
+            student_id_academic_year: {
+              student_id: normalizedUsn,
+              academic_year: academicYear,
+            },
+          },
+          update: {
+            proctor_id: normalizedProctorId,
+          },
+          create: {
+            proctor_id: normalizedProctorId,
+            student_id: normalizedUsn,
+            academic_year: academicYear,
+          },
+        });
+        assignments.push(assignment);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: `${assignments.length} students assigned to proctor successfully`,
+        data: assignments,
       });
     } catch (error) {
       next(error);
@@ -307,6 +373,66 @@ class AdminController {
           totalStudents,
           unassignedCount: Math.max(0, unassignedCount),
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  /**
+   * POST /api/admin/parents
+   * Add parent details for a student
+   */
+  async addParent(req, res, next) {
+    try {
+      const { usn, relation, name, phone, email } = req.body;
+
+      if (!usn || !relation || !name || !phone || !email) {
+        return res.status(400).json({
+          success: false,
+          message: "USN, relation, name, phone, and email are all required",
+        });
+      }
+
+      const normalizedUsn = usn.toUpperCase();
+
+      // Verify student exists first
+      const student = await prisma.student.findUnique({
+        where: { usn: normalizedUsn },
+      });
+
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: `Student with USN ${normalizedUsn} not found in the database. Please add the student first or wait for them to register.`,
+        });
+      }
+
+      // Upsert parent details
+      const parent = await prisma.parent.upsert({
+        where: {
+          usn_relation: {
+            usn: normalizedUsn,
+            relation: relation.trim(),
+          },
+        },
+        update: {
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+        },
+        create: {
+          usn: normalizedUsn,
+          relation: relation.trim(),
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim(),
+        },
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "Parent details added/updated successfully",
+        data: parent,
       });
     } catch (error) {
       next(error);

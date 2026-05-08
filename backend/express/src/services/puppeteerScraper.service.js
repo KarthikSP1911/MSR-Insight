@@ -541,6 +541,7 @@ export const scrapeAndSyncStudent = async (usn, dob) => {
 
     if (normalizedData) {
         console.log(`[Scraper] Syncing ${usn} to database...`);
+        normalizedData.dob = dob; // Inject dob for the upsert
         await syncStudents({ [usn]: normalizedData });
         return normalizedData;
     }

@@ -37,6 +37,12 @@ export default function ReportComponent() {
     const [emailSent, setEmailSent] = useState(false);
     const [emailError, setEmailError] = useState<string | null>(null);
 
+    const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+    const [whatsAppSent, setWhatsAppSent] = useState(false);
+    const [whatsAppError, setWhatsAppError] = useState<string | null>(null);
+    const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+    const [whatsAppResult, setWhatsAppResult] = useState<any>(null);
+
     const [studentDetail, setStudentDetail] = useState<any>(null);
     const [marksData, setMarksData] = useState<any[]>([]);
     const [systemRemarks, setSystemRemarks] = useState('');
@@ -189,6 +195,51 @@ export default function ReportComponent() {
         }
     };
 
+    const handleSendWhatsApp = async () => {
+        try {
+            setSendingWhatsApp(true);
+            setWhatsAppError(null);
+            setWhatsAppResult(null);
+
+            const element = document.getElementById('report-sheet');
+            if (!element) return;
+            const htmlContent = element.innerHTML;
+
+            const sessionId = proctorId ? localStorage.getItem("proctorSessionId") : localStorage.getItem("studentSessionId");
+
+            if (!sessionId) {
+                router.push(proctorId ? "/proctor-login" : "/student-login");
+                return;
+            }
+
+            const response = await axios.post(
+                `${API_BASE_URL}/api/report/send-whatsapp`,
+                { usn: USN, htmlContent },
+                { headers: { "x-session-id": sessionId } }
+            );
+
+            if (response.data.success) {
+                setWhatsAppResult(response.data.data);
+                if (response.data.data.isTwilioConfigured) {
+                    setWhatsAppSent(true);
+                    setTimeout(() => setWhatsAppSent(false), 5000);
+                } else {
+                    setWhatsAppModalOpen(true);
+                }
+            } else {
+                setWhatsAppError(response.data.message || "Failed to process WhatsApp dispatch");
+                setTimeout(() => setWhatsAppError(null), 5000);
+            }
+        } catch (err: any) {
+            console.error("WhatsApp dispatch error:", err);
+            const errorMsg = err.response?.data?.message || err.message || "Failed to process WhatsApp report";
+            setWhatsAppError(errorMsg);
+            setTimeout(() => setWhatsAppError(null), 5000);
+        } finally {
+            setSendingWhatsApp(false);
+        }
+    };
+
     const parseSemester = (classDetails: string) => {
         if (!classDetails) return '';
         const match = classDetails.match(/SEM\s*(\d+)/i);
@@ -273,14 +324,13 @@ export default function ReportComponent() {
                     </div>
                 </div>
 
-                <div className="toolbar-right">
+                <div className="toolbar-right" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                     {emailError && (
                         <div style={{
                             backgroundColor: '#ef4444',
                             color: 'white',
                             padding: '0.5rem 1rem',
                             borderRadius: '0.375rem',
-                            marginRight: '1rem',
                             fontSize: '0.875rem',
                             display: 'flex',
                             alignItems: 'center',
@@ -295,13 +345,40 @@ export default function ReportComponent() {
                             color: 'white',
                             padding: '0.5rem 1rem',
                             borderRadius: '0.375rem',
-                            marginRight: '1rem',
                             fontSize: '0.875rem',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem'
                         }}>
                             <span>✓ Email sent successfully to all parents!</span>
+                        </div>
+                    )}
+                    {whatsAppError && (
+                        <div style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span>⚠️ {whatsAppError}</span>
+                        </div>
+                    )}
+                    {whatsAppSent && (
+                        <div style={{
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.875rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span>✓ WhatsApp sent successfully to all parents!</span>
                         </div>
                     )}
                     <button
@@ -312,6 +389,15 @@ export default function ReportComponent() {
                     >
                         <span style={{ marginRight: '8px' }}>📧</span>
                         {sendingEmail ? "Sending..." : "Send Email"}
+                    </button>
+                    <button
+                        className="btn whatsapp-btn"
+                        onClick={handleSendWhatsApp}
+                        disabled={sendingWhatsApp || loading}
+                        title="Send report to parents via WhatsApp"
+                    >
+                        <span style={{ fontSize: '1.1rem' }}>💬</span>
+                        {sendingWhatsApp ? "Sending..." : "WhatsApp Report"}
                     </button>
                     <button
                         className="btn btn-primary download-btn"
@@ -430,6 +516,67 @@ export default function ReportComponent() {
                     </div>
                 </div>
             </div>
+
+            {whatsAppModalOpen && whatsAppResult && (
+                <div className="whatsapp-modal-overlay">
+                    <div className="whatsapp-modal-container">
+                        <div className="whatsapp-modal-header">
+                            <h3 className="whatsapp-modal-title">
+                                📱 Send Academic Report via WhatsApp
+                            </h3>
+                            <button 
+                                onClick={() => setWhatsAppModalOpen(false)}
+                                className="whatsapp-modal-close-btn"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="whatsapp-modal-description">
+                            Since automatic API dispatch is not configured, we have prepared the report PDF on Cloudinary. You can instantly share it with parents below:
+                        </p>
+
+                        <div className="whatsapp-modal-parent-list">
+                            {whatsAppResult.results.map((parent: any, idx: number) => {
+                                // Encode message body for wa.me redirect
+                                const encodedText = encodeURIComponent(parent.messageBody);
+                                // Clean phone number
+                                const cleanPhone = parent.phone.replace(/[\s\-\(\)]/g, "");
+                                const finalPhone = cleanPhone.startsWith("+") ? cleanPhone : `+91${cleanPhone}`;
+                                const waUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodedText}`;
+
+                                return (
+                                    <div key={idx} className="whatsapp-modal-parent-row">
+                                        <div>
+                                            <div className="whatsapp-modal-parent-name">{parent.parentName}</div>
+                                            <div className="whatsapp-modal-parent-meta">
+                                                {parent.relation} • {parent.phone}
+                                            </div>
+                                        </div>
+                                        <a 
+                                            href={waUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="whatsapp-modal-share-link"
+                                        >
+                                            Share Report
+                                        </a>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="whatsapp-modal-footer">
+                            <button 
+                                className="btn btn-secondary"
+                                onClick={() => setWhatsAppModalOpen(false)}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
