@@ -7,7 +7,7 @@ An industry-grade, AI-powered academic reporting platform designed to transform 
 ## Key Features
 
 - **AI-Powered Insights**: Real-time performance analysis using Groq (Llama 3.1) and AI-generated academic remarks.
-- **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, ChromaDB, and Google Gemini, enabling proctors to query student data conversationally.
+- **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, PGVector (Postgres), and Google Gemini, enabling proctors to query student data conversationally.
 - **Interactive Dashboards**: Specialized views for Students (personal progress tracking) and Proctors (administrative management with attendance alerts).
 - **Professional A4 Reports**: Pixel-perfect reporting engine with Tiptap rich-text editing and high-fidelity PDF export.
 - **Automated Email Delivery**: PDF reports generated via Puppeteer, archived on Cloudinary, and delivered to parents via Resend.
@@ -24,7 +24,7 @@ The system operates on a **distributed monolith** architecture with four indepen
 
 1. **Frontend (Next.js)**: Modern, responsive UI built with Next.js 16 App Router, TypeScript, and Tailwind CSS v4.
 2. **Logic Gateway (Express)**: Orchestrates business logic, manages PostgreSQL through Prisma ORM, handles session caching in Redis, and runs Puppeteer-based scraping.
-3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + ChromaDB), and data normalization.
+3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + PGVector), and data normalization.
 4. **Browser Extension (Chrome)**: Manifest V3 extension that detects proctor sessions and orchestrates batch scraping of assigned students.
 
 ### Component Interaction
@@ -40,12 +40,13 @@ Express API (Port 5001)  ---- Redis (Upstash) ----  [Session Store]
        v                              |
 FastAPI Service (Port 8000)         |
        |                              |
-       |  LangChain + ChromaDB         |
+       |  LangChain + PGVector         |
        |  Groq / Gemini APIs           |
        |                              |
        v                              |
 PostgreSQL (Neon)                   |
-   [students JSONB]                  |
+   [students JSONB &                |
+    student_data_v2 vectors]        |
        ^                              |
        |  Puppeteer Scraper            |
        +------------------------------+
@@ -86,8 +87,8 @@ Express API (batch scrape endpoint)
 | **LLM (Remarks)** | Groq SDK (llama-3.1-8b-instant) | latest |
 | **LLM (RAG Chat)** | Google Gemini (gemini-3.1-flash-lite) | latest |
 | **Embeddings** | Google Gemini Embeddings (gemini-embedding-001) | latest |
-| **Vector Store** | ChromaDB (via LangChain) | latest |
-| **RAG Framework** | LangChain Core + Chroma + Community | latest |
+| **Vector Store** | PGVector (Postgres) | latest |
+| **RAG Framework** | LangChain Core + PGVector + Community | latest |
 | **Config (Python)** | pydantic-settings | latest |
 | **Browser Extension** | Chrome Manifest V3 | — |
 | **Package Manager** | npm (Node), pip (Python) | — |
@@ -210,9 +211,8 @@ MSR-Insight/
 │       │   ├── ai_service.py       # Validates input + calls Groq LLM
 │       │   ├── prompt_builder.py   # Builds structured prompt for remark generation
 │       │   ├── llm_provider.py     # Groq SDK wrapper
-│       │   └── rag_service.py     # Full RAG pipeline (ChromaDB + Gemini + LangChain)
+│       │   └── rag_service.py     # Full RAG pipeline (PGVector + Gemini + LangChain)
 │       └── data/
-│           ├── chroma_db/          # Persisted vector store
 │           └── *.json              # Legacy data files
 ├── frontend/                       # Next.js 16 App Router SPA
 │   └── src/
@@ -346,7 +346,7 @@ proctor_student_map
 
 - **PostgreSQL (Neon)**: Primary persistent store. All structured + unstructured (JSONB) data.
 - **Redis (Upstash)**: Session cache only. TLS-secured (`rediss://`).
-- **ChromaDB (local)**: Vector store for RAG chatbot. Persisted at `backend/fastapi/data/chroma_db/`.
+- **PGVector (PostgreSQL)**: Vector store for RAG chatbot. Embedded tables are hosted directly in the Neon PostgreSQL database instance (`student_data_v2`).
 - **Cloudinary**: PDF archival storage for emailed reports.
 
 ---
@@ -395,7 +395,7 @@ proctor_student_map
 | POST | `/generate-remark` | Generate AI remark from student data (Groq) |
 | POST | `/api/rag/sync` | Trigger RAG data sync (background) |
 | GET | `/api/rag/sync/status` | Check RAG sync status |
-| POST | `/api/rag/chat` | RAG chatbot query (Gemini + ChromaDB) |
+| POST | `/api/rag/chat` | RAG chatbot query (Gemini + PGVector) |
 
 ### Frontend Routes (Next.js App Router)
 
@@ -431,7 +431,7 @@ proctor_student_map
 ### Proctor RAG Chatbot
 1. Proctor login triggers `notifyRagSync()` -> `POST /api/rag/sync` to FastAPI
 2. RAG service fetches all student records from PostgreSQL -> chunks into semantic categories
-3. Chunks embedded with Gemini embeddings -> stored in ChromaDB with metadata filters
+3. Chunks embedded with Gemini embeddings -> stored in PGVector (Postgres) with metadata filters
 4. On chat query: query rewriting -> intent detection -> ensemble retrieval (BM25 + semantic)
 5. Retrieved context + question sent to Gemini for grounded response generation
 
