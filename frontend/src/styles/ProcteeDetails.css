@@ -98,9 +98,16 @@
 /* 3. GRID & CARDS */
 .details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: stretch;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .info-card {

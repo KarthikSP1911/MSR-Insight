@@ -57,9 +57,9 @@ const Navbar: React.FC<NavbarProps> = ({
   const isStudentDashboard = isStudentView && !isReportPage;
 
   return (
-    <nav className={`navbar ${isMenuOpen ? 'mobile-menu-open' : ''}`}>
-      <div className="container navbar-container">
-        <div className="nav-logo">
+    <nav className={`navbar ${isMenuOpen ? 'mobile-menu-open' : ''} ${isAdminPage ? 'admin-navbar' : ''}`}>
+      <div className={`container navbar-container ${isAdminPage ? 'admin-navbar-container' : ''}`}>
+        <div className={`nav-logo ${isAdminPage ? 'admin-nav-logo' : ''}`}>
           {isProcteeDetailsView ? (
             <Link
               href={`/proctor/${proctorId}/dashboard`}

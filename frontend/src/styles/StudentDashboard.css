@@ -1998,6 +1998,7 @@
     .insights-grid { grid-template-columns: 1fr; }
     .details-content { grid-template-columns: 1fr; }
     .history-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
     .mobile-hide { display: none !important; }
     .mobile-show { display: block !important; }
     
@@ -2009,5 +2010,8 @@
     }
     .heatmap-square {
         min-width: 10px;
+    }
+    .content-wrapper {
+        padding: 16px 12px 100px;
     }
 }

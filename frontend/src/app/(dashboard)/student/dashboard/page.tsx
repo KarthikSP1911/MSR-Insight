@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import axios from "axios";
 import {
     Target, History as HistoryIcon, Award, Menu, X, Gamepad2
@@ -45,7 +45,12 @@ export default function StudentDashboard() {
     const [student, setStudent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
-    const [activeTab, setActiveTab] = useState('performance');
+    
+    // 1b. Route-aware Tab State
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const activeTab = searchParams.get('tab') || 'performance';
+    
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [nextAllowedAt, setNextAllowedAt] = useState<string | null>(null);
     const [selectedSubject, setSelectedSubject] = useState<any>(null);
@@ -202,7 +207,13 @@ export default function StudentDashboard() {
     }, [currentSem, predictedGrades]);
 
     // 4. Handlers
-    const handleTabChange = (tab: string) => { setActiveTab(tab); setIsMobileMenuOpen(false); };
+    const handleTabChange = (tab: string) => { 
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', tab);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+        setSelectedSubject(null); // Clear subject view when navigating via sidebar
+        setIsMobileMenuOpen(false); 
+    };
     const handleLogout = () => { localStorage.clear(); router.push("/"); };
 
     const handleUpdate = async () => {
