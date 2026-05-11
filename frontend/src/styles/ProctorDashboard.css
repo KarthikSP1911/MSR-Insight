@@ -109,7 +109,8 @@
 
 .search-box {
   flex: 2;
-  min-width: 300px;
+  min-width: 0;
+  width: 100%;
   gap: 12px;
 }
 
@@ -176,7 +177,7 @@
 
 @media (max-width: 768px) {
   .proctor-dashboard {
-    padding: 1rem 24px;
+    padding: 1rem 16px;
   }
 
   .grid-container {

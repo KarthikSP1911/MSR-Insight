@@ -289,12 +289,12 @@
 .marks-table {
     width: 100%;
     border-collapse: collapse;
-    border: 1px solid #000000;
+    border: 0.1px solid #000000;
 }
 
 .marks-table th,
 .marks-table td {
-    border: 1px solid hsl(240, 5%, 4%);
+    border: 0.1px solid #1a1b1e;
     padding: 10px 12px;
 }
 
@@ -341,7 +341,9 @@
     font-size: 0.7rem;
 }
 
-.grade-badge.o, .grade-badge.aplus, .grade-badge.a {
+.grade-badge.o,
+.grade-badge.aplus,
+.grade-badge.a {
     background: #dcfce7;
     color: #166534;
 }
@@ -416,13 +418,24 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media print {
-    .report-viewer-page { background: white !important; }
-    .report-toolbar { display: none !important; }
-    .a4-sheet { box-shadow: none !important; margin: 0 !important; }
+    .report-viewer-page {
+        background: white !important;
+    }
+
+    .report-toolbar {
+        display: none !important;
+    }
+
+    .a4-sheet {
+        box-shadow: none !important;
+        margin: 0 !important;
+    }
 }
 
 /* WhatsApp Sharing Modal Styles & Button */
@@ -575,8 +588,13 @@
 }
 
 @keyframes whatsappFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes whatsappSlideUp {
@@ -584,8 +602,106 @@
         opacity: 0;
         transform: translateY(16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+@media (max-width: 850px) {
+    .report-toolbar {
+        padding: 0 16px;
+        gap: 8px;
+    }
+
+    .toolbar-left,
+    .toolbar-center {
+        display: none;
+    }
+
+    .a4-sheet-wrapper {
+        transform: scale(0.9);
+        transform-origin: top center;
+    }
+}
+
+@media (max-width: 768px) {
+    .a4-sheet-wrapper {
+        transform: scale(0.7);
+    }
+}
+
+@media (max-width: 600px) {
+    .a4-sheet-wrapper {
+        transform: scale(0.5);
+    }
+
+    .toolbar-right {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   PDF EXPORT SPECIFIC STYLES
+   (Applied only during PDF generation)
+   ============================================ */
+
+.is-pdf-export.a4-sheet {
+    padding: 32px 44px 40px !important;
+    /* Added more top and bottom padding */
+    transform: scale(0.93);
+    transform-origin: top center;
+    min-height: 1110px !important;
+}
+
+.is-pdf-export .sheet-header {
+    margin-bottom: 12px !important;
+    padding-top: 8px !important;
+    /* Better top spacing */
+}
+
+.is-pdf-export .college-logo-img {
+    height: 66px !important;
+}
+
+.is-pdf-export .divider {
+    margin: 6px 0 16px 0 !important;
+}
+
+.is-pdf-export .table-section {
+    margin-bottom: 20px !important;
+}
+
+.is-pdf-export .marks-table,
+.is-pdf-export .marks-table th,
+.is-pdf-export .marks-table td {
+    border: 0.5px solid #1a1b1e !important;
+}
+
+.is-pdf-export .marks-table th,
+.is-pdf-export .marks-table td {
+    padding: 7px 12px !important;
+}
+
+.is-pdf-export .remarks-section {
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+}
+
+.is-pdf-export .tiptap-content {
+    min-height: 70px !important;
+    padding: 10px !important;
+}
+
+.is-pdf-export .sheet-footer {
+    margin-top: auto !important;
+    padding-top: 48px !important;
+    /* Pushed signature area lower */
+    border-top: none !important;
+}
+
+.is-pdf-export .signature-line {
+    width: 160px !important;
 }

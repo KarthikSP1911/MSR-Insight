@@ -51,9 +51,24 @@ interface SubjectDetailProps {
 const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onSubjectChange, onBack }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [targetPct, setTargetPct] = useState(75);
+  const [targetPct, setTargetPct] = useState(85);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showAssessments, setShowAssessments] = useState(false);
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+
+  // Close switcher on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.sd-switcher-container')) {
+        setIsSwitcherOpen(false);
+      }
+    };
+    if (isSwitcherOpen) {
+      document.addEventListener('click', handleOutsideClick);
+    }
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, [isSwitcherOpen]);
 
   // Scroll to top on mount or subject change
   useEffect(() => {
@@ -74,6 +89,8 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
   /* ── Attendance calculator ── */
   const T = targetPct / 100;
   const canMiss = Math.floor(presentCount + remainingCount - T * totalClasses);
+  const maxPossiblePct = totalClasses > 0 ? ((presentCount + remainingCount) / totalClasses) * 100 : 0;
+  const isImpossible = targetPct > Math.round(maxPossiblePct);
 
   /* ── Calendar grid ── */
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -139,24 +156,39 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
         <div className="sd-subject-meta">
           <div className="sd-title-wrap">
             <h1 className="sd-subject-name">{subject.name}</h1>
-            <div className="sd-switcher-container">
-              <select 
-                className="sd-subject-select"
-                value={subject.code}
-                onChange={(e) => {
-                  const selected = allSubjects.find(s => s.code === e.target.value);
-                  if (selected) onSubjectChange(selected);
-                }}
+            <div className={`sd-switcher-container ${isSwitcherOpen ? 'sd-switcher-open' : ''}`}>
+              <div 
+                className="sd-switcher-trigger"
+                onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                role="button"
+                aria-haspopup="listbox"
+                aria-expanded={isSwitcherOpen}
               >
-                {allSubjects.map(s => (
-                  <option key={s.code} value={s.code}>
-                    {s.name} ({s.code})
-                  </option>
-                ))}
-              </select>
-              <div className="sd-switcher-trigger">
-                Switch Subject <ChevronRight size={14} className="sd-switcher-icon" />
+                Switch Subject <ChevronRight size={14} className={`sd-switcher-icon ${isSwitcherOpen ? 'rotated' : ''}`} />
               </div>
+              
+              {isSwitcherOpen && (
+                <div className="sd-switcher-menu" role="listbox">
+                  {allSubjects.map(s => (
+                    <div 
+                      key={s.code} 
+                      className={`sd-switcher-item ${s.code === subject.code ? 'active' : ''}`}
+                      onClick={() => {
+                        onSubjectChange(s);
+                        setIsSwitcherOpen(false);
+                      }}
+                      role="option"
+                      aria-selected={s.code === subject.code}
+                    >
+                      <div className="sd-item-info">
+                        <span className="sd-item-name">{s.name}</span>
+                        <span className="sd-item-code">{s.code}</span>
+                      </div>
+                      {s.code === subject.code && <div className="sd-item-active-dot" />}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           {subject.code && <span className="sd-subject-code">{subject.code}</span>}
@@ -244,16 +276,21 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
               <h3 className="sd-card-title">Attendance Calculator</h3>
               <p className="sd-card-subtitle">Track your attendance threshold</p>
             </div>
-            <div className="sd-att-target-pills">
-              {[65, 75, 85].map(pct => (
-                <button
-                  key={pct}
-                  className={`sd-target-pill ${targetPct === pct ? 'sd-target-pill-active' : ''}`}
-                  onClick={() => setTargetPct(pct)}
-                >
-                  {pct}%
-                </button>
-              ))}
+            <div className="sd-att-slider-container">
+              <div className="sd-slider-header">
+                <span className="sd-slider-title">Target Attendance</span>
+                <span className="sd-slider-value" style={{ color: targetPct >= 85 ? '#4edea3' : targetPct >= 75 ? '#ffb690' : '#EF4444' }}>
+                  {targetPct}%
+                </span>
+              </div>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={targetPct} 
+                onChange={(e) => setTargetPct(parseInt(e.target.value))}
+                className="sd-att-range-slider"
+              />
             </div>
           </div>
 
@@ -321,14 +358,23 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
             <div className="sd-att-result sd-att-result-danger">
               <div className="sd-att-result-icon">✗</div>
               <div>
-                <p className="sd-att-result-main">
-                  Need <strong>{Math.abs(canMiss)}</strong> more class{Math.abs(canMiss) !== 1 ? 'es' : ''}
-                </p>
-                <p className="sd-att-result-sub">
-                  {Math.abs(canMiss) <= remainingCount
-                    ? `Attend next ${Math.abs(canMiss)} classes without fail to reach ${targetPct}%`
-                    : `Cannot reach ${targetPct}% — not enough classes remaining`}
-                </p>
+                {isImpossible ? (
+                  <>
+                    <p className="sd-att-result-main">Target Unreachable</p>
+                    <p className="sd-att-result-sub">
+                      Max achievable attendance is <strong>{Math.round(maxPossiblePct)}%</strong> even if you attend all remaining classes.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="sd-att-result-main">
+                      Need <strong>{Math.abs(canMiss)}</strong> more class{Math.abs(canMiss) !== 1 ? 'es' : ''}
+                    </p>
+                    <p className="sd-att-result-sub">
+                      Attend the next {Math.abs(canMiss)} classes without fail to reach {targetPct}%.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}

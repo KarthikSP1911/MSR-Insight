@@ -6,6 +6,7 @@ import axios from 'axios';
 import TiptapEditor from '@/components/dashboard/Editor';
 import LoadingScreen from '@/components/dashboard/LoadingScreen';
 import { API_BASE_URL } from '@/config/api.config';
+import { Mail, MessageCircle } from 'lucide-react';
 import "@/styles/Report.css";
 
 // Dynamic import for html2pdf
@@ -128,6 +129,9 @@ export default function ReportComponent() {
         const element = document.getElementById('report-sheet');
         if (!element) return;
 
+        // Apply export-specific styling for A4 fit and soft borders
+        element.classList.add('is-pdf-export');
+
         const opt = {
             margin: 0,
             filename: `Report_${USN}.pdf`,
@@ -147,9 +151,11 @@ export default function ReportComponent() {
 
         setTimeout(() => {
             html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('is-pdf-export');
                 setZoom(currentZoom);
             }).catch((e: any) => {
                 console.error("PDF generation error:", e);
+                element.classList.remove('is-pdf-export');
                 setZoom(currentZoom);
                 alert("Failed to generate PDF. Please try again.");
             });
@@ -387,7 +393,9 @@ export default function ReportComponent() {
                         disabled={sendingEmail || loading}
                         title="Send report to parents via email"
                     >
-                        <span style={{ marginRight: '8px' }}>📧</span>
+                        <span style={{ marginRight: '8px', display: 'flex', alignItems: 'center' }}>
+                            <Mail size={18} color="#EA4335" />
+                        </span>
                         {sendingEmail ? "Sending..." : "Send Email"}
                     </button>
                     <button
@@ -396,7 +404,9 @@ export default function ReportComponent() {
                         disabled={sendingWhatsApp || loading}
                         title="Send report to parents via WhatsApp"
                     >
-                        <span style={{ fontSize: '1.1rem' }}>💬</span>
+                        <span style={{ marginRight: '8px', display: 'flex', alignItems: 'center' }}>
+                            <MessageCircle size={18} color="#25D366" />
+                        </span>
                         {sendingWhatsApp ? "Sending..." : "WhatsApp Report"}
                     </button>
                     <button
