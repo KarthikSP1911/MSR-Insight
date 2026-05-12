@@ -19,6 +19,11 @@ export default function ProcteeDetails() {
     const [student, setStudent] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const fetchStudentDetails = async () => {
@@ -84,6 +89,8 @@ export default function ProcteeDetails() {
     const details = student.details || {};
     const hasGoodStanding = (parseFloat(details.cgpa) || 0) >= 5;
 
+    if (!mounted) return null;
+
     return (
         <div className="container fade-in">
             <div className="proctee-details-page">
@@ -104,7 +111,7 @@ export default function ProcteeDetails() {
 
                 <div className="details-grid">
                     {/* PERSONAL INFORMATION CARD */}
-                    <div className="info-card justify-start">
+                    <div className="info-card">
                         <div className="card-header">
                             <div className="accent-line"></div>
                             <h2>Personal Information</h2>

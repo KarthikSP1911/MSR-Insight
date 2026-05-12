@@ -625,7 +625,6 @@ export default function AdminPanel() {
               className="year-selector"
               value={academicYear}
               onChange={(e) => setAcademicYear(e.target.value)}
-              style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-sm)', outline: 'none', cursor: 'pointer' }}
             >
               <option value="2027">Year 2027</option>
               <option value="2028">Year 2028</option>
@@ -667,13 +666,6 @@ export default function AdminPanel() {
                   </div>
                 </div>
               </div>
-
-              <div className="welcome-card" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '2.5rem', marginTop: '2rem', textAlign: 'center' }}>
-                <h3 style={{ fontSize: '1.6rem', marginBottom: '1rem', color: 'var(--accent-primary)', fontWeight: 700 }}>Welcome to the Smart Report Admin Panel</h3>
-                <p style={{ color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: '1.6', fontSize: '1rem' }}>
-                  Use the left sidebar sections to oversee student tracking. You can organize Proctors, assign students in bulk, and complete Parent registration entries seamlessly.
-                </p>
-              </div>
             </div>
           )}
 
@@ -694,8 +686,12 @@ export default function AdminPanel() {
                       onChange={(e) => setSearch(e.target.value)}
                     />
                   </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => setShowAddForm(!showAddForm)}>
-                    {showAddForm ? "Cancel" : "+ Add Proctor"}
+                   <button 
+                    className={`proctor-add-btn ${showAddForm ? 'active-state' : ''}`}
+                    onClick={() => setShowAddForm(!showAddForm)}
+                  >
+                    <span className="btn-icon">{showAddForm ? "−" : "+"}</span>
+                    <span>{showAddForm ? "Cancel" : "Add Proctor"}</span>
                   </button>
                 </div>
               </div>
