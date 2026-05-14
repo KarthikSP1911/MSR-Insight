@@ -975,6 +975,28 @@
     align-items: center;
   }
 
+  @keyframes sd-dropdown-fade-mobile {
+    from { opacity: 0; transform: translate(-50%, -4px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  .sd-switcher-menu {
+    text-align: left;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 280px;
+    animation: sd-dropdown-fade-mobile 0.2s ease-out forwards;
+  }
+
+  .sd-item-info {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .sd-item-code {
+    text-align: left;
+  }
+
   .sd-header-kpis {
     width: 100%;
     display: flex !important;

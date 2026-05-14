@@ -58,11 +58,14 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                             appearance: 'none'
                         }}
                     >
-                        {reversedHistory.map((sem: any, idx: number) => (
-                            <option key={idx} value={idx}>
-                                {sem.semester} (SGPA: {sem.sgpa})
-                            </option>
-                        ))}
+                        {reversedHistory.map((sem: any, idx: number) => {
+                            const semNum = examHistory.length - idx;
+                            return (
+                                <option key={idx} value={idx}>
+                                    Semester {semNum} (SGPA: {sem.sgpa})
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 

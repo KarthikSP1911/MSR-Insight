@@ -437,7 +437,7 @@ const SubjectDetail: React.FC<SubjectDetailProps> = ({ subject, allSubjects, onS
                       <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="0" stroke="rgba(225,226,235,0.05)" horizontal vertical={false} />
+                  <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.15)" horizontal vertical={false} />
                   <XAxis
                     dataKey="type"
                     stroke="rgba(198,198,205,0.4)"

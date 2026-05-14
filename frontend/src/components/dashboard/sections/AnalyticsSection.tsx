@@ -80,7 +80,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={400}>
                             <BarChart data={internalComparisonData} margin={{ top: 20, right: 10, bottom: 40, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.15)" />
                                 <XAxis dataKey="code" stroke="#64748b" tick={{ fontSize: 12 }} />
                                 <YAxis domain={[0, 50]} stroke="#64748b" tick={{ fontSize: 12 }} />
                                 <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
@@ -99,7 +99,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={gradeChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
                                 <XAxis dataKey="grade" stroke="#64748b" />
                                 <YAxis stroke="#64748b" />
                                 <Tooltip
@@ -126,7 +126,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={300}>
                             <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
                                 <XAxis dataKey="name" stroke="#64748b" />
                                 <YAxis yAxisId="left" stroke="#64748b" />
                                 <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
@@ -139,7 +139,7 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                 </div>
             </div>
 
-            <div className="chart-card wide-chart" style={{ marginTop: '24px' }}>
+            <div className="chart-card wide-chart performance-insights-card" style={{ marginTop: '24px' }}>
                 <div className="chart-header"><h3 className="chart-title">Performance Insights</h3></div>
                 <div className="insights-grid">
                     <div className="insight-item">
