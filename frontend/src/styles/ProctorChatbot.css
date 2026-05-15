@@ -7,6 +7,7 @@
   flex-direction: column;
   align-items: flex-end;
   font-family: inherit;
+  pointer-events: none; /* Let clicks pass through to student cards */
 }
 
 .chatbot-toggle-btn {
@@ -23,6 +24,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1001;
   border: none;
+  pointer-events: auto; /* Re-enable clicks for the button */
 }
 
 .chatbot-toggle-btn:hover {

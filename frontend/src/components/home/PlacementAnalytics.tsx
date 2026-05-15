@@ -72,7 +72,7 @@ export default function PlacementAnalytics() {
                                     <Tooltip 
                                         contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', color: '#fff' }}
                                         itemStyle={{ color: '#fff', fontWeight: 600 }}
-                                        formatter={(value: number, name: string) => [`${value} Students`, name]}
+                                        formatter={(value: any, name: any) => [`${value} Students`, name]}
                                     />
                                     <Legend 
                                         layout={isMobile ? "horizontal" : "vertical"} 
