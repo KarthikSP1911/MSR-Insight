@@ -79,12 +79,12 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     </div>
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={400}>
-                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 10, bottom: 40, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.15)" />
-                                <XAxis dataKey="code" stroke="#64748b" tick={{ fontSize: 12 }} />
-                                <YAxis domain={[0, 50]} stroke="#64748b" tick={{ fontSize: 12 }} />
-                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
-                                <Legend verticalAlign="top" height={40} />
+                            <BarChart data={internalComparisonData} margin={{ top: 20, right: 10, bottom: 40, left: -20 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.25)" />
+                                <XAxis dataKey="code" stroke="#64748b" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                                <YAxis domain={[0, 50]} stroke="#64748b" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={40} />
+                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                <Legend verticalAlign="top" height={40} iconType="circle" />
                                 <Bar dataKey="studentScore" name="Your Score" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} barSize={24} />
                                 <Bar dataKey="classAverage" name="Class Average" fill="var(--accent-primary)" opacity={0.5} radius={[4, 4, 0, 0]} barSize={24} />
                             </BarChart>
@@ -98,10 +98,10 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     </div>
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={gradeChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
-                                <XAxis dataKey="grade" stroke="#64748b" />
-                                <YAxis stroke="#64748b" />
+                            <BarChart data={gradeChartData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" vertical={false} />
+                                <XAxis dataKey="grade" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} width={40} />
                                 <Tooltip
                                     contentStyle={{
                                         backgroundColor: 'var(--bg-secondary)',
@@ -125,14 +125,15 @@ const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({
                     <div className="chart-header"><h3 className="chart-title">SGPA & Credits Trajectory</h3></div>
                     <div className="chart-body">
                         <ResponsiveContainer width="100%" height={300}>
-                            <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
-                                <XAxis dataKey="name" stroke="#64748b" />
-                                <YAxis yAxisId="left" stroke="#64748b" />
-                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
-                                <Legend verticalAlign="top" height={36} />
-                                <Bar yAxisId="left" dataKey="credits" fill="rgba(16, 185, 129, 0.2)" radius={[4, 4, 0, 0]} name="Credits Earned" />
-                                <Line yAxisId="right" type="monotone" dataKey="sgpa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} name="SGPA" />
+                            <ComposedChart data={sgpaTrendData} margin={{ top: 20, right: 0, bottom: 0, left: -20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.25)" vertical={false} />
+                                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
+                                <YAxis yAxisId="left" stroke="#64748b" fontSize={11} tickLine={false} width={40} />
+                                <YAxis yAxisId="right" orientation="right" hide />
+                                <Tooltip content={<AnalyticsTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                                <Legend verticalAlign="top" height={36} iconType="circle" />
+                                <Bar yAxisId="left" dataKey="credits" fill="rgba(16, 185, 129, 0.3)" radius={[4, 4, 0, 0]} name="Credits" />
+                                <Line yAxisId="right" type="monotone" dataKey="sgpa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6' }} activeDot={{ r: 6 }} name="SGPA" />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import axios from "axios";
 import {
-    Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut
+    Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut, BookOpen
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -21,6 +21,7 @@ import PerformanceSection from "@/components/dashboard/sections/PerformanceSecti
 import AnalyticsSection from "@/components/dashboard/sections/AnalyticsSection";
 import HistorySection from "@/components/dashboard/sections/HistorySection";
 import SimulatorSection from "@/components/dashboard/sections/SimulatorSection";
+import NotesSection from "@/components/dashboard/sections/NotesSection";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 
 
@@ -282,6 +283,7 @@ export default function StudentDashboard() {
                 <nav className="sidebar-navigation">
                     {[
                         { id: 'performance', icon: <Target size={20} />, label: 'Current Semester' },
+                        { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes & PYQs' },
                         { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
                         { id: 'history', icon: <HistoryIcon size={20} />, label: 'Exam History' },
                         { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Simulator' },
@@ -394,6 +396,15 @@ export default function StudentDashboard() {
                                     selectedHistoryIdx={selectedHistoryIdx}
                                     setSelectedHistoryIdx={setSelectedHistoryIdx}
                                     GRADE_COLORS={GRADE_COLORS}
+                                    isLateralEntry={isLateralEntry}
+                                />
+                            )}
+                            {activeTab === 'notes' && (
+                                <NotesSection
+                                    studentName={student?.name}
+                                    usn={stdUsn}
+                                    currentSemSubjects={currentSem}
+                                    examHistory={examHistory}
                                 />
                             )}
                             {activeTab === 'simulator' && (
@@ -419,6 +430,7 @@ export default function StudentDashboard() {
             <nav className="mobile-bottom-nav">
                 {[
                     { id: 'performance', icon: <Target size={20} />, label: 'Semester' },
+                    { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes' },
                     { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
                     { id: 'history', icon: <HistoryIcon size={20} />, label: 'History' },
                     { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Sim' },
