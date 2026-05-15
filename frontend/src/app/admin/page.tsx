@@ -828,8 +828,8 @@ export default function AdminPanel() {
                     </button>
                   </div>
                   
-                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                           <th style={{ padding: '0.75rem 0.5rem', width: '40px' }}>

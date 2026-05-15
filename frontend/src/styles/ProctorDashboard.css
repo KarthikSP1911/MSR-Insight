@@ -177,25 +177,105 @@
 
 @media (max-width: 768px) {
   .proctor-dashboard {
-    padding: 1rem 16px;
+    padding: 1rem 12px;
   }
 
   .grid-container {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
-  .filter-item {
-    width: 100%;
+  .filter-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
   }
 
   .search-box {
+    width: 100%;
     flex: none;
+    order: -1;
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .custom-dropdown {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .custom-dropdown .dropdown-trigger {
+    padding: 0 8px;
+    height: 38px;
+  }
+
+  .custom-dropdown .selected-label {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Reduce Card Details for 2-column mobile layout */
+  .student-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .student-name {
+    font-size: 0.9rem;
+    white-space: normal; /* Show name fully by wrapping */
+    overflow: visible;
+    text-overflow: clip;
+    width: 100%;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .status-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  .card-header {
+    margin-bottom: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .info-grid {
+    gap: 6px;
+  }
+
+  .info-label {
+    display: none; /* Hide labels to save space */
+  }
+
+  .info-value {
+    font-size: 0.75rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Restore semester visibility, keep section and footer hidden */
+  .info-row:nth-child(2) {
+    display: grid;
+  }
+
+  .info-row:nth-child(3),
+  .card-footer {
+    display: none;
+  }
+
+  .card-body {
+    margin-bottom: 0;
   }
 }
 
@@ -212,6 +292,8 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+  z-index: 1; /* Ensure card is interactive */
+  -webkit-tap-highlight-color: transparent; /* Clean mobile tap */
 }
 
 .student-card:hover {
@@ -308,6 +390,13 @@
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  pointer-events: none; /* Let clicks pass through to student-card on mobile */
+}
+
+@media (min-width: 769px) {
+  .view-btn {
+    pointer-events: auto;
+  }
 }
 
 .btn-icon {
