@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/auth.routes.js";
 import reportRoutes from "./routes/report.routes.js";
@@ -12,7 +14,35 @@ import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
 
-app.use(cors());
+// 1. Set Security HTTP Headers
+app.use(helmet());
+
+// 2. Strict CORS policy
+const allowedOrigins = [
+    "http://localhost:3000", 
+    "https://msr-frontend-754411699176.us-central1.run.app"
+];
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+}));
+
+// 3. Rate Limiting to prevent brute-force
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 200, // Limit each IP to 200 requests per `window`
+    message: "Too many requests from this IP, please try again after 15 minutes",
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use("/api/", apiLimiter);
+
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {

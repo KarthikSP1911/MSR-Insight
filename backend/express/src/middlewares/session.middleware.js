@@ -42,4 +42,32 @@ const requireSession = async (req, res, next) => {
 };
 
 export const verifySession = requireSession;
+
+export const verifyProctorAccess = async (req, res, next) => {
+    await requireSession(req, res, () => {
+        if (req.userRole !== 'proctor' && req.userRole !== 'admin') {
+            return res.status(403).json({ success: false, message: "Forbidden: Proctor access required" });
+        }
+        if (req.params.proctorId && req.params.proctorId.toUpperCase() !== req.userId) {
+            return res.status(403).json({ success: false, message: "Forbidden: You cannot access another proctor's data" });
+        }
+        next();
+    });
+};
+
+export const verifyStudentAccess = async (req, res, next) => {
+    await requireSession(req, res, () => {
+        // If it's a proctor/admin, allow them to view any student for now
+        if (req.userRole === 'proctor' || req.userRole === 'admin') {
+            return next();
+        }
+        // If it's a student, they can only view their own USN
+        const targetUsn = req.params.usn || req.body.usn;
+        if (req.userRole === 'student' && targetUsn && targetUsn.toUpperCase() !== req.userId) {
+            return res.status(403).json({ success: false, message: "Forbidden: You cannot access another student's data" });
+        }
+        next();
+    });
+};
+
 export default requireSession;

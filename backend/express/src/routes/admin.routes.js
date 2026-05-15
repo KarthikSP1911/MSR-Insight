@@ -4,6 +4,19 @@ import { runWeeklyAttendanceCron } from "../services/weeklyAttendance.service.js
 
 const router = Router();
 
+// Simple admin authentication middleware
+const verifyAdminAccess = (req, res, next) => {
+    const adminKey = req.headers['x-admin-key'];
+    const expectedKey = process.env.ADMIN_SECRET_KEY || 'admin123';
+    
+    if (!adminKey || adminKey !== expectedKey) {
+        return res.status(403).json({ success: false, message: "Forbidden: Invalid or missing admin key." });
+    }
+    next();
+};
+
+router.use(verifyAdminAccess);
+
 // Proctor management
 router.get("/proctors", adminController.listProctors);
 router.post("/proctors", adminController.addProctor);

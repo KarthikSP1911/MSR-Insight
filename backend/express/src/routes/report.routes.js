@@ -1,17 +1,14 @@
 import { Router } from "express";
 import { generateReport, getStudentDashboardReport, triggerReportUpdate, sendReportViaEmail, sendReportViaWhatsApp } from "../controllers/report.controller.js";
-import requireSession from "../middlewares/session.middleware.js";
+import { verifyStudentAccess } from "../middlewares/auth.middleware.js";
 
-// GET /api/report          → uses hardcoded USN
-// GET /api/report/:usn     → uses USN from URL param
-// GET /api/report/student/:usn → raw frontend json parsing
 const router = Router();
 
-router.post("/update", requireSession, triggerReportUpdate);
-router.post("/send-email", requireSession, sendReportViaEmail);
-router.post("/send-whatsapp", requireSession, sendReportViaWhatsApp);
-router.get("/student/:usn", requireSession, getStudentDashboardReport);
-router.get("/:usn", requireSession, generateReport);
-router.get("/", requireSession, generateReport);
+router.post("/update", verifyStudentAccess, triggerReportUpdate);
+router.post("/send-email", verifyStudentAccess, sendReportViaEmail);
+router.post("/send-whatsapp", verifyStudentAccess, sendReportViaWhatsApp);
+router.get("/student/:usn", verifyStudentAccess, getStudentDashboardReport);
+router.get("/:usn", verifyStudentAccess, generateReport);
+router.get("/", verifyStudentAccess, generateReport);
 
 export default router;
