@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import HomeNavbar from '@/components/navbar/HomeNavbar';
 import heroImg from '@/assets/hero.png';
+import dynamic from 'next/dynamic';
+
+const PlacementAnalytics = dynamic(() => import('@/components/home/PlacementAnalytics'), { ssr: false });
 
 export default function Home() {
 
@@ -141,6 +144,8 @@ export default function Home() {
                             </div>
                         </div>
                     </section>
+
+                    <PlacementAnalytics />
 
                     <section className="roles-section" id="roles">
                         <div className="container">

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import axios from "axios";
 import {
-    Target, History as HistoryIcon, Award, Menu, X, Gamepad2
+    Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut, BookOpen
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -21,6 +21,7 @@ import PerformanceSection from "@/components/dashboard/sections/PerformanceSecti
 import AnalyticsSection from "@/components/dashboard/sections/AnalyticsSection";
 import HistorySection from "@/components/dashboard/sections/HistorySection";
 import SimulatorSection from "@/components/dashboard/sections/SimulatorSection";
+import NotesSection from "@/components/dashboard/sections/NotesSection";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 
 
@@ -58,6 +59,7 @@ export default function StudentDashboard() {
     const [simulatedCredits, setSimulatedCredits] = useState<Record<string, number>>({});
     const [selectedHistoryIdx, setSelectedHistoryIdx] = useState<number>(0);
     const [updateStatus, setUpdateStatus] = useState<'loading' | 'success' | 'error' | null>(null);
+    const [showMobileProfileMenu, setShowMobileProfileMenu] = useState(false);
 
     const { formatTime, isCooldownActive } = useCooldown(nextAllowedAt);
 
@@ -65,6 +67,19 @@ export default function StudentDashboard() {
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    useEffect(() => {
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.mobile-nav-profile')) {
+                setShowMobileProfileMenu(false);
+            }
+        };
+        if (showMobileProfileMenu) {
+            document.addEventListener('click', handleOutsideClick);
+        }
+        return () => document.removeEventListener('click', handleOutsideClick);
+    }, [showMobileProfileMenu]);
 
     // 2. Derived Data (useMemo)
     const detailsBlob = useMemo(() => student?.details || {}, [student]);
@@ -268,6 +283,7 @@ export default function StudentDashboard() {
                 <nav className="sidebar-navigation">
                     {[
                         { id: 'performance', icon: <Target size={20} />, label: 'Current Semester' },
+                        { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes & PYQs' },
                         { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
                         { id: 'history', icon: <HistoryIcon size={20} />, label: 'Exam History' },
                         { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Simulator' },
@@ -279,6 +295,64 @@ export default function StudentDashboard() {
                 </nav>
                 <SidebarProfile user={student} onLogout={handleLogout} />
             </aside>
+
+            {/* Mobile Top Navbar */}
+            <header className="mobile-top-navbar">
+                <div className="mobile-nav-brand">
+                    <Image src="/logo-icon.svg" alt="logo" width={28} height={28} priority />
+                    <span className="mobile-app-name">MSR Insight</span>
+                </div>
+                <div className="mobile-nav-profile" style={{ position: 'relative' }}>
+                    <div 
+                        className="profile-initials-avatar" 
+                        style={{ width: 32, height: 32, fontSize: 12, cursor: 'pointer' }}
+                        onClick={() => setShowMobileProfileMenu(!showMobileProfileMenu)}
+                    >
+                        {student?.name?.charAt(0) || 'S'}
+                    </div>
+                    {showMobileProfileMenu && (
+                        <div className="mobile-profile-dropdown" style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: '42px',
+                            background: 'var(--bg-card, #1B2333)',
+                            border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                            minWidth: '180px',
+                            zIndex: 1001,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px'
+                        }}>
+                            <div style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '8px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{student?.name}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{student?.usn}</div>
+                            </div>
+                            <button 
+                                onClick={handleLogout}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    width: '100%',
+                                    padding: '8px 10px',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#EF4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    borderRadius: '8px',
+                                    fontSize: '13px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <LogOut size={16} /> Logout
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </header>
 
             <main className="dashboard-main-content">
                 <div className="content-wrapper">
@@ -322,6 +396,15 @@ export default function StudentDashboard() {
                                     selectedHistoryIdx={selectedHistoryIdx}
                                     setSelectedHistoryIdx={setSelectedHistoryIdx}
                                     GRADE_COLORS={GRADE_COLORS}
+                                    isLateralEntry={isLateralEntry}
+                                />
+                            )}
+                            {activeTab === 'notes' && (
+                                <NotesSection
+                                    studentName={student?.name}
+                                    usn={stdUsn}
+                                    currentSemSubjects={currentSem}
+                                    examHistory={examHistory}
                                 />
                             )}
                             {activeTab === 'simulator' && (
@@ -347,6 +430,7 @@ export default function StudentDashboard() {
             <nav className="mobile-bottom-nav">
                 {[
                     { id: 'performance', icon: <Target size={20} />, label: 'Semester' },
+                    { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes' },
                     { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
                     { id: 'history', icon: <HistoryIcon size={20} />, label: 'History' },
                     { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Sim' },

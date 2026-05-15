@@ -109,7 +109,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
             />
 
             <div className="stats-grid">
-                <div className="stat-card">
+                <div className="stat-card anim-left">
                     <div className="stat-header">
                         <span className="stat-label">Current CGPA</span>
                         <Award size={18} />
@@ -117,7 +117,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     <div className="stat-value">{currentCgpa ?? "—"}{currentCgpa && <span className="stat-max">/10</span>}</div>
                     <p className="stat-footnote">Overall cumulative GPA</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card anim-left">
                     <div className="stat-header">
                         <span className="stat-label">Total Credits</span>
                         <BookOpen size={18} />
@@ -127,7 +127,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                         <div className="progress-fill" style={{ width: `${(totalCredits / maxCredits) * 100}%`, backgroundColor: 'var(--accent-primary)' }}></div>
                     </div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card anim-right">
                     <div className="stat-header">
                         <span className="stat-label">Active Courses</span>
                         <Layers size={18} />
@@ -135,7 +135,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     <div className="stat-value">{currentSem.length}</div>
                     <p className="stat-footnote">This semester load</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card anim-right">
                     <div className="stat-header">
                         <span className="stat-label">Latest semester SGPA</span>
                         <TrendingUp className="stat-icon" />
@@ -193,7 +193,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     <div className="chart-body marks-chart-body">
                         <ResponsiveContainer width="100%" height={380}>
                             <BarChart data={currentSem} margin={{ top: 20, right: 0, left: -20, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" opacity={0.3} vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" vertical={false} />
                                 <XAxis dataKey="code" stroke="var(--text-muted)" style={{ fontSize: '11px' }} axisLine={false} tickLine={false} />
                                 <YAxis domain={[0, 50]} ticks={[0, 10, 20, 30, 40, 50]} stroke="var(--text-muted)" style={{ fontSize: '12px' }} axisLine={false} tickLine={false} />
                                 <Tooltip content={<MarksTooltip />} cursor={{ fill: 'var(--bg-primary)' }} />
@@ -210,26 +210,33 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
                     </div>
                 </div>
 
-                <div className="dashboard-table-container">
-                    <table className="dashboard-table">
-                        <thead>
-                            <tr><th>Code</th><th>Course Name</th><th>Attendance</th><th>CIE Marks</th></tr>
-                        </thead>
-                        <tbody>
-                            {currentSem.map((s: any, idx: number) => {
-                                const att = Math.round(s.attendance || 0);
-                                const attClass = att >= 85 ? 'success' : att >= 75 ? 'warning' : 'error';
-                                return (
-                                    <tr key={idx} onClick={() => onSelectSubject(s)} className="interactive-row">
-                                        <td className="text-muted">{s.code}</td>
-                                        <td className="font-semibold">{s.name}</td>
-                                        <td><span className={`pill ${attClass}`}>{att}%</span></td>
-                                        <td><span className={`pill ${s.marks >= 30 ? 'success' : 'warning'}`}>{s.marks} / 50</span></td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                <div className="table-section-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 4px' }}>
+                        <span className="mobile-tap-hint" style={{ fontSize: '12px', color: 'var(--accent-primary)', opacity: 0.9, fontWeight: 500 }}>
+                            Tap any Subject for details
+                        </span>
+                    </div>
+                    <div className="dashboard-table-container">
+                        <table className="dashboard-table">
+                            <thead>
+                                <tr><th className="course-code-col">Code</th><th className="course-name-col">Course Name</th><th className="attendance-col" style={{ textAlign: 'center' }}>Attendance</th><th className="cie-col" style={{ textAlign: 'center' }}>CIE Marks</th></tr>
+                            </thead>
+                            <tbody>
+                                {currentSem.map((s: any, idx: number) => {
+                                    const att = Math.round(s.attendance || 0);
+                                    const attClass = att >= 85 ? 'success' : att >= 75 ? 'warning' : 'error';
+                                    return (
+                                        <tr key={idx} onClick={() => onSelectSubject(s)} className="interactive-row">
+                                            <td className="text-muted course-code-col">{s.code}</td>
+                                            <td className="font-semibold course-name-col">{s.name}</td>
+                                            <td className="attendance-col" style={{ textAlign: 'center' }}><span className={`pill ${attClass}`}>{att}%</span></td>
+                                            <td className="cie-col" style={{ textAlign: 'center' }}><span className={`pill ${s.marks >= 30 ? 'success' : 'warning'}`}>{s.marks} / 50</span></td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

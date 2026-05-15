@@ -7,6 +7,7 @@
   flex-direction: column;
   align-items: flex-end;
   font-family: inherit;
+  pointer-events: none; /* Let clicks pass through to student cards */
 }
 
 .chatbot-toggle-btn {
@@ -23,6 +24,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1001;
   border: none;
+  pointer-events: auto; /* Re-enable clicks for the button */
 }
 
 .chatbot-toggle-btn:hover {
@@ -46,12 +48,14 @@
   visibility: hidden;
   transform: translateY(20px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none; /* Prevent blocking clicks when closed */
 }
 
 .chatbot-window.open {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto; /* Allow interaction when open */
 }
 
 .chatbot-header {
@@ -351,4 +355,46 @@
 
 .markdown-container strong {
   color: var(--text-primary);
+}
+
+/* Mobile Responsiveness for Chatbot */
+@media (max-width: 768px) {
+  .chatbot-wrapper {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem; /* Allow full width centering if needed */
+    align-items: flex-end;
+  }
+
+  .chatbot-window {
+    width: calc(100vw - 2rem);
+    height: 70vh; /* Scalable height */
+    max-height: 500px;
+    margin-bottom: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .chatbot-header {
+    padding: 1rem;
+  }
+
+  .chatbot-messages {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .chatbot-message {
+    max-width: 90%;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .chatbot-input-area {
+    padding: 0.75rem 1rem;
+  }
+
+  .chatbot-toggle-btn {
+    width: 54px;
+    height: 54px;
+  }
 }

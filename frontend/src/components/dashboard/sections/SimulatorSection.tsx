@@ -83,6 +83,7 @@ const SimulatorSection: React.FC<SimulatorSectionProps> = ({
         const now = new Date();
         const sixMonthsAgo = now.getTime() - (180 * 86400000);
         const minTime = allTimepoints.length ? Math.min(...allTimepoints) : sixMonthsAgo;
+        const maxTime = allTimepoints.length ? Math.max(...allTimepoints) : now.getTime();
         
         const startDate = new Date(minTime);
         startDate.setDate(1); // Start from the 1st of the month data begins
@@ -90,16 +91,13 @@ const SimulatorSection: React.FC<SimulatorSectionProps> = ({
         const diffToMon = startDay === 0 ? 6 : startDay - 1;
         startDate.setDate(startDate.getDate() - diffToMon);
         
-        // To "fill the screen" as requested, we'll show exactly 24 weeks (approx 6 months) 
-        // starting from our calculated startDate.
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + (24 * 7)); 
+        const endDate = new Date(maxTime);
 
         const calculatedWeeks: any[] = [];
         let currentWeek: any[] = [];
         let iterDate = new Date(startDate);
 
-        while (iterDate <= endDate) {
+        while (iterDate <= endDate || currentWeek.length > 0) {
             const dayOfWeekIdx = iterDate.getDay();
             const shiftedIdx = dayOfWeekIdx === 0 ? 6 : dayOfWeekIdx - 1; // Mon=0, Sun=6
 
@@ -120,6 +118,7 @@ const SimulatorSection: React.FC<SimulatorSectionProps> = ({
             if (shiftedIdx === 6) {
                 calculatedWeeks.push(currentWeek);
                 currentWeek = [];
+                if (iterDate >= endDate) break;
             }
             iterDate.setDate(iterDate.getDate() + 1);
         }

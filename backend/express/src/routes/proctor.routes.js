@@ -1,10 +1,10 @@
 import { Router } from "express";
 import proctorController from "../controllers/proctor.controller.js";
-import { verifySession } from "../middlewares/auth.middleware.js";
+import { verifyProctorAccess } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.use(verifySession);
+router.use(verifyProctorAccess);
 
 router.get("/:proctorId/dashboard", proctorController.getDashboard);
 router.get("/:proctorId/scrape-list", proctorController.getScrapeList);

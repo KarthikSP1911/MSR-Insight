@@ -326,6 +326,25 @@
   }
 }
 
+/* Custom Scrollbar for Unassigned Table */
+.unassigned-list::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.unassigned-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.unassigned-list::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+
+.unassigned-list::-webkit-scrollbar-thumb:hover {
+  background: var(--border-bright);
+}
+
 .add-proctor-form-grid .form-group {
   margin-bottom: 0;
 }

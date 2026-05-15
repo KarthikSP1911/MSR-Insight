@@ -4,6 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
 import { useRouter } from "next/navigation";
+
+const adminAxios = axios.create({
+  headers: { "x-admin-key": "admin123" }
+});
 import DOBSelector from "@/components/dashboard/DOBSelector";
 import "@/styles/AdminPanel.css";
 
@@ -86,7 +90,7 @@ function ProctorCard({
   const fetchStudents = useCallback(async () => {
     setLoadingStudents(true);
     try {
-      const res = await axios.get(
+      const res = await adminAxios.get(
         `${API_BASE_URL}/api/admin/proctors/${proctor.proctorId}/students?academicYear=${academicYear}`
       );
       setStudents(res.data.data.students || []);
@@ -124,7 +128,7 @@ function ProctorCard({
         ? `${newStudentDob.split("-")[2]}-${newStudentDob.split("-")[1]}-${newStudentDob.split("-")[0]}`
         : newStudentDob;
 
-      await axios.post(
+      await adminAxios.post(
         `${API_BASE_URL}/api/admin/proctors/${proctor.proctorId}/students`,
         { ...body, dob: formattedDob }
       );
@@ -147,7 +151,7 @@ function ProctorCard({
 
   const handleRemoveStudent = async (usn: string) => {
     try {
-      await axios.delete(
+      await adminAxios.delete(
         `${API_BASE_URL}/api/admin/proctors/${proctor.proctorId}/students/${usn}?academicYear=${academicYear}`
       );
       showToast(`Student ${usn.toUpperCase()} removed`, "success");
@@ -375,7 +379,7 @@ export default function AdminPanel() {
 
     setAddingParent(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/parents`, {
+      await adminAxios.post(`${API_BASE_URL}/api/admin/parents`, {
         usn: newParentUsn.trim().toUpperCase(),
         relation: newParentRelation.trim(),
         name: formatName(newParentName.trim()),
@@ -411,7 +415,7 @@ export default function AdminPanel() {
   const fetchProctors = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin/proctors?academicYear=${academicYear}`);
+      const res = await adminAxios.get(`${API_BASE_URL}/api/admin/proctors?academicYear=${academicYear}`);
       setProctors(res.data.data || []);
     } catch {
       showToast("Failed to load proctors", "error");
@@ -422,7 +426,7 @@ export default function AdminPanel() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin/stats?academicYear=${academicYear}`);
+      const res = await adminAxios.get(`${API_BASE_URL}/api/admin/stats?academicYear=${academicYear}`);
       if (res.data.success) {
         setStats(res.data.data);
       }
@@ -433,7 +437,7 @@ export default function AdminPanel() {
 
   const fetchUnassignedStudents = useCallback(async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/admin/students/unassigned?academicYear=${academicYear}`);
+      const res = await adminAxios.get(`${API_BASE_URL}/api/admin/students/unassigned?academicYear=${academicYear}`);
       if (res.data.success) {
         setUnassignedStudents(res.data.data);
       }
@@ -460,7 +464,7 @@ export default function AdminPanel() {
 
     setBulkAssigning(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/proctors/${selectedProctorForBulk}/students/bulk`, {
+      await adminAxios.post(`${API_BASE_URL}/api/admin/proctors/${selectedProctorForBulk}/students/bulk`, {
         usns: selectedUnassignedUsns,
         academicYear
       });
@@ -499,7 +503,7 @@ export default function AdminPanel() {
 
     setAddingProctor(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/proctors`, {
+      await adminAxios.post(`${API_BASE_URL}/api/admin/proctors`, {
         proctorId: newProctorId.trim().toUpperCase(),
         password: newProctorPassword.trim(),
         name: newProctorName.trim() || undefined,
@@ -530,7 +534,7 @@ export default function AdminPanel() {
       onConfirm: async () => {
         setConfirmDialog(null);
         try {
-          await axios.delete(
+          await adminAxios.delete(
             `${API_BASE_URL}/api/admin/proctors/${proctor.proctorId}`
           );
           showToast(`Proctor ${proctor.proctorId} deleted`, "success");
@@ -828,8 +832,8 @@ export default function AdminPanel() {
                     </button>
                   </div>
                   
-                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left' }}>
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                           <th style={{ padding: '0.75rem 0.5rem', width: '40px' }}>

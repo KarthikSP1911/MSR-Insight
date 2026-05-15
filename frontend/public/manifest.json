@@ -1,0 +1,22 @@
+{
+  "name": "MSR Insight",
+  "short_name": "MSR Insight",
+  "description": "Advanced Academic Reporting System",
+  "start_url": "/student/dashboard",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#00ADB5",
+  "icons": [
+    {
+      "src": "/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

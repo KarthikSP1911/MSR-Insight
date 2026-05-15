@@ -1,9 +1,10 @@
 import express from "express";
 import { syncStudents } from "../services/studentService.js";
+import { verifyProctorAccess } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/sync", async (req, res) => {
+router.post("/sync", verifyProctorAccess, async (req, res) => {
   try {
     const result = await syncStudents(req.body);
     res.json({ success: true, message: "Students synced", result });

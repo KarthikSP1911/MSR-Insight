@@ -93,6 +93,16 @@ export default function StudentLogin() {
     const [year, setYear] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+        const sid = localStorage.getItem("studentSessionId");
+        const usn = localStorage.getItem("studentUsn");
+        if (sid && usn) {
+            router.push("/student/dashboard");
+        }
+    }, [router]);
 
     const days = Array.from({ length: 31 }, (_, i) => String(i + 1));
     const months = [

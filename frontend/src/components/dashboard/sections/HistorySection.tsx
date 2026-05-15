@@ -10,6 +10,7 @@ interface HistorySectionProps {
     selectedHistoryIdx: number;
     setSelectedHistoryIdx: (idx: number) => void;
     GRADE_COLORS: Record<string, string>;
+    isLateralEntry?: boolean;
 }
 
 const HistorySection: React.FC<HistorySectionProps> = ({
@@ -17,7 +18,8 @@ const HistorySection: React.FC<HistorySectionProps> = ({
     examHistory,
     selectedHistoryIdx,
     setSelectedHistoryIdx,
-    GRADE_COLORS
+    GRADE_COLORS,
+    isLateralEntry = false
 }) => {
     if (examHistory.length === 0) {
         return (
@@ -58,11 +60,14 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                             appearance: 'none'
                         }}
                     >
-                        {reversedHistory.map((sem: any, idx: number) => (
-                            <option key={idx} value={idx}>
-                                {sem.semester} (SGPA: {sem.sgpa})
-                            </option>
-                        ))}
+                        {reversedHistory.map((sem: any, idx: number) => {
+                            const semNum = isLateralEntry ? (examHistory.length - idx + 2) : (examHistory.length - idx);
+                            return (
+                                <option key={idx} value={idx}>
+                                    Semester {semNum} (SGPA: {sem.sgpa})
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 
@@ -71,7 +76,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                         <div key={idx} className={`chart-card history-card ${selectedHistoryIdx === idx ? 'mobile-show' : 'mobile-hide'}`}>
                             <div className="chart-header" style={{ borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px', marginBottom: '16px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                 <div>
-                                    <span className="pill" style={{ marginBottom: '8px', display: 'inline-block' }}>Semester {examHistory.length - idx}</span>
+                                    <span className="pill" style={{ marginBottom: '8px', display: 'inline-block' }}>Semester {isLateralEntry ? (examHistory.length - idx + 2) : (examHistory.length - idx)}</span>
                                     <h3 className="chart-title" style={{ margin: 0 }}>{sem.semester}</h3>
                                 </div>
                                 <div className="history-sgpa-badge" style={{ textAlign: 'right', flexShrink: 0 }}>
