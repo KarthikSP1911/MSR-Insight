@@ -18,7 +18,7 @@ const HomeNavbar = () => {
     return (
         <nav className={`home-navbar ${isScrolled ? 'scrolled' : ''}`}>
             <div className="container nav-content">
-                <Link href="/" className="nav-logo flex g-3">
+                <Link href="/" className="nav-logo">
                     <Image
                         src="/logo-icon.svg"
                         alt="MSR Insight logo"
@@ -26,8 +26,7 @@ const HomeNavbar = () => {
                         height={28}
                         className="logo-icon"
                     />
-                    <pre>  </pre>
-                    <span className="logo-text">  MSR Insight</span>
+                    <span className="logo-text">MSR Insight</span>
                 </Link>
 
                 <div className="nav-actions">
