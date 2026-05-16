@@ -1,105 +1,40 @@
+/* ============================================================
+   PROCTOR DASHBOARD — Fully Responsive Stylesheet
+   Breakpoints: 320 | 480 | 640 | 768 | 1024 | 1280 | 1440
+   ============================================================ */
+
+/* ── Base Container ─────────────────────────────────────────── */
 .proctor-dashboard {
-  max-width: var(--container-max);
+  max-width: var(--container-max, 1600px);
   margin: 0 auto;
-  padding: var(--space-xl) var(--space-lg);
-  min-height: calc(100vh - var(--nav-height));
+  /* Fluid horizontal padding: tight on mobile, generous on wide screens */
+  padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 4vw, 2rem);
+  min-height: calc(100vh - var(--nav-height, 64px));
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
-/* Header Section */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 2rem;
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.header-info h1 {
-  font-size: 2.25rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 400;
-}
-
-.subtitle strong {
-  color: var(--accent-primary);
-  font-weight: 600;
-}
-
-/* Academic Year Picker */
-.academic-setup {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  border: none;
-}
-
-.academic-setup label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.year-picker {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  /* Standardized to 8px */
-  font-weight: 500;
-  /* Medium font weight */
-  font-size: 0.9rem;
-  padding: 8px 12px;
-  cursor: pointer;
-  outline: none;
-  height: 42px;
-  min-width: 120px;
-  transition: all 0.2s ease;
-}
-
-.year-picker:hover {
-  border-color: var(--border-bright);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.year-picker option {
-  background: var(--bg-secondary);
-}
-
-/* Filter Bar */
+/* ── Filter Bar ──────────────────────────────────────────────── */
 .filter-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
+  flex-wrap: wrap;           /* Allow wrapping on narrow screens */
+  gap: 10px;
+  margin-bottom: 28px;
 }
 
+/* Generic filter item (search box inherits this too) */
 .filter-item {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  height: 40px;
+  border-radius: var(--radius-md, 8px);
+  min-height: 40px;
   display: flex;
   align-items: center;
   padding: 0 12px;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .filter-item:hover {
@@ -107,17 +42,23 @@
   border-color: var(--border-bright);
 }
 
+.filter-item:focus-within {
+  border-color: var(--accent-primary);
+  background: #1f242c;
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+/* Search box — grows to fill available space */
 .search-box {
-  flex: 2;
+  flex: 1 1 200px;          /* Grows freely, minimum 200px before wrapping */
   min-width: 0;
-  width: 100%;
-  gap: 12px;
+  gap: 10px;
 }
 
 .search-icon {
-  width: 18px;
-  height: 18px;
-  color: #8B949E;
+  width: 16px;
+  height: 16px;
+  color: #8b949e;
   flex-shrink: 0;
   transition: color 0.2s ease;
 }
@@ -132,159 +73,32 @@
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   padding: 0;
   outline: none;
   font-weight: 400;
+  min-width: 0;
 }
 
 .search-box input::placeholder {
-  color: #64748B;
+  color: #64748b;
 }
 
-.filter-item:focus-within {
-  border-color: var(--accent-primary);
-  background: #1F242C;
-  box-shadow: 0 0 0 4px var(--accent-glow);
-}
-
-
-/* Grid Container */
+/* ── Student Card Grid ───────────────────────────────────────── */
 .grid-container {
   display: grid;
-  gap: 2rem;
+  gap: 1.25rem;
   margin-bottom: 4rem;
+  /* Default: 1 column — expands with media queries below */
+  grid-template-columns: 1fr;
 }
 
-/* Responsive Columns */
-@media (min-width: 1024px) {
-  .grid-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1440px) {
-  .grid-container {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 1024px) and (min-width: 768px) {
-  .grid-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .proctor-dashboard {
-    padding: 1rem 12px;
-  }
-
-  .grid-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .filter-bar {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  .search-box {
-    width: 100%;
-    flex: none;
-    order: -1;
-    padding: 0 8px;
-    gap: 8px;
-  }
-
-  .custom-dropdown {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .custom-dropdown .dropdown-trigger {
-    padding: 0 8px;
-    height: 38px;
-  }
-
-  .custom-dropdown .selected-label {
-    font-size: 0.8rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Reduce Card Details for 2-column mobile layout */
-  .student-card {
-    padding: 12px;
-    border-radius: 12px;
-  }
-
-  .student-name {
-    font-size: 0.9rem;
-    white-space: normal; /* Show name fully by wrapping */
-    overflow: visible;
-    text-overflow: clip;
-    width: 100%;
-    line-height: 1.2;
-    margin-bottom: 4px;
-  }
-
-  .status-badge {
-    font-size: 0.65rem;
-    padding: 2px 6px;
-  }
-
-  .card-header {
-    margin-bottom: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .info-grid {
-    gap: 6px;
-  }
-
-  .info-label {
-    display: none; /* Hide labels to save space */
-  }
-
-  .info-value {
-    font-size: 0.75rem;
-    text-align: left;
-    width: 100%;
-  }
-
-  .info-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-
-  /* Restore semester visibility, keep section and footer hidden */
-  .info-row:nth-child(2) {
-    display: grid;
-  }
-
-  .info-row:nth-child(3),
-  .card-footer {
-    display: none;
-  }
-
-  .card-body {
-    margin-bottom: 0;
-  }
-}
-
-/* Student Card Redesign */
+/* ── Student Card ────────────────────────────────────────────── */
 .student-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 24px;
+  border-radius: var(--radius-lg, 16px);
+  padding: clamp(14px, 3vw, 24px);
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -292,8 +106,9 @@
   height: 100%;
   position: relative;
   overflow: hidden;
-  z-index: 1; /* Ensure card is interactive */
-  -webkit-tap-highlight-color: transparent; /* Clean mobile tap */
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 .student-card:hover {
@@ -301,108 +116,116 @@
   border-color: var(--border-bright);
 }
 
+/* Status border accents */
+.student-card.status-danger { border-left: 3px solid #ef4444; }
+.student-card.status-warn   { border-left: 3px solid #ffb690; }
+.student-card.status-ok     { border-left: 3px solid var(--accent-primary); }
+
+/* ── Card — Header ───────────────────────────────────────────── */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  gap: 10px;
+  flex-wrap: nowrap;
 }
-
-.status-badge {
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.status-ok { color: var(--accent-primary); background: var(--bg-surface); border: 1px solid var(--border-subtle); }
-.status-warn { color: #ffb690; background: rgba(255, 182, 144, 0.1); border: 1px solid rgba(255, 182, 144, 0.2); }
-.status-danger { color: #EF4444; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
-.status-na { color: var(--text-muted); background: var(--bg-primary); border: 1px solid var(--border-subtle); }
-
-.student-card.status-danger { border-left: 3px solid #EF4444; }
-.student-card.status-warn { border-left: 3px solid #ffb690; }
-.student-card.status-ok { border-left: 3px solid var(--accent-primary); }
 
 .student-name {
-  font-size: 1.25rem;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.25;
+  /* Allow the name to wrap gracefully */
+  word-break: break-word;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
+/* Status badge */
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-ok     { color: var(--accent-primary);  background: var(--bg-surface);                  border: 1px solid var(--border-subtle); }
+.status-warn   { color: #ffb690;                background: rgba(255, 182, 144, 0.10);           border: 1px solid rgba(255, 182, 144, 0.20); }
+.status-danger { color: #ef4444;                background: rgba(239, 68, 68, 0.10);             border: 1px solid rgba(239, 68, 68, 0.20); }
+.status-na     { color: var(--text-muted);      background: var(--bg-primary);                   border: 1px solid var(--border-subtle); }
+
+/* ── Card — Body ─────────────────────────────────────────────── */
 .card-body {
-  margin-bottom: 20px;
-  /* Details → button (20px) */
+  margin-bottom: 16px;
+  flex: 1;                  /* Grows so footer stays pinned at bottom */
 }
 
 .info-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  /* Gap: 12–14px between rows */
+  gap: 10px;
 }
 
 .info-row {
   display: grid;
   grid-template-columns: auto 1fr;
-  /* Strict 2-column grid */
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .info-label {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  text-align: left;
+  white-space: nowrap;
 }
 
 .info-value {
   color: var(--text-secondary);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ── Card — Footer ───────────────────────────────────────────── */
 .card-footer {
   margin-top: auto;
-  /* Keep button pinned at bottom */
 }
 
 .view-btn {
   width: 100%;
-  padding: 10px 16px;
+  padding: 9px 14px;
   background: var(--bg-primary);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-md, 8px);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  pointer-events: none; /* Let clicks pass through to student-card on mobile */
-}
-
-@media (min-width: 769px) {
-  .view-btn {
-    pointer-events: auto;
-  }
+  pointer-events: none;     /* Card handles the click on mobile */
 }
 
 .btn-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .student-card:hover .view-btn {
@@ -415,11 +238,11 @@
   transform: translateX(4px);
 }
 
-/* Utility Classes */
+/* ── Utility: No Results ─────────────────────────────────────── */
 .no-results {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 5rem;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem);
   background: rgba(30, 41, 59, 0.2);
   border-radius: 2rem;
   border: 1px dashed rgba(255, 255, 255, 0.1);
@@ -428,17 +251,18 @@
 .no-results p {
   color: #94a3b8;
   margin-bottom: 1.5rem;
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
 }
 
 .no-results button {
   background: transparent;
   color: #f97316;
   border: 1px solid #f97316;
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.25rem;
   border-radius: 0.75rem;
   font-weight: 600;
   cursor: pointer;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
 }
 
@@ -447,7 +271,7 @@
   color: white;
 }
 
-/* Loading & Error States */
+/* ── Loading & Error States ──────────────────────────────────── */
 .loading-container,
 .error-container {
   display: flex;
@@ -457,11 +281,13 @@
   min-height: 60vh;
   gap: 1.5rem;
   color: #94a3b8;
+  text-align: center;
+  padding: 1rem;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border: 3px solid rgba(249, 115, 22, 0.1);
   border-top-color: var(--accent-primary);
   border-radius: 50%;
@@ -472,29 +298,204 @@
   color: #ef4444;
   font-weight: 600;
   background: rgba(239, 68, 68, 0.1);
-  padding: 1rem 2rem;
+  padding: 0.875rem 1.5rem;
   border-radius: 1rem;
   border: 1px solid rgba(239, 68, 68, 0.2);
+  max-width: 90%;
+  word-break: break-word;
 }
 
+/* ── Keyframes ───────────────────────────────────────────────── */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* ================================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================================ */
+
+/* ── ≥ 480px — Small phones landscape / larger phones ─────────── */
+@media (min-width: 480px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* On phones, hide section row and footer to keep cards compact */
+  .info-row:nth-child(3),
+  .card-footer {
+    display: none;
+  }
+
+  .view-btn {
+    pointer-events: none; /* Card click handles navigation */
+  }
+}
+
+/* ── ≥ 640px — Tablets portrait ──────────────────────────────── */
+@media (min-width: 640px) {
+  .filter-bar {
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  /* Search takes full row on its own above the dropdowns */
+  .search-box {
+    flex: 1 1 100%;
+    order: -1;
+  }
+
+  /* Dropdowns split equally below the search bar */
+  .custom-dropdown {
+    flex: 1 1 calc(33% - 10px);
+    min-width: 0;
+  }
+}
+
+/* ── ≥ 768px — Tablets landscape / small laptops ──────────────── */
+@media (min-width: 768px) {
+  .filter-bar {
+    flex-wrap: nowrap;          /* All filters in one row */
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .search-box {
+    flex: 2 1 200px;
+    order: 0;
+  }
+
+  .custom-dropdown {
+    flex: 1 1 120px;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  /* Restore all info rows and footer */
+  .info-row:nth-child(3),
+  .card-footer {
+    display: grid;
+  }
+
+  .card-footer {
+    display: block;
+  }
+
+  .view-btn {
+    pointer-events: auto;       /* Button is now clickable */
+  }
+}
+
+/* ── ≥ 1024px — Laptops / desktops ───────────────────────────── */
+@media (min-width: 1024px) {
+  .proctor-dashboard {
+    padding: 2rem 2.5rem;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .filter-bar {
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+}
+
+/* ── ≥ 1280px — Wide laptops ──────────────────────────────────── */
+@media (min-width: 1280px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+/* ── ≥ 1440px — Large desktops / ultrawide ───────────────────── */
+@media (min-width: 1440px) {
+  .proctor-dashboard {
+    padding: 2rem 3rem;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* ── ≤ 479px — Very small phones (320–479px) ─────────────────── */
+@media (max-width: 479px) {
+  .proctor-dashboard {
+    padding: 0.875rem 0.75rem;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    flex: none;
+    width: 100%;
+  }
+
+  .custom-dropdown {
+    width: 100%;
+    flex: none;
+  }
+
+  /* Single column — prevents overflow on tiny screens */
+  .grid-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Compact cards for single-column layout */
+  .student-card {
+    padding: 14px 12px;
+    border-radius: 12px;
+  }
+
+  .card-header {
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .student-name {
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .status-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+
+  .info-grid {
+    gap: 8px;
+  }
+
+  .card-footer {
+    display: none;            /* Entire card is clickable on very small screens */
+  }
+
+  .info-row:nth-child(3) {
+    display: none;            /* Hide section row to reduce card height */
+  }
 }

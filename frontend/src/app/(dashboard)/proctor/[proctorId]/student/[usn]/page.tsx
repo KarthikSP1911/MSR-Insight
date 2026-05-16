@@ -106,9 +106,9 @@ export default function ProcteeDetails() {
                             <span>{details.class_details || "Student Profile Active"}</span>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <button 
-                            className="generate-report-btn" 
+                    <div className="hero-actions">
+                        <button
+                            className="generate-report-btn"
                             style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
                             onClick={() => window.open(`/student/dashboard?proctorView=true&proctorId=${proctorId}&usn=${student.usn}`, "_blank")}
                         >

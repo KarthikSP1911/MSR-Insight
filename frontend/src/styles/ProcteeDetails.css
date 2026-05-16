@@ -1,13 +1,20 @@
+/* ============================================================
+   PROCTEE DETAILS PAGE — Fully Responsive Stylesheet
+   Breakpoints: 320 | 480 | 640 | 768 | 1024 | 1280
+   ============================================================ */
+
+/* ── Page Container ──────────────────────────────────────────── */
 .proctee-details-page {
-  padding-top: var(--space-lg);
-  padding-bottom: var(--space-xl);
-  max-width: var(--container-max);
+  padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 4vw, 2rem);
+  max-width: var(--container-max, 1600px);
   margin: 0 auto;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-/* 1. MINIMAL BACK LINK */
+/* ── Back Navigation ─────────────────────────────────────────── */
 .back-nav {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
 }
@@ -15,7 +22,7 @@
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px; /* space-2 */
+  gap: 8px;
   padding: 0;
   background: none;
   border: none;
@@ -28,8 +35,8 @@
 }
 
 .back-link:hover {
-  color: #F8FAFC;
-  transform: translateX(-4px); /* Slight shift left */
+  color: #f8fafc;
+  transform: translateX(-4px);
 }
 
 .back-icon {
@@ -37,37 +44,46 @@
   line-height: 1;
 }
 
-/* 2. STUDENT HEADER CARD */
+/* ── Student Hero Card ───────────────────────────────────────── */
 .student-hero-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 32px;
+  border-radius: var(--radius-lg, 16px);
+  padding: clamp(16px, 4vw, 32px);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-lg, 24px);
+  gap: 16px;
+  flex-wrap: wrap;           /* Allow hero to wrap on narrow screens */
+  box-sizing: border-box;
 }
 
+/* Student name — fluid size */
 .student-info h1 {
-  font-size: 2rem;
+  font-size: clamp(1.25rem, 4vw, 2rem);
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   letter-spacing: -0.03em;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
+/* Meta row (USN • class details) */
 .student-meta-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 1rem;
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  flex-wrap: wrap;           /* Wrap USN / class info on tiny screens */
 }
 
 .usn-badge {
   color: var(--accent-primary);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .meta-divider {
@@ -75,18 +91,30 @@
   height: 4px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Hero action buttons group */
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;           /* Buttons wrap on narrow screens */
+  flex-shrink: 0;
 }
 
 .generate-report-btn {
   background: var(--bg-surface);
   color: var(--accent-primary);
-  padding: 10px 24px;
-  border-radius: var(--radius-md);
+  padding: 9px 20px;
+  border-radius: var(--radius-md, 8px);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border-subtle);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  min-height: 40px;          /* Touch-friendly */
 }
 
 .generate-report-btn:hover {
@@ -95,43 +123,39 @@
   border-color: var(--accent-primary);
 }
 
-/* 3. GRID & CARDS */
+/* ── Details Cards Grid ──────────────────────────────────────── */
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 20px;
   align-items: stretch;
   width: 100%;
-}
-
-@media (max-width: 1024px) {
-  .details-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .details-info-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 24px;
+  border-radius: var(--radius-lg, 16px);
+  padding: clamp(16px, 3vw, 24px);
   transition: all 0.25s ease;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;              /* Prevent flex/grid overflow */
 }
 
 .details-info-card:hover {
   border-color: var(--border-bright);
 }
 
-/* 4. CARD HEADERS */
+/* ── Card Header ─────────────────────────────────────────────── */
 .details-card-header {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .details-accent-line {
@@ -139,49 +163,52 @@
   height: 18px;
   background: var(--accent-primary);
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .details-card-header h2 {
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
   font-weight: 700;
   color: var(--text-primary);
 }
 
-/* 5. PERSONAL INFORMATION LAYOUT */
+/* ── Personal Information Layout ─────────────────────────────── */
 .personal-info-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .details-info-row {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  align-items: center;
-  gap: 16px;
+  grid-template-columns: 130px 1fr;  /* Fixed label column */
+  align-items: start;
+  gap: 12px;
 }
 
 .details-info-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: left;
+  padding-top: 2px;         /* Align with value text */
 }
 
 .details-info-value {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 600;
   text-align: left;
+  word-break: break-word;   /* Long emails / USNs don't overflow */
 }
 
-/* 6. ACADEMIC STATUS LAYOUT */
+/* ── Academic Status Layout ──────────────────────────────────── */
 .academic-metrics {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   flex: 1;
 }
 
@@ -189,10 +216,12 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 12px;
-  padding: 24px;
+  padding: clamp(14px, 3vw, 24px);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .cgpa-display {
@@ -201,47 +230,49 @@
 }
 
 .cgpa-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: #94a3b8;
   margin-bottom: 4px;
   text-transform: uppercase;
 }
 
 .cgpa-value {
-  font-size: 3rem;
+  font-size: clamp(2rem, 6vw, 3rem);
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1;
 }
 
 .status-badge {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 99px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   background: rgba(16, 185, 129, 0.1);
-  color: #10B981;
+  color: #10b981;
   border: 1px solid rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .status-badge.warning {
   background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
+  color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .mini-stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
 }
 
 .mini-stat-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 12px;
-  padding: 16px;
+  padding: clamp(10px, 2vw, 16px);
   text-align: center;
   transition: all 0.2s ease;
 }
@@ -252,16 +283,16 @@
 
 .stat-number {
   display: block;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   font-weight: 700;
-  color: #FFFFFF;
+  color: #ffffff;
   margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -270,21 +301,140 @@
   margin-top: auto;
   display: flex;
   justify-content: space-between;
-  padding-top: 16px;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.75rem;
-  color: #64748B;
+  font-size: 0.72rem;
+  color: #64748b;
 }
 
+/* ── Spinner (reused from global) ────────────────────────────── */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(249, 115, 22, 0.1);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* ================================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================================ */
+
+/* ── ≤ 1024px — Tablet landscape: stack the two detail cards ─── */
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* ── ≤ 768px — Tablet portrait ───────────────────────────────── */
 @media (max-width: 768px) {
   .student-hero-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
-    padding: 24px;
+    gap: 16px;
+    padding: 20px;
   }
-  
-  .details-grid {
-    grid-template-columns: 1fr;
+
+  /* Buttons take full width and stack on very narrow screens */
+  .hero-actions {
+    width: 100%;
+  }
+
+  /* Override the inline-style button wrapper from page.tsx */
+  .student-hero-card > div[style] {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .generate-report-btn {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* ── ≤ 640px — Large phones ──────────────────────────────────── */
+@media (max-width: 640px) {
+  .details-info-row {
+    grid-template-columns: 1fr;  /* Stack label above value */
+    gap: 2px;
+  }
+
+  .details-info-label {
+    margin-bottom: 0;
+  }
+
+  .details-info-value {
+    font-size: 0.875rem;
+  }
+
+  .personal-info-grid {
+    gap: 14px;
+  }
+}
+
+/* ── ≤ 480px — Small phones ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .proctee-details-page {
+    padding: 0.875rem 0.75rem;
+  }
+
+  .student-hero-card {
+    padding: 14px 12px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .student-meta-row {
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+
+  .generate-report-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.82rem;
+  }
+
+  .details-info-card {
+    border-radius: 12px;
+    padding: 14px 12px;
+  }
+
+  .details-card-header {
+    margin-bottom: 14px;
+  }
+
+  .cgpa-container {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .cgpa-value {
+    font-size: 2.5rem;
+  }
+
+  .mini-stats-grid {
+    gap: 8px;
   }
 }
