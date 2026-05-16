@@ -542,6 +542,7 @@ export default function ReportComponent() {
                                     <TiptapEditor
                                         content={proctorRemarks}
                                         onChange={(html: string) => setProctorRemarks(html)}
+                                        placeholder="Enter proctor observations here..."
                                     />
                                 </div>
                             </section>
