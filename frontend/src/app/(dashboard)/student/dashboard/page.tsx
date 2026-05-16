@@ -172,6 +172,42 @@ export default function StudentDashboard() {
     // 3. Effects
     useEffect(() => {
         const fetchProfile = async () => {
+            const proctorView = searchParams.get("proctorView");
+            const proctorId = searchParams.get("proctorId");
+            const queryUsn = searchParams.get("usn");
+
+            if (proctorView === "true" && proctorId && queryUsn) {
+                const pSessionId = localStorage.getItem("proctorSessionId");
+                if (!pSessionId) { router.push("/proctor-login"); return; }
+
+                try {
+                    const response = await axios.get(`${API_BASE_URL}/api/proctor/${proctorId}/student/${queryUsn}`, {
+                        headers: { "x-session-id": pSessionId },
+                    });
+                    if (response.data.success && response.data.data) {
+                        const data = response.data.data;
+                        setStudent(data);
+
+                        const lastSync = data.details?.last_updated || data.last_updated;
+                        if (lastSync) {
+                            const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
+                            setNextAllowedAt(next);
+                        }
+                    } else {
+                        router.push("/proctor-login");
+                    }
+                } catch (err: any) {
+                    console.error("Proctor view mount error:", err);
+                    if (err.response?.status === 401) {
+                        localStorage.clear();
+                        router.push("/proctor-login");
+                    }
+                } finally {
+                    setLoading(false);
+                }
+                return;
+            }
+
             const sessionId = localStorage.getItem("studentSessionId");
             const usn = localStorage.getItem("studentUsn");
             if (!sessionId || !usn) { router.push("/student-login"); return; }
@@ -206,7 +242,7 @@ export default function StudentDashboard() {
             }
         };
         fetchProfile();
-    }, [router]);
+    }, [router, searchParams]);
 
     useEffect(() => {
         if (currentSem.length > 0 && Object.keys(predictedGrades).length === 0) {

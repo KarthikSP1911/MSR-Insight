@@ -2,19 +2,22 @@
 .custom-dropdown {
   position: relative;
   flex: 1;
+  min-width: 0;           /* Prevent flex overflow */
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .dropdown-trigger {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  height: 36px;
+  min-height: 40px;       /* Touch-friendly; grows with content */
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
 }
 
 .dropdown-trigger:hover {
@@ -123,5 +126,18 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Responsive: full-width dropdown menu on narrow screens ── */
+@media (max-width: 479px) {
+  .dropdown-menu {
+    min-width: 100%;        /* Menu fills trigger width */
+    max-height: 220px;      /* Shorter list on tiny viewports */
+  }
+
+  .dropdown-item {
+    font-size: 0.82rem;
+    padding: 10px 10px;     /* Larger tap target */
   }
 }

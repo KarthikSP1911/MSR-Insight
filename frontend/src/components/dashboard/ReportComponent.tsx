@@ -31,7 +31,18 @@ const getGrade = (score: number) => {
 export default function ReportComponent() {
     const router = useRouter();
     const params = useParams();
-    const [zoom, setZoom] = useState(1);
+    /** A4 sheet width in pixels (must match .a4-sheet CSS width: 794px) */
+    const A4_WIDTH = 794;
+    const CANVAS_PADDING = 32; // 16px left + 16px right breathing room
+
+    /** Compute zoom so the sheet fits the current viewport */
+    const calcFitZoom = () => {
+        if (typeof window === 'undefined') return 1;
+        return Math.min(1, (window.innerWidth - CANVAS_PADDING) / A4_WIDTH);
+    };
+
+    const [zoom, setZoom] = useState(1); // SSR-safe default; fixed client-side below
+    const [userZoomed, setUserZoomed] = useState(false); // track manual zoom
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sendingEmail, setSendingEmail] = useState(false);
@@ -52,6 +63,22 @@ export default function ReportComponent() {
     const proctorId = params.proctorId as string;
     const usn = params.usn as string;
     const USN = usn?.toUpperCase();
+
+    /** Auto-fit zoom on mount and orientation/resize changes */
+    useEffect(() => {
+        const fitToViewport = () => {
+            if (!userZoomed) {
+                setZoom(calcFitZoom());
+            }
+        };
+
+        // Set on first client render
+        fitToViewport();
+
+        window.addEventListener('resize', fitToViewport);
+        return () => window.removeEventListener('resize', fitToViewport);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userZoomed]);
 
     useEffect(() => {
         const fetchReportData = async () => {
@@ -117,9 +144,9 @@ export default function ReportComponent() {
         }
     }, [USN, proctorId, router]);
 
-    const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1.5));
-    const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
-    const handleResetZoom = () => setZoom(1);
+    const handleZoomIn = () => { setUserZoomed(true); setZoom(prev => Math.min(prev + 0.1, 1.5)); };
+    const handleZoomOut = () => { setUserZoomed(true); setZoom(prev => Math.max(prev - 0.1, 0.4)); };
+    const handleResetZoom = () => { setUserZoomed(false); setZoom(calcFitZoom()); };
 
     const handleDownload = () => {
         if (!html2pdf) {
@@ -307,7 +334,7 @@ export default function ReportComponent() {
                         onClick={() => router.push(proctorId ? `/proctor/${proctorId}/student/${USN}` : '/student/dashboard')}
                         title="Back"
                     >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px', flexShrink: 0 }}>
                             <line x1="19" y1="12" x2="5" y2="12" />
                             <polyline points="12 19 5 12 12 5" />
                         </svg>
@@ -326,7 +353,7 @@ export default function ReportComponent() {
                         <span className="zoom-percent">{Math.round(zoom * 100)}%</span>
                         <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">+</button>
                         <div className="toolbar-divider"></div>
-                        <button className="text-btn reset-btn" onClick={handleResetZoom}>Reset</button>
+                        <button className="text-btn reset-btn" onClick={handleResetZoom} title="Fit to screen">Fit</button>
                     </div>
                 </div>
 
@@ -393,10 +420,10 @@ export default function ReportComponent() {
                         disabled={sendingEmail || loading}
                         title="Send report to parents via email"
                     >
-                        <span style={{ marginRight: '8px', display: 'flex', alignItems: 'center' }}>
-                            <Mail size={18} color="#EA4335" />
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                            <Mail size={16} color="#EA4335" />
                         </span>
-                        {sendingEmail ? "Sending..." : "Send Email"}
+                        <span className="btn-label">{sendingEmail ? "Sending..." : "Email"}</span>
                     </button>
                     <button
                         className="btn whatsapp-btn"
@@ -404,22 +431,23 @@ export default function ReportComponent() {
                         disabled={sendingWhatsApp || loading}
                         title="Send report to parents via WhatsApp"
                     >
-                        <span style={{ marginRight: '8px', display: 'flex', alignItems: 'center' }}>
-                            <MessageCircle size={18} color="#25D366" />
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                            <MessageCircle size={16} color="#25D366" />
                         </span>
-                        {sendingWhatsApp ? "Sending..." : "WhatsApp Report"}
+                        <span className="btn-label">{sendingWhatsApp ? "Sending..." : "WhatsApp"}</span>
                     </button>
                     <button
                         className="btn btn-primary download-btn"
                         onClick={handleDownload}
                         disabled={loading}
+                        title="Download PDF"
                     >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px', marginRight: '8px' }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '15px', height: '15px', flexShrink: 0 }}>
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                             <polyline points="7 10 12 15 17 10" />
                             <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
-                        Download PDF
+                        <span className="btn-label">Download PDF</span>
                     </button>
                 </div>
             </header>
@@ -427,13 +455,24 @@ export default function ReportComponent() {
             <div className="document-canvas">
                 <div className="sheet-scroll-frame">
                     <div
-                        className="a4-sheet-wrapper"
+                        className="a4-sheet-container"
                         style={{
-                            transform: `scale(${zoom})`,
-                            transformOrigin: 'top center',
-                            marginBottom: `${(zoom - 1) * 1123}px`
+                            width: `${A4_WIDTH * zoom}px`,
+                            height: `${1123 * zoom}px`,
+                            margin: '0 auto',
+                            position: 'relative'
                         }}
                     >
+                        <div
+                            className="a4-sheet-wrapper"
+                            style={{
+                                transform: `scale(${zoom})`,
+                                transformOrigin: 'top left',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0
+                            }}
+                        >
                         <div id="report-sheet" className="a4-sheet">
                             <header className="sheet-header">
                                 <div className="college-logo">
@@ -503,6 +542,7 @@ export default function ReportComponent() {
                                     <TiptapEditor
                                         content={proctorRemarks}
                                         onChange={(html: string) => setProctorRemarks(html)}
+                                        placeholder="Enter proctor observations here..."
                                     />
                                 </div>
                             </section>
@@ -526,6 +566,7 @@ export default function ReportComponent() {
                     </div>
                 </div>
             </div>
+        </div>
 
             {whatsAppModalOpen && whatsAppResult && (
                 <div className="whatsapp-modal-overlay">

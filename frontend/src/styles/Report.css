@@ -11,36 +11,43 @@
 
 /* Professional Document Toolbar */
 .report-toolbar {
-    height: 64px;
-    background: rgba(10, 10, 10, 0.8);
+    min-height: 56px;          /* auto height so wrapped rows don't clip */
+    background: rgba(10, 10, 10, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-subtle);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 40px;
+    flex-wrap: wrap;           /* allow rows to wrap on very small screens */
+    padding: 0 clamp(12px, 4vw, 40px);
+    gap: 8px;
     z-index: 1000;
+    box-sizing: border-box;
 }
 
 /* Toolbar Actions Styling */
 .toolbar-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;           /* buttons wrap instead of overflowing */
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .toolbar-right .btn {
     height: 38px;
-    padding: 0 16px;
-    font-size: 0.85rem;
+    padding: 0 14px;
+    font-size: 0.82rem;
     border-radius: 8px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;       /* keep label on one line */
 }
 
 .toolbar-right .download-btn {
@@ -174,22 +181,28 @@
 .document-canvas {
     flex: 1;
     width: 100%;
-    overflow: hidden;
+    /* Do NOT use overflow:hidden here — it kills the child scroll frame */
+    overflow: visible;
     display: flex;
     justify-content: center;
     background: var(--bg-primary);
     position: relative;
-    padding: 40px 0;
+    padding: clamp(16px, 4vw, 40px) 0;
+    /* Contain the child without clipping */
+    min-height: 0;
 }
 
 .sheet-scroll-frame {
-    width: 100vw;
-    height: 100%;
+    /* Fill the remaining height from the flex parent */
+    flex: 1;
+    width: 100%;
+    /* This is the scroll root — both axes */
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start; /* Safely align to start, child margin handles centering without clipping */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Custom modern scrollbar */
@@ -609,37 +622,96 @@
     }
 }
 
+/* ── ≤ 850px: hide left nav + zoom widget ─────────────────────── */
 @media (max-width: 850px) {
-    .report-toolbar {
-        padding: 0 16px;
-        gap: 8px;
+    .toolbar-center,
+    .toolbar-left .toolbar-divider,
+    .toolbar-left .report-title {
+        display: none;
     }
-
-    .toolbar-left,
-    .toolbar-center {
+    
+    .toolbar-left .back-btn span {
         display: none;
     }
 
+    .toolbar-right {
+        /* Toolbar-right becomes the full toolbar row */
+        flex: 1;
+        justify-content: flex-end;
+    }
+
     .a4-sheet-wrapper {
-        transform: scale(0.9);
-        transform-origin: top center;
+        transform-origin: top left;
+        /* scale handled by JS state — CSS just ensures origin is correct */
     }
 }
 
+/* ── ≤ 768px: Tablet portrait ─────────────────────────────────── */
 @media (max-width: 768px) {
-    .a4-sheet-wrapper {
-        transform: scale(0.7);
+    .toolbar-right .btn span:not(.btn-icon) {
+        /* Hide text labels that are beside icons to save toolbar space */
+    }
+
+    /* Scroll frame: let users pan the scaled A4 doc horizontally */
+    .sheet-scroll-frame {
+        align-items: flex-start;   /* left-align so panning works naturally */
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .document-canvas {
+        padding: 20px 0;
     }
 }
 
+/* ── ≤ 600px: Phone landscape / large phone portrait ──────────── */
 @media (max-width: 600px) {
-    .a4-sheet-wrapper {
-        transform: scale(0.5);
+    .report-toolbar {
+        padding: 8px 12px;
+        min-height: auto;
     }
 
     .toolbar-right {
         width: 100%;
         justify-content: center;
+        gap: 6px;
+    }
+
+    /* Compact buttons: shrink padding, keep label but smaller font */
+    .toolbar-right .btn {
+        height: 34px;
+        padding: 0 10px;
+        font-size: 0.75rem;
+        gap: 4px;
+    }
+
+    .document-canvas {
+        padding: 12px 0;
+    }
+
+    .sheet-scroll-frame {
+        align-items: flex-start;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+
+/* ── ≤ 420px: Very small phones — icon-only toolbar ──────────── */
+@media (max-width: 420px) {
+    .toolbar-right .btn-label {
+        display: none;             /* Hide text, keep icons only */
+    }
+
+    .toolbar-right .btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 6px;
+    }
+
+    .toolbar-right {
+        gap: 6px;
     }
 }
 
