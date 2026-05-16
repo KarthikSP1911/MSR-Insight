@@ -68,20 +68,24 @@ export default function ProcteeDetails() {
 
     if (loading) {
         return (
-            <div className="proctee-details-page fade-in" style={{ textAlign: 'center', paddingTop: '100px' }}>
-                <div className="spinner" style={{ margin: '0 auto 20px' }} />
-                <p style={{ color: 'var(--text-secondary)' }}>Fetching student profile...</p>
+            <div className="flex-1 w-full min-w-0 fade-in">
+                <div className="proctee-details-page" style={{ textAlign: 'center', paddingTop: '100px' }}>
+                    <div className="spinner" style={{ margin: '0 auto 20px' }} />
+                    <p style={{ color: 'var(--text-secondary)' }}>Fetching student profile...</p>
+                </div>
             </div>
         );
     }
 
     if (error || !student) {
         return (
-            <div className="proctee-details-page fade-in" style={{ textAlign: 'center', paddingTop: '100px' }}>
-                <p style={{ color: 'var(--error)', marginBottom: '24px', fontSize: '1.1rem' }}>⚠️ {error || "Student not found"}</p>
-                <button className="generate-report-btn" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', margin: '0 auto' }} onClick={() => router.push(`/proctor/${proctorId}/dashboard`)}>
-                    Back to Dashboard
-                </button>
+            <div className="flex-1 w-full min-w-0 fade-in">
+                <div className="proctee-details-page" style={{ textAlign: 'center', paddingTop: '100px' }}>
+                    <p style={{ color: 'var(--error)', marginBottom: '24px', fontSize: '1.1rem' }}>⚠️ {error || "Student not found"}</p>
+                    <button className="generate-report-btn" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', margin: '0 auto' }} onClick={() => router.push(`/proctor/${proctorId}/dashboard`)}>
+                        Back to Dashboard
+                    </button>
+                </div>
             </div>
         );
     }
@@ -89,10 +93,8 @@ export default function ProcteeDetails() {
     const details = student.details || {};
     const hasGoodStanding = (parseFloat(details.cgpa) || 0) >= 5;
 
-    if (!mounted) return null;
-
     return (
-        <div className="container fade-in">
+        <div className="flex-1 w-full min-w-0 fade-in">
             <div className="proctee-details-page">
                 {/* STUDENT HERO CARD */}
                 <header className="student-hero-card">
@@ -118,38 +120,38 @@ export default function ProcteeDetails() {
                     </div>
                 </header>
 
-                <div className="details-grid">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch w-full min-w-0">
                     {/* PERSONAL INFORMATION CARD */}
-                    <div className="info-card">
-                        <div className="card-header">
-                            <div className="accent-line"></div>
+                    <div className="details-info-card w-full min-w-0">
+                        <div className="details-card-header">
+                            <div className="details-accent-line"></div>
                             <h2>Personal Information</h2>
                         </div>
 
                         <div className="personal-info-grid">
-                            <div className="info-row">
-                                <span className="info-label">Full Name</span>
-                                <span className="info-value">{student.name || "Not Available"}</span>
+                            <div className="details-info-row">
+                                <span className="details-info-label">Full Name</span>
+                                <span className="details-info-value">{student.name || "Not Available"}</span>
                             </div>
-                            <div className="info-row">
-                                <span className="info-label">USN</span>
-                                <span className="info-value">{student.usn}</span>
+                            <div className="details-info-row">
+                                <span className="details-info-label">USN</span>
+                                <span className="details-info-value">{student.usn}</span>
                             </div>
-                            <div className="info-row">
-                                <span className="info-label">Date of Birth</span>
-                                <span className="info-value">{student.dob || '—'}</span>
+                            <div className="details-info-row">
+                                <span className="details-info-label">Date of Birth</span>
+                                <span className="details-info-value">{student.dob || '—'}</span>
                             </div>
-                            <div className="info-row">
-                                <span className="info-label">Email</span>
-                                <span className="info-value">{student.email || "Not Available"}</span>
+                            <div className="details-info-row">
+                                <span className="details-info-label">Email</span>
+                                <span className="details-info-value">{student.email || "Not Available"}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* ACADEMIC STATUS CARD */}
-                    <div className="info-card">
-                        <div className="card-header">
-                            <div className="accent-line"></div>
+                    <div className="details-info-card w-full min-w-0">
+                        <div className="details-card-header">
+                            <div className="details-accent-line"></div>
                             <h2>Academic Status</h2>
                         </div>
 

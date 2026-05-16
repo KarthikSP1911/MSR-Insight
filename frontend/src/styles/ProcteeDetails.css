@@ -110,7 +110,7 @@
   }
 }
 
-.info-card {
+.details-info-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -121,26 +121,27 @@
   flex-direction: column;
 }
 
-.info-card:hover {
+.details-info-card:hover {
   border-color: var(--border-bright);
 }
 
 /* 4. CARD HEADERS */
-.card-header {
+.details-card-header {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.accent-line {
+.details-accent-line {
   width: 3px;
   height: 18px;
   background: var(--accent-primary);
   border-radius: 2px;
 }
 
-.card-header h2 {
+.details-card-header h2 {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -153,25 +154,27 @@
   gap: 20px;
 }
 
-.info-row {
+.details-info-row {
   display: grid;
   grid-template-columns: 140px 1fr;
   align-items: center;
   gap: 16px;
 }
 
-.info-label {
+.details-info-label {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: left;
 }
 
-.info-value {
+.details-info-value {
   font-size: 0.95rem;
   color: var(--text-secondary);
   font-weight: 600;
+  text-align: left;
 }
 
 /* 6. ACADEMIC STATUS LAYOUT */
