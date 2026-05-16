@@ -104,9 +104,18 @@ export default function ProcteeDetails() {
                             <span>{details.class_details || "Student Profile Active"}</span>
                         </div>
                     </div>
-                    <button className="generate-report-btn" onClick={handleGenerateReport}>
-                        Generate Report
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <button 
+                            className="generate-report-btn" 
+                            style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
+                            onClick={() => window.open(`/student/dashboard?proctorView=true&proctorId=${proctorId}&usn=${student.usn}`, "_blank")}
+                        >
+                            Open Dashboard
+                        </button>
+                        <button className="generate-report-btn" onClick={handleGenerateReport}>
+                            Generate Report
+                        </button>
+                    </div>
                 </header>
 
                 <div className="details-grid">

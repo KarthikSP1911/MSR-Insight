@@ -148,101 +148,101 @@ export default function ProctorDashboard() {
     return (
         <>
             <div className="proctor-dashboard fade-in">
-            <section className="filter-bar">
-                <div className="filter-item search-box">
-                    <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input
-                        type="text"
-                        placeholder="Search by student name or USN..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                <section className="filter-bar">
+                    <div className="filter-item search-box">
+                        <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder="Search by student name or USN..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <CustomDropdown
+                        options={semesterOptions}
+                        value={semesterFilter}
+                        onChange={setSemesterFilter}
+                        placeholder="Semester"
                     />
-                </div>
 
-                <CustomDropdown
-                    options={semesterOptions}
-                    value={semesterFilter}
-                    onChange={setSemesterFilter}
-                    placeholder="Semester"
-                />
+                    <CustomDropdown
+                        options={sectionOptions}
+                        value={sectionFilter}
+                        onChange={setSectionFilter}
+                        placeholder="Section"
+                    />
 
-                <CustomDropdown
-                    options={sectionOptions}
-                    value={sectionFilter}
-                    onChange={setSectionFilter}
-                    placeholder="Section"
-                />
+                    <CustomDropdown
+                        options={statusOptions}
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        placeholder="Performance Status"
+                    />
+                </section>
 
-                <CustomDropdown
-                    options={statusOptions}
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    placeholder="Performance Status"
-                />
-            </section>
+                <div className="proctees-grid grid-container">
+                    {filteredStudents.map((student) => {
+                        const status = getAttendanceStatus(student.lowestAttendance);
 
-            <div className="proctees-grid grid-container">
-                {filteredStudents.map((student) => {
-                    const status = getAttendanceStatus(student.lowestAttendance);
+                        return (
+                            <div
+                                key={student.usn}
+                                className={`student-card ${status.class}`}
+                                onClick={() => handleStudentClick(student.usn)}
+                            >
+                                <div className="card-header">
+                                    <h2 className="student-name">{student.name}</h2>
+                                    <span className={`status-badge ${status.class}`}>
+                                        {status.label}
+                                    </span>
+                                </div>
 
-                    return (
-                        <div
-                            key={student.usn}
-                            className={`student-card ${status.class}`}
-                            onClick={() => handleStudentClick(student.usn)}
-                        >
-                            <div className="card-header">
-                                <h2 className="student-name">{student.name}</h2>
-                                <span className={`status-badge ${status.class}`}>
-                                    {status.label}
-                                </span>
-                            </div>
-
-                            <div className="card-body">
-                                <div className="info-grid">
-                                    <div className="info-row">
-                                        <span className="info-label">USN</span>
-                                        <span className="info-value">{student.usn}</span>
-                                    </div>
-                                    <div className="info-row">
-                                        <span className="info-label">Semester</span>
-                                        <span className="info-value">{student.semester || 'N/A'}</span>
-                                    </div>
-                                    <div className="info-row">
-                                        <span className="info-label">Section</span>
-                                        <span className="info-value">{student.section || 'N/A'}</span>
+                                <div className="card-body">
+                                    <div className="info-grid">
+                                        <div className="info-row">
+                                            <span className="info-label">USN</span>
+                                            <span className="info-value">{student.usn}</span>
+                                        </div>
+                                        <div className="info-row">
+                                            <span className="info-label">Semester</span>
+                                            <span className="info-value">{student.semester || 'N/A'}</span>
+                                        </div>
+                                        <div className="info-row">
+                                            <span className="info-label">Section</span>
+                                            <span className="info-value">{student.section || 'N/A'}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="card-footer">
-                                <button className="view-btn">
-                                    <span>View Full Profile</span>
-                                    <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                        <polyline points="12 5 19 12 12 19"></polyline>
-                                    </svg>
-                                </button>
+                                <div className="card-footer">
+                                    <button className="view-btn">
+                                        <span>View Full Profile</span>
+                                        <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            <polyline points="12 5 19 12 12 19"></polyline>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
+                        );
+                    })}
+
+                    {filteredStudents.length === 0 && (
+                        <div className="no-results">
+                            <p>No students match your current filters.</p>
+                            <button onClick={() => {
+                                setSearchTerm("");
+                                setSemesterFilter("All");
+                                setSectionFilter("All");
+                                setStatusFilter("All");
+                            }}>Clear All Filters</button>
                         </div>
-                    );
-                })}
-
-                {filteredStudents.length === 0 && (
-                    <div className="no-results">
-                        <p>No students match your current filters.</p>
-                        <button onClick={() => {
-                            setSearchTerm("");
-                            setSemesterFilter("All");
-                            setSectionFilter("All");
-                            setStatusFilter("All");
-                        }}>Clear All Filters</button>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
             </div>
             <ProctorChatbot proctorId={proctorId} />
         </>
