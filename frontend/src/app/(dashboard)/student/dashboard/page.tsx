@@ -23,6 +23,7 @@ import HistorySection from "@/components/dashboard/sections/HistorySection";
 import SimulatorSection from "@/components/dashboard/sections/SimulatorSection";
 import NotesSection from "@/components/dashboard/sections/NotesSection";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
+import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
 
 
 const GRADE_COLORS: Record<string, string> = {
@@ -168,6 +169,17 @@ export default function StudentDashboard() {
             return scoreA - scoreB;
         })[0];
     }, [currentSem]);
+
+    const isBirthday = useMemo(() => {
+        if (!student?.dob) return false;
+        try {
+            const [day, month] = student.dob.split('-');
+            const today = new Date();
+            return today.getDate() === parseInt(day, 10) && (today.getMonth() + 1) === parseInt(month, 10);
+        } catch (e) {
+            return false;
+        }
+    }, [student]);
 
     // 3. Effects
     useEffect(() => {
@@ -392,7 +404,9 @@ export default function StudentDashboard() {
 
             <main className="dashboard-main-content">
                 <div className="content-wrapper">
+                    {isBirthday && <BirthdayBanner studentName={student?.name || "Student"} />}
                     {selectedSubject ? (
+
                         <SubjectDetail
                             subject={selectedSubject}
                             allSubjects={currentSem}

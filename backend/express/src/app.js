@@ -14,6 +14,9 @@ import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
 
+// Trust Cloud Run's reverse proxy / load balancer
+app.set('trust proxy', 1);
+
 // 1. Set Security HTTP Headers
 app.use(helmet());
 
@@ -40,6 +43,7 @@ const apiLimiter = rateLimit({
     message: "Too many requests from this IP, please try again after 15 minutes",
     standardHeaders: true,
     legacyHeaders: false,
+    validate: { trustProxy: false, forwardedHeader: false },
 });
 app.use("/api/", apiLimiter);
 
