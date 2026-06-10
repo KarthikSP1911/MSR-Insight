@@ -1,10 +1,9 @@
-# MSR Insight
+# 🎓 MSR Insight
 
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, RAG-powered chatbot, browser extension for batch scraping, secure session management, and generative AI feedback loops.
 
----
 
-## Key Features
+## ✨ Key Features
 
 - **AI-Powered Insights**: Real-time performance analysis using Groq (Llama 3.1) and AI-generated academic remarks.
 - **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, PGVector (Postgres), and Google Gemini, enabling proctors to query student data conversationally.
@@ -16,9 +15,8 @@ An industry-grade, AI-powered academic reporting platform designed to transform 
 - **Rate-Limited Scraping**: 5-minute cooldown per student to prevent portal overload, with client-side countdown timer.
 - **High-Performance Architecture**: Tiered system separation (UI, Business Logic, and Data Processing) for maximum scalability.
 
----
 
-## Architecture Overview
+## ✨ Architecture Overview
 
 The system operates on a **distributed monolith** architecture with four independently runnable components:
 
@@ -27,74 +25,291 @@ The system operates on a **distributed monolith** architecture with four indepen
 3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + PGVector), and data normalization.
 4. **Browser Extension (Chrome)**: Manifest V3 extension that detects proctor sessions and orchestrates batch scraping of assigned students.
 
-### Component Interaction
+## ✨ Component Interaction
 
+```mermaid
+flowchart TB
+
+    UI["Next.js UI<br/>(Frontend)"]
+
+    API["Express API<br/>(Logic Gateway)"]
+
+    Redis["Redis Cache<br/>(Sessions)"]
+    DB["PostgreSQL<br/>(Prisma ORM)"]
+    FastAPI["FastAPI<br/>(Intelligence)"]
+
+    LLM["Groq LLM<br/>(Llama 3.1)"]
+
+    UI <--> API
+
+    API <--> Redis
+
+    API <--> DB
+
+    API <--> FastAPI
+
+    FastAPI <--> LLM
+
+    %% Styling
+    style UI fill:#D9EEF7,stroke:#000,stroke-width:2px,color:#000
+
+    style API fill:#F8E7A6,stroke:#000,stroke-width:2px,color:#000
+
+    style Redis fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
+    style DB fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
+
+    style FastAPI fill:#DCEBC3,stroke:#000,stroke-width:2px,color:#000
+
+    style LLM fill:#DDB7ED,stroke:#000,stroke-width:2px,color:#000
 ```
-Browser (Next.js SPA)
-       |
-       |  HTTP (Axios)  x-session-id header
-       v
-Express API (Port 5001)  ---- Redis (Upstash) ----  [Session Store]
-       |                              ^
-       |  HTTP (Axios)                | session TTL refresh
-       v                              |
-FastAPI Service (Port 8000)         |
-       |                              |
-       |  LangChain + PGVector         |
-       |  Groq / Gemini APIs           |
-       |                              |
-       v                              |
-PostgreSQL (Neon)                   |
-   [students JSONB &                |
-    student_data_v2 vectors]        |
-       ^                              |
-       |  Puppeteer Scraper            |
-       +------------------------------+
+## ✨ Architecture Design
 
-Chrome Extension
-       |
-       |  Detects proctor session from localStorage
-       |  Calls Express /api/report/update per student
-       v
-Express API (batch scrape endpoint)
+
+```mermaid
+flowchart LR
+
+    U[Proctor / Student]
+
+    subgraph F["Next.js Frontend App"]
+        UI[UI Components & Dashboards]
+    end
+
+    C[Chrome Extension]
+
+    subgraph E["Express Logic Gateway"]
+        SM[Session Middleware]
+        API[API Controllers]
+        PS[Puppeteer Scraper]
+        PR[Prisma Client]
+
+        SM --> API
+        API --> PS
+        PS --> PR
+    end
+
+    subgraph AI["FastAPI Intelligence Service"]
+        GR[Groq AI Remarks]
+        RAG[RAG Pipeline]
+
+        GR --> RAG
+    end
+
+    subgraph D["Data Layer"]
+        R[(Redis Session Cache)]
+        P[(PostgreSQL + PGVector)]
+        CL[(Cloudinary File Store)]
+    end
+
+    U -->|Browser HTTP| F
+    F -->|Axios REST| E
+
+    C -->|Batch Scrape Triggers| E
+
+    E -->|Internal HTTP| AI
+
+    E -->|Validate x-session-id| R
+    E -->|Read / Write JSONB| P
+
+    AI -->|Vector Search / Embeddings| P
+
+    E -->|Archive PDF| CL
 ```
+## ✨ Tech Stack
 
----
 
-## Tech Stack
+<div align="center">
 
-| Layer | Technology | Version / Details |
-|---|---|---|
-| **Frontend Framework** | Next.js (App Router) | 16.x |
-| **Frontend Language** | TypeScript | 5.x |
-| **CSS** | Tailwind CSS v4 + Custom CSS | 4.x |
-| **Charts** | Recharts | 3.x |
-| **Rich Text Editor** | Tiptap | 2.x |
-| **PDF (client-side)** | html2pdf.js | 0.10.x |
-| **HTTP Client** | Axios | 1.x |
-| **Icons** | Lucide React | 0.479.x |
-| **Animations** | Framer Motion | 12.x |
-| **API Gateway** | Express | 4.18.x |
-| **ORM** | Prisma | 7.4.x |
-| **Database** | PostgreSQL (Neon serverless) | — |
-| **Session Cache** | Redis (Upstash, TLS) | redis@4.x |
-| **Password Hashing** | bcrypt | 6.x |
-| **Server-side PDF** | Puppeteer | 22.x |
-| **HTML Parsing** | Cheerio | 1.x |
-| **Email Delivery** | Resend | 3.x |
-| **PDF Storage** | Cloudinary | 1.x |
-| **Python API** | FastAPI + Uvicorn | latest |
-| **LLM (Remarks)** | Groq SDK (llama-3.1-8b-instant) | latest |
-| **LLM (RAG Chat)** | Google Gemini (gemini-3.1-flash-lite) | latest |
-| **Embeddings** | Google Gemini Embeddings (gemini-embedding-001) | latest |
-| **Vector Store** | PGVector (Postgres) | latest |
-| **RAG Framework** | LangChain Core + PGVector + Community | latest |
-| **Config (Python)** | pydantic-settings | latest |
-| **Browser Extension** | Chrome Manifest V3 | — |
-| **Package Manager** | npm (Node), pip (Python) | — |
-| **Dev Runner** | nodemon (Express), uvicorn --reload (FastAPI) | — |
+<table>
+  <tr>
+    <th width="45%">Layer</th>
+    <th width="45%">Technology</th>
+    <th width="35%">Version / Details</th>
+  </tr>
 
----
+  <tr>
+    <td><b>Frontend Framework</b></td>
+    <td>Next.js (App Router)</td>
+    <td>16.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Frontend Language</b></td>
+    <td>TypeScript</td>
+    <td>5.x</td>
+  </tr>
+
+  <tr>
+    <td><b>CSS</b></td>
+    <td>Tailwind CSS v4 + Custom CSS</td>
+    <td>4.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Charts</b></td>
+    <td>Recharts</td>
+    <td>3.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Rich Text Editor</b></td>
+    <td>Tiptap</td>
+    <td>2.x</td>
+  </tr>
+
+  <tr>
+    <td><b>PDF (Client-side)</b></td>
+    <td>html2pdf.js</td>
+    <td>0.10.x</td>
+  </tr>
+
+  <tr>
+    <td><b>HTTP Client</b></td>
+    <td>Axios</td>
+    <td>1.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Icons</b></td>
+    <td>Lucide React</td>
+    <td>0.479.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Animations</b></td>
+    <td>Framer Motion</td>
+    <td>12.x</td>
+  </tr>
+
+  <tr>
+    <td><b>API Gateway</b></td>
+    <td>Express</td>
+    <td>4.18.x</td>
+  </tr>
+
+  <tr>
+    <td><b>ORM</b></td>
+    <td>Prisma</td>
+    <td>7.4.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Database</b></td>
+    <td>PostgreSQL (Neon Serverless)</td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><b>Session Cache</b></td>
+    <td>Redis (Upstash, TLS)</td>
+    <td>redis@4.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Password Hashing</b></td>
+    <td>bcrypt</td>
+    <td>6.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Server-side PDF</b></td>
+    <td>Puppeteer</td>
+    <td>22.x</td>
+  </tr>
+
+  <tr>
+    <td><b>HTML Parsing</b></td>
+    <td>Cheerio</td>
+    <td>1.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Email Delivery</b></td>
+    <td>Resend</td>
+    <td>3.x</td>
+  </tr>
+
+  <tr>
+    <td><b>PDF Storage</b></td>
+    <td>Cloudinary</td>
+    <td>1.x</td>
+  </tr>
+
+  <tr>
+    <td><b>Python API</b></td>
+    <td>FastAPI + Uvicorn</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>LLM (Remarks)</b></td>
+    <td>Groq SDK (Llama 3.1 8B Instant)</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>LLM (RAG Chat)</b></td>
+    <td>Google Gemini (3.1 Flash Lite)</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>Embeddings</b></td>
+    <td>Gemini Embedding 001</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>Vector Store</b></td>
+    <td>PGVector (Postgres)</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>RAG Framework</b></td>
+    <td>LangChain Core + Community</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>Config (Python)</b></td>
+    <td>pydantic-settings</td>
+    <td>Latest</td>
+  </tr>
+
+  <tr>
+    <td><b>Browser Extension</b></td>
+    <td>Chrome Manifest V3</td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><b>Package Manager</b></td>
+    <td>npm (Node), pip (Python)</td>
+    <td>—</td>
+  </tr>
+
+  <tr>
+    <td><b>Dev Runner</b></td>
+    <td>nodemon, uvicorn --reload</td>
+    <td>—</td>
+  </tr>
+
+</table>
+
+</div>
+<p align="center">
+  <img src="https://cdn.simpleicons.org/nextdotjs" width="60" alt="Next.js" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/typescript" width="60" alt="TypeScript" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/tailwindcss" width="60" alt="Tailwind CSS" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/react" width="60" alt="React" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/nodedotjs" width="60" alt="Node.js" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/express" width="60" alt="Express" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/postgresql" width="60" alt="PostgreSQL" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/redis" width="60" alt="Redis" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/prisma" width="60" alt="Prisma" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/python" width="60" alt="Python" style="margin-right:12px;" />
+  <img src="https://cdn.simpleicons.org/fastapi" width="60" alt="FastAPI" />
+</p>
 
 ## Getting Started
 
