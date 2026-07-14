@@ -119,7 +119,7 @@ flowchart LR
 
 <div align="center">
 
-<table>
+<!-- <table>
   <tr>
     <th width="45%">Layer</th>
     <th width="45%">Technology</th>
@@ -294,7 +294,7 @@ flowchart LR
     <td>—</td>
   </tr>
 
-</table>
+</table> -->
 
 </div>
 <p align="center">
