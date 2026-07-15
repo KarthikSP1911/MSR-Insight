@@ -3,6 +3,7 @@ import { generatePDFFromHTML, sendReportEmailViaResend } from "./email.service.j
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -135,7 +136,7 @@ const sendWeeklyReportForStudent = async (student, logoDataUri) => {
   const parents = student.parents || [];
 
   if (parents.length === 0) {
-    console.log(
+    logger.info(
       `[WeeklyCron] No parents found for ${student.usn} — skipping.`
     );
     return { usn: student.usn, skipped: true, reason: "no_parents" };
@@ -150,7 +151,7 @@ const sendWeeklyReportForStudent = async (student, logoDataUri) => {
       `weekly_${student.usn}.pdf`
     );
   } catch (err) {
-    console.error(`[WeeklyCron] PDF generation failed for ${student.usn}:`, err.message);
+    logger.error(`[WeeklyCron] PDF generation failed for ${student.usn}:`, err.message);
     return { usn: student.usn, error: err.message };
   }
 
@@ -166,12 +167,12 @@ const sendWeeklyReportForStudent = async (student, logoDataUri) => {
         parent.name || "Parent/Guardian"
       );
       results.push({ parentEmail: parent.email, status: "success" });
-      console.log(
+      logger.info(
         `[WeeklyCron] ✓ Sent to ${parent.email} for ${student.usn}`
       );
     } catch (err) {
       results.push({ parentEmail: parent.email, status: "failed", error: err.message });
-      console.error(
+      logger.error(
         `[WeeklyCron] ✗ Failed for ${parent.email} (${student.usn}):`,
         err.message
       );
@@ -303,7 +304,7 @@ const sendWeeklyAttendanceEmail = async (
  * Main cron job runner — fetches ALL students and sends attendance digests.
  */
 export const runWeeklyAttendanceCron = async () => {
-  console.log("[WeeklyCron] ▶ Starting weekly attendance digest...");
+  logger.info("[WeeklyCron] ▶ Starting weekly attendance digest...");
   const startTime = Date.now();
 
   const logoDataUri = getLogoDataUri();
@@ -326,11 +327,11 @@ export const runWeeklyAttendanceCron = async () => {
       },
     });
   } catch (err) {
-    console.error("[WeeklyCron] ✗ Failed to fetch students from DB:", err.message);
+    logger.error("[WeeklyCron] ✗ Failed to fetch students from DB:", err.message);
     return;
   }
 
-  console.log(`[WeeklyCron] Processing ${students.length} students...`);
+  logger.info(`[WeeklyCron] Processing ${students.length} students...`);
 
   let successCount = 0;
   let failureCount = 0;
@@ -348,13 +349,13 @@ export const runWeeklyAttendanceCron = async () => {
         allSent ? successCount++ : failureCount++;
       }
     } catch (err) {
-      console.error(`[WeeklyCron] Unhandled error for ${student.usn}:`, err.message);
+      logger.error(`[WeeklyCron] Unhandled error for ${student.usn}:`, err.message);
       failureCount++;
     }
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(
+  logger.info(
     `[WeeklyCron] ✅ Done in ${elapsed}s — Success: ${successCount}, Failed: ${failureCount}, Skipped: ${skippedCount}`
   );
 };

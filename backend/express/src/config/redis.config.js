@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { createClient } from "redis";
+import logger from '../utils/logger.js';
 
 const redisClient = createClient({
   url: process.env.REDIS_URL,
@@ -10,18 +11,18 @@ const redisClient = createClient({
 });
 
 redisClient.on("connect", () => {
-  console.log("Redis Connected");
+  logger.info("Redis Connected");
 });
 
 redisClient.on("error", (err) => {
-  console.error("Redis Error:", err);
+  logger.error("Redis Error:", err);
 });
 
 (async () => {
   try {
     await redisClient.connect();
   } catch (err) {
-    console.error("Redis Connection Failed:", err);
+    logger.error("Redis Connection Failed:", err);
   }
 })();
 

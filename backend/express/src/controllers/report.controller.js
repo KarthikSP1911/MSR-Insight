@@ -1,83 +1,44 @@
-import { getRemarkByUSN, triggerScrape } from "../services/report.service.js";
+import { 
+    getRemarkByUSN, 
+    triggerScrape, 
+    queueEmailReport, 
+    sendWhatsAppReport, 
+    handleManualReportUpdate 
+} from "../services/report.service.js";
 import userRepository from "../repositories/user.repository.js";
 import studentService from "../services/student.service.js";
-import { processWhatsAppReport } from "../services/whatsapp.service.js";
-import { publishEmailJob } from "../services/rabbitmq/email.producer.js";
-import prisma from "../config/db.config.js";
+import { extractReportInputData } from "../utils/studentDataParser.js";
 
 /**
  * Generates an AI remark for a student based on their PostgreSQL JSONB data.
  */
-const generateReport = async (req, res, next) => {
+export const generateReport = async (req, res, next) => {
     try {
         const usn = req.params.usn?.toUpperCase();
-        console.log(`[ReportController] Request for USN: ${usn}`);
-
         if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
         const dashboardData = await studentService.getStudentDashboard(usn);
         if (!dashboardData) {
-            console.warn(`[ReportController] Student not found: ${usn}`);
             return res.status(404).json({ success: false, message: "Student record not found in database." });
         }
 
-        // Robustly find the subjects array. 
-        // It could be in student.details.subjects OR student.subjects if we change the schema.
-        let reportInputData = null;
-
-        if (dashboardData.details && Array.isArray(dashboardData.details.subjects)) {
-            reportInputData = dashboardData.details;
-        } else if (Array.isArray(dashboardData.subjects)) {
-            reportInputData = dashboardData;
-        } else if (dashboardData.details && dashboardData.details.details && Array.isArray(dashboardData.details.details.subjects)) {
-            // Handle double-nested edge case from some scraping versions
-            reportInputData = dashboardData.details.details;
-        }
-
-        if (reportInputData) {
-            // JSONB details omit duplicate identity fields; FastAI expects name/usn on the payload.
-            reportInputData = {
-                ...reportInputData,
-                name: reportInputData.name ?? dashboardData.name,
-                usn: reportInputData.usn ?? dashboardData.usn,
-            };
-        }
+        const reportInputData = extractReportInputData(dashboardData);
 
         if (!reportInputData || !reportInputData.subjects || reportInputData.subjects.length === 0) {
-            console.warn(`[ReportController] No academic data available for ${usn}. Triggering scrape might be needed.`);
             return res.status(400).json({
                 success: false,
                 message: "This student has no academic records available to generate AI remarks. Please update student data first."
             });
         }
 
-        console.log(`[ReportController] Calling AI service for ${usn} with ${reportInputData.subjects.length} subjects`);
-
-        try {
-            const data = await getRemarkByUSN(usn, reportInputData);
-            return res.status(200).json({
-                success: true,
-                data,
-            });
-        } catch (aiError) {
-            console.error(`[ReportController] AI Service Failure for ${usn}:`, aiError.message);
-            // If FastAPI is down, we return a 503 Service Unavailable or a descriptive 500
-            if (aiError.code === 'ECONNREFUSED' || aiError.code === 'ETIMEDOUT') {
-                return res.status(503).json({
-                    success: false,
-                    message: "AI Analysis service is currently offline. Please try again later.",
-                    error: "SERVICE_UNAVAILABLE"
-                });
-            }
-            throw aiError; // Re-throw for general catch block
-        }
+        const data = await getRemarkByUSN(usn, reportInputData);
+        return res.status(200).json({ success: true, data });
     } catch (error) {
-        console.error(`[ReportController] STACK TRACE for ${req.params.usn}:`);
-        console.error(error.stack);
-        return res.status(500).json({
+        const status = error.statusCode || 500;
+        return res.status(status).json({
             success: false,
-            message: "A server-side error occurred while generating the report.",
-            error: error.message
+            message: error.message || "A server-side error occurred while generating the report.",
+            error: error.code || error.message
         });
     }
 };
@@ -85,40 +46,26 @@ const generateReport = async (req, res, next) => {
 /**
  * Main dashboard endpoint utilizing PostgreSQL JSONB field.
  */
-const getStudentDashboardReport = async (req, res, next) => {
+export const getStudentDashboardReport = async (req, res, next) => {
     try {
         const usn = req.params.usn?.toUpperCase();
         if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
-        // Check PG first
         let dashboardData = await studentService.getStudentDashboard(usn);
         if (dashboardData && dashboardData.details && Array.isArray(dashboardData.details.subjects) && dashboardData.details.subjects.length > 0) {
-            return res.status(200).json({
-                success: true,
-                source: "database",
-                data: dashboardData,
-            });
+            return res.status(200).json({ success: true, source: "database", data: dashboardData });
         }
 
-        // Trigger scrape if not found or data is stale/empty
-        console.log(`[ReportController] Data missing or empty for ${usn}. Attempting scrape...`);
         const user = await userRepository.findByUSN(usn);
         if (!user) return res.status(404).json({ success: false, message: "Student not registered in our records." });
 
         try {
             await triggerScrape(usn, user.dob);
-
-            // Fetch fresh data
             dashboardData = await studentService.getStudentDashboard(usn);
             if (dashboardData && dashboardData.details) {
-                return res.status(200).json({
-                    success: true,
-                    source: "scraper",
-                    data: dashboardData,
-                });
+                return res.status(200).json({ success: true, source: "scraper", data: dashboardData });
             }
         } catch (scrapeError) {
-            console.error(`[ReportController] Scrape failed for ${usn}:`, scrapeError.message);
             return res.status(502).json({
                 success: false,
                 message: "Could not retrieve academic data from the college portal. Please check your credentials.",
@@ -128,7 +75,6 @@ const getStudentDashboardReport = async (req, res, next) => {
 
         return res.status(502).json({ success: false, message: "Data could not be retrieved from the scraper session." });
     } catch (error) {
-        console.error(`[ReportController] Dashboard Error for ${req.params.usn}:`, error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error occurred while fetching dashboard data.",
@@ -140,40 +86,12 @@ const getStudentDashboardReport = async (req, res, next) => {
 /**
  * Updates a student's data by triggering a re-scrape.
  */
-const triggerReportUpdate = async (req, res, next) => {
+export const triggerReportUpdate = async (req, res, next) => {
     try {
-        const usn = req.body.usn?.toUpperCase();
+        const usn = req.body.usn;
         if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
-        const student = await studentService.getStudentDashboard(usn);
-        if (!student) return res.status(404).json({ success: false, message: "Student record not found" });
-
-        // Cooldown check (5 minutes = 300000ms)
-        const COOLDOWN_MS = 5 * 60 * 1000;
-        const lastSyncStr = student.details?.last_updated;
-
-        if (lastSyncStr) {
-            const lastSync = new Date(lastSyncStr).getTime();
-            const now = Date.now();
-            const diff = now - lastSync;
-
-            if (diff < COOLDOWN_MS) {
-                const remaining = COOLDOWN_MS - diff;
-                return res.status(429).json({
-                    success: false,
-                    allowed: false,
-                    message: `Rate limit exceeded. Please wait ${Math.ceil(remaining / 60000)}m before updating again.`,
-                    nextAllowedAt: new Date(lastSync + COOLDOWN_MS).toISOString()
-                });
-            }
-        }
-
-        const user = await userRepository.findByUSN(usn);
-        if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-        console.log(`[ReportController] Triggering manual update for ${usn}...`);
-        await triggerScrape(user.usn, user.dob);
-        const dashboardData = await studentService.getStudentDashboard(usn);
+        const dashboardData = await handleManualReportUpdate(usn);
 
         return res.status(200).json({
             success: true,
@@ -182,44 +100,33 @@ const triggerReportUpdate = async (req, res, next) => {
             data: dashboardData,
         });
     } catch (error) {
-        console.error(`[ReportController] Update failed for ${req.body.usn}:`, error.message);
-        next(error);
+        const status = error.statusCode || 500;
+        return res.status(status).json({
+            success: false,
+            allowed: error.statusCode !== 429,
+            message: error.message,
+            nextAllowedAt: error.nextAllowedAt
+        });
     }
 };
 
 /**
  * Sends the report as PDF to all parents' emails asynchronously via RabbitMQ
  */
-const sendReportViaEmail = async (req, res, next) => {
+export const sendReportViaEmail = async (req, res, next) => {
     try {
         const { usn, htmlContent } = req.body;
-
-        if (!usn) {
-            return res.status(400).json({ success: false, message: "USN is required" });
+        if (!usn || !htmlContent) {
+            return res.status(400).json({ success: false, message: "USN and HTML report content are required" });
         }
 
-        if (!htmlContent) {
-            return res.status(400).json({ success: false, message: "HTML report content is required" });
-        }
-
-        const usn_upper = usn.toUpperCase();
-
-        // Push job to RabbitMQ queue
-        const queued = await publishEmailJob({ usn: usn_upper, htmlContent });
-
-        if (!queued) {
-            return res.status(500).json({
-                success: false,
-                message: "Failed to queue email report job."
-            });
-        }
+        await queueEmailReport(usn, htmlContent);
 
         return res.status(202).json({
             success: true,
             message: "Report generation and email dispatch has been queued successfully.",
         });
     } catch (error) {
-        console.error(`[ReportController] Error sending report via email:`, error.message);
         next(error);
     }
 };
@@ -227,55 +134,14 @@ const sendReportViaEmail = async (req, res, next) => {
 /**
  * Prepares and optionally sends the report via WhatsApp to parents
  */
-const sendReportViaWhatsApp = async (req, res, next) => {
+export const sendReportViaWhatsApp = async (req, res, next) => {
     try {
         const { usn, htmlContent } = req.body;
-
-        if (!usn) {
-            return res.status(400).json({ success: false, message: "USN is required" });
+        if (!usn || !htmlContent) {
+            return res.status(400).json({ success: false, message: "USN and HTML report content are required" });
         }
 
-        if (!htmlContent) {
-            return res.status(400).json({ success: false, message: "HTML report content is required" });
-        }
-
-        const usn_upper = usn.toUpperCase();
-
-        // Fetch student data
-        const student = await prisma.student.findUnique({
-            where: { usn: usn_upper },
-            select: {
-                usn: true,
-                name: true,
-                parents: {
-                    select: {
-                        name: true,
-                        relation: true,
-                        phone: true,
-                        email: true,
-                    },
-                },
-            },
-        });
-
-        if (!student) {
-            return res.status(404).json({ success: false, message: "Student not found" });
-        }
-
-        if (!student.parents || student.parents.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "No parents found for this student. Cannot send WhatsApp notification.",
-            });
-        }
-
-        // Generate report and process/dispatch to parents
-        const whatsappResult = await processWhatsAppReport(
-            usn_upper,
-            student.name,
-            student.parents,
-            htmlContent
-        );
+        const whatsappResult = await sendWhatsAppReport(usn, htmlContent);
 
         return res.status(200).json({
             success: true,
@@ -285,9 +151,7 @@ const sendReportViaWhatsApp = async (req, res, next) => {
             data: whatsappResult,
         });
     } catch (error) {
-        console.error(`[ReportController] Error processing report via WhatsApp:`, error.message);
-        next(error);
+        const status = error.statusCode || 500;
+        return res.status(status).json({ success: false, message: error.message });
     }
 };
-
-export { generateReport, getStudentDashboardReport, triggerReportUpdate, sendReportViaEmail, sendReportViaWhatsApp };

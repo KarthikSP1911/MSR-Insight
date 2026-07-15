@@ -1,66 +1,120 @@
 import axios from "axios";
 import { scrapeAndSyncStudent } from "./puppeteerScraper.service.js";
+import { publishEmailJob } from "./rabbitmq/email.producer.js";
+import { processWhatsAppReport } from "./whatsapp.service.js";
+import prisma from "../config/db.config.js";
+import studentService from "./student.service.js";
+import userRepository from "../repositories/user.repository.js";
 
-// Sanitize and configure the FastAPI base URL
 const FASTAPI_BASE_URL = (process.env.FASTAPI_URL || "http://localhost:8000").replace(/\/$/, "");
 
-// Create an axios instance for FastAPI interactions
 const fastApi = axios.create({
     baseURL: FASTAPI_BASE_URL,
-    timeout: 15000, // 15 seconds timeout
+    timeout: 15000,
     headers: {
         "Content-Type": "application/json",
     },
 });
 
-const getRemarkByUSN = async (usn, studentData) => {
+export const getRemarkByUSN = async (usn, studentData) => {
     if (!usn || !studentData) throw new Error("USN and data are required to fetch remarks");
     
     try {
-        console.log(`[ReportService] Posting to FastAPI: ${FASTAPI_BASE_URL}/generate-remark`);
         const response = await fastApi.post(`/generate-remark`, studentData);
         return response.data;
     } catch (error) {
-        console.error(`[ReportService] Error fetching remarks for ${usn}:`, error.message);
-        if (error.response) {
-            console.error(`[ReportService] FastAPI Response Error (${error.response.status}):`, error.response.data);
-        } else if (error.request) {
-            console.error(`[ReportService] No response from FastAPI at ${FASTAPI_BASE_URL}. Is it running?`);
+        if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+            const err = new Error("AI Analysis service is currently offline. Please try again later.");
+            err.code = "SERVICE_UNAVAILABLE";
+            err.statusCode = 503;
+            throw err;
         }
         throw error;
     }
 };
 
-/**
- * Triggers a background scrape locally via Puppeteer.
- * The scraper directly syncs the parsed data into PostgreSQL.
- */
-const triggerScrape = async (usn, dob) => {
+export const triggerScrape = async (usn, dob) => {
     if (!usn || !dob) throw new Error("USN and DOB are required to trigger scrape");
-
-    try {
-        const data = await scrapeAndSyncStudent(usn, dob);
-        return data;
-    } catch (error) {
-        console.error(`[ReportService] Error triggering scrape for ${usn}:`, error.message);
-        throw error;
-    }
+    return scrapeAndSyncStudent(usn, dob);
 };
 
-/**
- * Notifies FastAPI to sync its RAG vector store in the background.
- * Fire and forget (don't wait for completion).
- */
-const notifyRagSync = async () => {
+export const notifyRagSync = async () => {
     try {
-        console.log(`[ReportService] Notifying FastAPI to sync RAG: ${FASTAPI_BASE_URL}/api/rag/sync`);
-        // We use a fire-and-forget approach or at least don't block the caller
-        fastApi.post(`/api/rag/sync`).catch(err => {
-            console.error("[ReportService] Background RAG sync notification failed:", err.message);
-        });
-    } catch (error) {
-        console.error("[ReportService] Error in notifyRagSync:", error.message);
-    }
+        fastApi.post(`/api/rag/sync`).catch(() => {});
+    } catch (error) {}
 };
 
-export { getRemarkByUSN, triggerScrape, notifyRagSync };
+export const queueEmailReport = async (usn, htmlContent) => {
+    const usn_upper = usn.toUpperCase();
+    const queued = await publishEmailJob({ usn: usn_upper, htmlContent });
+    if (!queued) {
+        throw new Error("Failed to queue email report job.");
+    }
+    return true;
+};
+
+export const sendWhatsAppReport = async (usn, htmlContent) => {
+    const usn_upper = usn.toUpperCase();
+    
+    const student = await prisma.student.findUnique({
+        where: { usn: usn_upper },
+        select: {
+            usn: true,
+            name: true,
+            parents: {
+                select: { name: true, relation: true, phone: true, email: true },
+            },
+        },
+    });
+
+    if (!student) {
+        const err = new Error("Student not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    if (!student.parents || student.parents.length === 0) {
+        const err = new Error("No parents found for this student. Cannot send WhatsApp notification.");
+        err.statusCode = 400;
+        throw err;
+    }
+
+    return processWhatsAppReport(usn_upper, student.name, student.parents, htmlContent);
+};
+
+export const handleManualReportUpdate = async (usn) => {
+    const usn_upper = usn.toUpperCase();
+    const student = await studentService.getStudentDashboard(usn_upper);
+    
+    if (!student) {
+        const err = new Error("Student record not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    const COOLDOWN_MS = 5 * 60 * 1000;
+    const lastSyncStr = student.details?.last_updated;
+
+    if (lastSyncStr) {
+        const lastSync = new Date(lastSyncStr).getTime();
+        const now = Date.now();
+        const diff = now - lastSync;
+
+        if (diff < COOLDOWN_MS) {
+            const err = new Error(`Rate limit exceeded. Please wait ${Math.ceil((COOLDOWN_MS - diff) / 60000)}m before updating again.`);
+            err.statusCode = 429;
+            err.nextAllowedAt = new Date(lastSync + COOLDOWN_MS).toISOString();
+            throw err;
+        }
+    }
+
+    const user = await userRepository.findByUSN(usn_upper);
+    if (!user) {
+        const err = new Error("User not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    await triggerScrape(user.usn, user.dob);
+    return studentService.getStudentDashboard(usn_upper);
+};

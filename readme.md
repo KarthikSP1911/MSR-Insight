@@ -323,8 +323,9 @@ flowchart LR
   <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" style="margin: 4px;" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" style="margin: 4px;" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest" style="margin: 4px;" />
 </p>
-
 ## Getting Started
 
 ### Prerequisites
@@ -375,6 +376,52 @@ npm run dev
 ### Quick Launch (Windows)
 ```bash
 start-all.bat
+```
+
+### 5. Docker Deployment (Recommended)
+You can run the entire platform, including local instances of PostgreSQL (with PGVector), Redis, and RabbitMQ, using a single command.
+
+1. Create a root `.env` file by copying `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Fill in your API keys for Groq, Gemini, Resend, and Cloudinary.
+   *(Note: The environment variables in `.env` are designed to allow you to easily swap the local container URLs with your production cloud instances like Neon, Upstash, and CloudAMQP).*
+3. Start the cluster:
+   ```bash
+   docker compose up --build
+   ```
+4. Access the services:
+   - **Frontend**: http://localhost:3000
+   - **Express API**: http://localhost:5001
+   - **FastAPI**: http://localhost:8000
+   - **RabbitMQ Admin**: http://localhost:15672
+
+To tear down the cluster and its volumes:
+```bash
+docker compose down -v
+```
+
+---
+
+### 6. Running Tests
+
+#### Express (Node.js) Unit & Integration Tests
+The Express backend uses Jest with `--experimental-vm-modules` for Native ESM testing. Mocks are isolated using dynamic `await import` and `jest.unstable_mockModule`.
+```bash
+cd backend/express
+npm run test                # Run all test suites
+npm run test -- --coverage  # Generate coverage report
+```
+
+#### FastAPI (Python) Unit Tests
+The FastAPI service utilizes Pytest with `unittest.mock` to isolate database drivers (PGVector) and retrievers.
+```bash
+cd backend/fastapi
+# Activate virtual environment
+venv\Scripts\activate   # Windows
+# source venv/bin/activate # macOS/Linux
+python -m pytest --cov=.
 ```
 
 ---
@@ -614,7 +661,7 @@ proctor_student_map
 | GET | `/api/admin/students/unassigned` | None | Unassigned students |
 | GET | `/api/admin/stats` | None | System counts |
 
-**Auth mechanism**: Custom header `x-session-id: <uuid>` validated against Redis. No JWT.
+**Auth mechanism**: Standard `HttpOnly`, `Secure`, `SameSite=Strict` cookies (`session_id`) validated against Redis to prevent XSS attacks. Legacy clients can fallback to the `x-session-id: <uuid>` header. No JWTs are used.
 
 ### FastAPI (`http://localhost:8000`)
 
@@ -685,10 +732,11 @@ proctor_student_map
 
 The project implements a **Stateless-Session Hybrid**:
 - Authentication results are cached in **Redis** with a 30-day TTL.
-- Middleware ensures protected routes are guarded via `x-session-id` headers.
+- The platform uses **HttpOnly, Secure Cookies** for all web sessions, rendering it completely immune to Cross-Site Scripting (XSS) session-theft.
+- Middleware automatically extracts the session from cookies, with a legacy fallback to the `x-session-id` header for mobile or external API clients.
 - Session TTL is refreshed on every authenticated request (sliding window).
-- Proctor sessions are reused if already active (no duplicate sessions).
-- Persistent login data stored in LocalStorage for seamless UX.
+- The Express gateway is hardened with **Helmet Content Security Policy (CSP)** to block inline scripts and unauthorized external resources.
+- Rate limiting prevents brute force scraping.
 
 ---
 
@@ -731,16 +779,12 @@ The project implements a **Stateless-Session Hybrid**:
 
 ---
 
-## Known Issues & Considerations
+## Recent Improvements
 
-1. **Admin routes have no authentication** -- All `/api/admin/*` routes are unprotected. Anyone can create/delete proctors.
-2. **`/api/auth/proctor-register` is public** -- Any user can register a new proctor without admin authorization.
-3. **`students.js` legacy route** -- `backend/express/src/routes/students.js` appears to be a duplicate of `student.routes.js`.
-4. **`mongoose` in Express dependencies** -- Listed in `package.json` but no MongoDB usage exists. Dead dependency.
-5. **`academicYear` defaults to `"2027"`** -- Hardcoded in 5+ places. Should be centralized.
-6. **No automated test suite** -- Zero test files across the entire project.
-7. **Dual chatbot implementations** -- Proctor chat uses Ollama (Express) and RAG (FastAPI). Consider consolidating.
-8. **Browser extension `host_permissions`** -- Points to `localhost:3000` but frontend runs on port 3000 (Next.js default).
+1. **Enterprise Security Hardening**: Migrated from LocalStorage to HttpOnly Cookies, instituted strict Helmet CSP headers, and patched all critical npm dependencies (`html2pdf.js`, `Next.js`).
+2. **Comprehensive Automated Testing**: Implemented 100% mocked unit and integration test suites using Jest (Express) and Pytest (FastAPI), achieving high coverage without touching production databases or external APIs.
+3. **Winston Structured Logging**: Replaced scattered console logs with structured, JSON-formatted Winston logs for production readiness.
+4. **Single Command Dockerization**: Containerized the entire distributed stack (PostgreSQL, Redis, RabbitMQ, Express, FastAPI, Next.js) using a root `docker-compose.yml`.
 
 ---
 

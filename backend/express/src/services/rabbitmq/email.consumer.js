@@ -1,6 +1,7 @@
 import { getChannel, getQueueName } from "../../config/rabbitmq.config.js";
 import { sendReportToAllParents } from "../email.service.js";
 import prisma from "../../config/db.config.js";
+import logger from '../../utils/logger.js';
 
 /**
  * Start listening to the email reports queue
@@ -13,7 +14,7 @@ export const startEmailConsumer = async () => {
         // Process 1 message at a time
         await channel.prefetch(1);
 
-        console.log(`[RabbitMQ] Consumer listening on queue: ${queueName}`);
+        logger.info(`[RabbitMQ] Consumer listening on queue: ${queueName}`);
 
         channel.consume(queueName, async (msg) => {
             if (msg === null) return;
@@ -28,7 +29,7 @@ export const startEmailConsumer = async () => {
                     throw new Error("Invalid payload: Missing usn or htmlContent");
                 }
 
-                console.log(`[RabbitMQ Consumer] Processing email job for USN: ${usn}`);
+                logger.info(`[RabbitMQ Consumer] Processing email job for USN: ${usn}`);
 
                 // 1. Fetch student data from database
                 const usn_upper = usn.toUpperCase();
@@ -64,13 +65,13 @@ export const startEmailConsumer = async () => {
                     htmlContent
                 );
 
-                console.log(`[RabbitMQ Consumer] Successfully processed email job for USN: ${usn_upper}`);
-                console.log(`[RabbitMQ Consumer] Results: ${emailResult.successCount} succeeded, ${emailResult.failureCount} failed.`);
+                logger.info(`[RabbitMQ Consumer] Successfully processed email job for USN: ${usn_upper}`);
+                logger.info(`[RabbitMQ Consumer] Results: ${emailResult.successCount} succeeded, ${emailResult.failureCount} failed.`);
                 
                 // 3. Acknowledge message successfully
                 channel.ack(msg);
             } catch (error) {
-                console.error(`[RabbitMQ Consumer] Failed to process email job for USN: ${usn}. Error: ${error.message}`);
+                logger.error(`[RabbitMQ Consumer] Failed to process email job for USN: ${usn}. Error: ${error.message}`);
                 
                 // Nack (negative acknowledgement) pushes to DLQ because we configured x-dead-letter-exchange
                 // The second parameter "false" tells RabbitMQ NOT to requeue it to the main queue,
@@ -79,6 +80,6 @@ export const startEmailConsumer = async () => {
             }
         });
     } catch (error) {
-        console.error("[RabbitMQ] Error starting email consumer:", error.message);
+        logger.error("[RabbitMQ] Error starting email consumer:", error.message);
     }
 };

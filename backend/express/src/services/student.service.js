@@ -1,4 +1,5 @@
 import prisma from "../config/db.config.js";
+import logger from '../utils/logger.js';
 
 class StudentService {
   /**
@@ -73,7 +74,7 @@ class StudentService {
         });
         results.success.push(normalizedUsn);
       } catch (error) {
-        console.error(`Error syncing student ${normalizedUsn}:`, error.message);
+        logger.error(`Error syncing student ${normalizedUsn}:`, error.message);
         results.errors.push({ usn: normalizedUsn, error: error.message });
       }
     }

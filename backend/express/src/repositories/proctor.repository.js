@@ -1,4 +1,5 @@
 import prisma from "../config/db.config.js";
+import logger from '../utils/logger.js';
 
 class ProctorRepository {
   async findByProctorId(proctorId) {
@@ -18,7 +19,7 @@ class ProctorRepository {
 
   async getProctees(proctorId, academicYear = "2027") {
     const normalizedId = proctorId.toUpperCase();
-    console.log(`[ProctorRepository] Fetching proctees for ID: ${normalizedId}, Year: ${academicYear}`);
+    logger.info(`[ProctorRepository] Fetching proctees for ID: ${normalizedId}, Year: ${academicYear}`);
     
     const results = await prisma.proctorStudentMap.findMany({
       where: {
@@ -38,9 +39,9 @@ class ProctorRepository {
       },
     });
 
-    console.log(`[ProctorRepository] Found ${results.length} students assigned.`);
+    logger.info(`[ProctorRepository] Found ${results.length} students assigned.`);
     if (results.length > 0) {
-        console.log(`[ProctorRepository] Sample Mapping:`, results[0].student_id, "->", results[0].academic_year);
+        logger.info(`[ProctorRepository] Sample Mapping:`, results[0].student_id, "->", results[0].academic_year);
     }
     
     return results;

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import userRepository from "../repositories/user.repository.js";
 import proctorRepository from "../repositories/proctor.repository.js";
 import redisClient from "../config/redis.config.js";
+import logger from '../utils/logger.js';
 
 class AuthService {
   async register(usn, dob) {
@@ -40,7 +41,7 @@ class AuthService {
     let user = await userRepository.findByCredentials(usn, dob);
 
     if (!user) {
-      console.warn(`[Student Auth] User not found. Attempting to scrape and register ${usn} with DOB ${dob}`);
+      logger.warn(`[Student Auth] User not found. Attempting to scrape and register ${usn} with DOB ${dob}`);
       try {
         const { scrapeAndSyncStudent } = await import("./puppeteerScraper.service.js");
         await scrapeAndSyncStudent(usn, dob);
@@ -50,7 +51,7 @@ class AuthService {
           throw new Error("Failed to create user after scraping.");
         }
       } catch (err) {
-        console.error(`[Student Auth] Scraping failed for ${usn}: ${err.message}`);
+        logger.error(`[Student Auth] Scraping failed for ${usn}: ${err.message}`);
         throw new Error("Invalid USN or Date of Birth");
       }
     }
@@ -93,7 +94,7 @@ class AuthService {
 
   async proctorLogin(proctorId, password) {
     const normalizedId = proctorId.toUpperCase();
-    console.log(`[Auth] Proctor login attempt for: ${normalizedId}`);
+    logger.info(`[Auth] Proctor login attempt for: ${normalizedId}`);
 
     const proctor = await proctorRepository.findByProctorId(normalizedId);
 

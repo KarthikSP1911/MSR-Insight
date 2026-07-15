@@ -1,5 +1,6 @@
 import amqp from "amqplib";
 import dotenv from "dotenv";
+import logger from '../utils/logger.js';
 
 dotenv.config();
 
@@ -17,15 +18,15 @@ export const connectRabbitMQ = async () => {
     const rabbitMqUrl = process.env.RABBITMQ_URL;
     
     if (!rabbitMqUrl) {
-        console.error("[RabbitMQ] CRITICAL: RABBITMQ_URL environment variable is missing.");
+        logger.error("[RabbitMQ] CRITICAL: RABBITMQ_URL environment variable is missing.");
         process.exit(1);
     }
 
     try {
-        console.log("[RabbitMQ] Attempting to connect to CloudAMQP...");
+        logger.info("[RabbitMQ] Attempting to connect to CloudAMQP...");
         connection = await amqp.connect(rabbitMqUrl);
         channel = await connection.createChannel();
-        console.log("[RabbitMQ] Connected successfully!");
+        logger.info("[RabbitMQ] Connected successfully!");
 
         // Setup Dead Letter Exchange and Queue
         await channel.assertExchange(DLX_NAME, "direct", { durable: true });
@@ -45,7 +46,7 @@ export const connectRabbitMQ = async () => {
 
         return { connection, channel };
     } catch (error) {
-        console.error("[RabbitMQ] Failed to connect:", error.message);
+        logger.error("[RabbitMQ] Failed to connect:", error.message);
         process.exit(1);
     }
 };
@@ -68,8 +69,8 @@ export const closeRabbitMQ = async () => {
         if (connection) {
             await connection.close();
         }
-        console.log("[RabbitMQ] Connection closed gracefully.");
+        logger.info("[RabbitMQ] Connection closed gracefully.");
     } catch (error) {
-        console.error("[RabbitMQ] Error while closing connection:", error.message);
+        logger.error("[RabbitMQ] Error while closing connection:", error.message);
     }
 };
