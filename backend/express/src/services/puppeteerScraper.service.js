@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 import https from 'https';
-import { syncStudents } from './studentService.js';
+import { syncStudents } from './student.service.js';
 
 // ---- Normalization Logic ----
 class DataNormalizer {

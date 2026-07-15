@@ -9,7 +9,7 @@ An industry-grade, AI-powered academic reporting platform designed to transform 
 - **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, PGVector (Postgres), and Google Gemini, enabling proctors to query student data conversationally.
 - **Interactive Dashboards**: Specialized views for Students (personal progress tracking) and Proctors (administrative management with attendance alerts).
 - **Professional A4 Reports**: Pixel-perfect reporting engine with Tiptap rich-text editing and high-fidelity PDF export.
-- **Automated Email Delivery**: PDF reports generated via Puppeteer, archived on Cloudinary, and delivered to parents via Resend.
+- **Automated Email Delivery**: Asynchronous, RabbitMQ-backed Producer-Consumer queue for fast PDF generation (Puppeteer) and email dispatch (Resend).
 - **Browser Extension**: Chrome extension for one-click batch scraping of all proctee data with real-time progress tracking.
 - **Enterprise-Grade Security**: Redis-backed stateless session management with 30-day sliding TTL and case-insensitive identity mapping.
 - **Rate-Limited Scraping**: 5-minute cooldown per student to prevent portal overload, with client-side countdown timer.
@@ -33,6 +33,8 @@ flowchart TB
     UI["Next.js UI<br/>(Frontend)"]
 
     API["Express API<br/>(Logic Gateway)"]
+    
+    RMQ["RabbitMQ<br/>(Message Queue)"]
 
     Redis["Redis Cache<br/>(Sessions)"]
     DB["PostgreSQL<br/>(Prisma ORM)"]
@@ -41,6 +43,8 @@ flowchart TB
     LLM["Groq LLM<br/>(Llama 3.1)"]
 
     UI <--> API
+
+    API <--> RMQ
 
     API <--> Redis
 
@@ -54,6 +58,8 @@ flowchart TB
     style UI fill:#D9EEF7,stroke:#000,stroke-width:2px,color:#000
 
     style API fill:#F8E7A6,stroke:#000,stroke-width:2px,color:#000
+    
+    style RMQ fill:#FF9900,stroke:#000,stroke-width:2px,color:#000
 
     style Redis fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
     style DB fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
@@ -77,13 +83,18 @@ flowchart LR
     C[Chrome Extension]
 
     subgraph E["Express Logic Gateway"]
+        direction TB
         SM[Session Middleware]
         API[API Controllers]
         PS[Puppeteer Scraper]
         PR[Prisma Client]
+        RMQP[RabbitMQ Producer]
+        RMQC[RabbitMQ Consumer]
 
         SM --> API
         API --> PS
+        API --> RMQP
+        RMQC --> PR
         PS --> PR
     end
 
@@ -98,6 +109,7 @@ flowchart LR
         R[(Redis Session Cache)]
         P[(PostgreSQL + PGVector)]
         CL[(Cloudinary File Store)]
+        MQ[(RabbitMQ / CloudAMQP)]
     end
 
     U -->|Browser HTTP| F
@@ -113,6 +125,8 @@ flowchart LR
     AI -->|Vector Search / Embeddings| P
 
     E -->|Archive PDF| CL
+    RMQP -->|Queue Job| MQ
+    MQ -->|Process Job| RMQC
 ```
 ## ✨ Tech Stack
 
@@ -298,17 +312,17 @@ flowchart LR
 
 </div>
 <p align="center">
-  <img src="https://cdn.simpleicons.org/nextdotjs" width="60" alt="Next.js" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/typescript" width="60" alt="TypeScript" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/tailwindcss" width="60" alt="Tailwind CSS" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/react" width="60" alt="React" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/nodedotjs" width="60" alt="Node.js" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/express" width="60" alt="Express" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/postgresql" width="60" alt="PostgreSQL" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/redis" width="60" alt="Redis" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/prisma" width="60" alt="Prisma" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/python" width="60" alt="Python" style="margin-right:12px;" />
-  <img src="https://cdn.simpleicons.org/fastapi" width="60" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white" alt="RabbitMQ" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" style="margin: 4px;" />
 </p>
 
 ## Getting Started
@@ -319,6 +333,7 @@ flowchart LR
 - Python (v3.10+)
 - PostgreSQL Database
 - Redis Instance
+- RabbitMQ / CloudAMQP Instance
 - Google Gemini API Key (for RAG chatbot)
 - Groq API Key (for AI remarks)
 
@@ -337,7 +352,7 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd backend/express
 npm install
-# Setup .env with DATABASE_URL, REDIS_URL, FASTAPI_URL, and PORT=5001
+# Setup .env with DATABASE_URL, REDIS_URL, FASTAPI_URL, RABBITMQ_URL and PORT=5001
 npx prisma generate
 node prisma/seed.js # To populate initial proctor data
 npm run dev
@@ -582,7 +597,7 @@ proctor_student_map
 | GET | `/api/report/student/:usn` | Session | Student dashboard data |
 | GET | `/api/report/:usn` | Session | Generate AI remark (Groq) |
 | POST | `/api/report/update` | Session | Trigger re-scrape (5-min cooldown) |
-| POST | `/api/report/send-email` | Session | Send PDF report to parents |
+| POST | `/api/report/send-email` | Session | Queue PDF report generation & email |
 | GET | `/api/proctor/:id/dashboard` | Session | Proctor's proctee list |
 | GET | `/api/proctor/:id/student/:usn` | Session | Single proctee detail |
 | GET | `/api/proctor/:id/scrape-list` | Session | List of proctee USNs + DOBs |
@@ -650,11 +665,13 @@ proctor_student_map
 4. On chat query: query rewriting -> intent detection -> ensemble retrieval (BM25 + semantic)
 5. Retrieved context + question sent to Gemini for grounded response generation
 
-### Email Report Delivery
+### Email Report Delivery (Asynchronous RabbitMQ Flow)
 1. Frontend sends HTML content to `POST /api/report/send-email`
-2. Puppeteer renders HTML to A4 PDF with 2x scale
-3. PDF uploaded to Cloudinary for archival
-4. Resend API delivers email with PDF attachment to each parent
+2. Express validates payload and instantly publishes to `email_reports_queue` on CloudAMQP (returns 202 Accepted).
+3. Background Consumer picks up the job, fetches student/parent data via Prisma.
+4. Puppeteer renders HTML to A4 PDF with 2x scale.
+5. PDF uploaded to Cloudinary for archival and Resend API delivers the email.
+6. Failed jobs are automatically routed to a Dead Letter Queue (DLQ).
 
 ### Browser Extension Batch Scrape
 1. Content script detects proctor session in localStorage
@@ -692,6 +709,7 @@ The project implements a **Stateless-Session Hybrid**:
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | `GEMINI_API_KEY` | Google Gemini API key |
 | `OLLAMA_API_URL` | Ollama API endpoint |
+| `RABBITMQ_URL` | CloudAMQP connection string (`amqps://`) |
 
 ### FastAPI (`backend/fastapi/.env`)
 

@@ -1,8 +1,8 @@
 import { getRemarkByUSN, triggerScrape } from "../services/report.service.js";
 import userRepository from "../repositories/user.repository.js";
-import studentService from "../services/studentService.js";
-import { sendReportToAllParents } from "../services/email.service.js";
+import studentService from "../services/student.service.js";
 import { processWhatsAppReport } from "../services/whatsapp.service.js";
+import { publishEmailJob } from "../services/rabbitmq/email.producer.js";
 import prisma from "../config/db.config.js";
 
 /**
@@ -188,7 +188,7 @@ const triggerReportUpdate = async (req, res, next) => {
 };
 
 /**
- * Sends the report as PDF to all parents' emails
+ * Sends the report as PDF to all parents' emails asynchronously via RabbitMQ
  */
 const sendReportViaEmail = async (req, res, next) => {
     try {
@@ -204,46 +204,19 @@ const sendReportViaEmail = async (req, res, next) => {
 
         const usn_upper = usn.toUpperCase();
 
-        // Fetch student data
-        const student = await prisma.student.findUnique({
-            where: { usn: usn_upper },
-            select: {
-                usn: true,
-                name: true,
-                email: true,
-                parents: {
-                    select: {
-                        email: true,
-                        name: true,
-                        relation: true,
-                    },
-                },
-            },
-        });
+        // Push job to RabbitMQ queue
+        const queued = await publishEmailJob({ usn: usn_upper, htmlContent });
 
-        if (!student) {
-            return res.status(404).json({ success: false, message: "Student not found" });
-        }
-
-        if (!student.parents || student.parents.length === 0) {
-            return res.status(400).json({
+        if (!queued) {
+            return res.status(500).json({
                 success: false,
-                message: "No parents found for this student. Cannot send report.",
+                message: "Failed to queue email report job."
             });
         }
 
-        // Send report to all parents
-        const emailResult = await sendReportToAllParents(
-            usn_upper,
-            { name: student.name },
-            student.parents,
-            htmlContent
-        );
-
-        return res.status(200).json({
+        return res.status(202).json({
             success: true,
-            message: "Report sent successfully to all parents",
-            data: emailResult,
+            message: "Report generation and email dispatch has been queued successfully.",
         });
     } catch (error) {
         console.error(`[ReportController] Error sending report via email:`, error.message);
