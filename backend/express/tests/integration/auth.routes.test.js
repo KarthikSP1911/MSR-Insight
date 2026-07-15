@@ -36,7 +36,7 @@ describe('Auth Routes Integration Tests', () => {
 
             expect(response.status).toBe(201);
             expect(response.body.success).toBe(true);
-            expect(response.body.data.sessionId).toBe('sess-123');
+            expect(response.headers['set-cookie'][0]).toMatch(/session_id=sess-123/);
         });
 
         it('should return 400 if missing usn or dob', async () => {
@@ -59,7 +59,7 @@ describe('Auth Routes Integration Tests', () => {
 
             expect(response.status).toBe(200);
             expect(response.body.success).toBe(true);
-            expect(response.body.data.sessionId).toBe('sess-123');
+            expect(response.headers['set-cookie'][0]).toMatch(/session_id=sess-123/);
         });
     });
 

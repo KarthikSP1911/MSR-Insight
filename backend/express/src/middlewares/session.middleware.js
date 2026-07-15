@@ -3,7 +3,7 @@ import logger from '../utils/logger.js';
 
 const requireSession = async (req, res, next) => {
     try {
-        const sessionId = req.headers["x-session-id"];
+        const sessionId = req.cookies?.session_id || req.headers["x-session-id"];
 
         if (!sessionId) {
             return res.status(401).json({

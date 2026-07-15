@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import expressWinston from "express-winston";
 import logger from "./utils/logger.js";
 
@@ -20,7 +21,23 @@ const app = express();
 app.set('trust proxy', 1);
 
 // 1. Set Security HTTP Headers
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+            "default-src": ["'self'"],
+            "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            "img-src": ["'self'", "data:", "blob:", "res.cloudinary.com"],
+            "connect-src": ["'self'", "http://localhost:3000", "http://localhost:5001", "http://localhost:8000"],
+            "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+            "object-src": ["'none'"],
+            "media-src": ["'self'"],
+            "frame-src": ["'none'"]
+        }
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // 2. Strict CORS policy
 const allowedOrigins = [
@@ -50,6 +67,7 @@ const apiLimiter = rateLimit({
 app.use("/api/", apiLimiter);
 
 app.use(express.json());
+app.use(cookieParser());
 
 // 4. HTTP Request Logging
 app.use(expressWinston.logger({

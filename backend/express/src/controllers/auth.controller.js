@@ -2,6 +2,13 @@ import authService from "../services/auth.service.js";
 import { notifyRagSync } from "../services/report.service.js";
 import logger from '../utils/logger.js';
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+};
+
 class AuthController {
   async register(req, res, next) {
     try {
@@ -14,12 +21,14 @@ class AuthController {
         });
       }
 
-      const result = await authService.register(usn, dob);
+      const { sessionId, ...data } = await authService.register(usn, dob);
+
+      res.cookie("session_id", sessionId, cookieOptions);
 
       return res.status(201).json({
         success: true,
         message: "User registered successfully",
-        data: result,
+        data: data,
       });
     } catch (error) {
       next(error);
@@ -37,12 +46,14 @@ class AuthController {
         });
       }
 
-      const result = await authService.login(usn, dob);
+      const { sessionId, ...data } = await authService.login(usn, dob);
+
+      res.cookie("session_id", sessionId, cookieOptions);
 
       return res.status(200).json({
         success: true,
         message: "Login successful",
-        data: result,
+        data: data,
       });
     } catch (error) {
       next(error);
@@ -88,15 +99,17 @@ class AuthController {
         });
       }
 
-      const result = await authService.proctorLogin(proctorId, password);
+      const { sessionId, ...data } = await authService.proctorLogin(proctorId, password);
       
       // Trigger RAG sync on login so vectors are fresh for the session
       notifyRagSync();
 
+      res.cookie("session_id", sessionId, cookieOptions);
+
       return res.status(200).json({
         success: true,
         message: "Login successful",
-        data: result,
+        data: data,
       });
     } catch (error) {
       logger.error("[ProctorLogin Error]", error.message);
@@ -110,7 +123,8 @@ class AuthController {
 
   async logout(req, res, next) {
     try {
-      const sessionId = req.headers["x-session-id"];
+      // Fallback to headers for backwards compatibility during migration, but prefer cookies
+      const sessionId = req.cookies?.session_id || req.headers["x-session-id"];
 
       if (!sessionId) {
         return res.status(400).json({
@@ -120,6 +134,8 @@ class AuthController {
       }
 
       await authService.logout(sessionId);
+
+      res.clearCookie("session_id");
 
       return res.status(200).json({
         success: true,
@@ -132,7 +148,7 @@ class AuthController {
 
   async profile(req, res, next) {
     try {
-      const sessionId = req.headers["x-session-id"];
+      const sessionId = req.cookies?.session_id || req.headers["x-session-id"];
 
       if (!sessionId) {
         return res.status(401).json({
