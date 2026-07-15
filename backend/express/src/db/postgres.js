@@ -1,4 +1,5 @@
 import prisma from "../config/db.config.js";
+import logger from '../utils/logger.js';
 
 /**
  * DEPRECATED: This file was used for raw node-postgres pool access.
@@ -7,7 +8,7 @@ import prisma from "../config/db.config.js";
 
 export const pool = {
     query: async (text, params) => {
-        console.warn("[DEPRECATED] Using raw Postgres pool. Query: " + text.substring(0, 50));
+        logger.warn("[DEPRECATED] Using raw Postgres pool. Query: " + text.substring(0, 50));
         // Fallback for any missed legacy code
         return { rows: [] };
     }

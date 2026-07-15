@@ -1,5 +1,6 @@
 import authService from "../services/auth.service.js";
 import { notifyRagSync } from "../services/report.service.js";
+import logger from '../utils/logger.js';
 
 class AuthController {
   async register(req, res, next) {
@@ -98,7 +99,7 @@ class AuthController {
         data: result,
       });
     } catch (error) {
-      console.error("[ProctorLogin Error]", error.message);
+      logger.error("[ProctorLogin Error]", error.message);
       const statusCode = error.statusCode || 500;
       return res.status(statusCode).json({
         success: false,

@@ -1,5 +1,6 @@
 import proctorRepository from "../repositories/proctor.repository.js";
 import prisma from "../config/db.config.js";
+import logger from '../utils/logger.js';
 
 class ProctorController {
   async getDashboard(req, res, next) {
@@ -42,10 +43,10 @@ class ProctorController {
             : [];
 
         // DEBUG: log raw data to confirm structure
-        console.log(`[Dashboard] ${student.usn} — detail keys: [${Object.keys(innerDetails).join(', ')}]`);
-        console.log(`[Dashboard] ${student.usn} — subjects count: ${subjects.length}`);
+        logger.info(`[Dashboard] ${student.usn} — detail keys: [${Object.keys(innerDetails).join(', ')}]`);
+        logger.info(`[Dashboard] ${student.usn} — subjects count: ${subjects.length}`);
         if (subjects.length > 0) {
-          console.log(`[Dashboard] ${student.usn} — first subject sample:`, JSON.stringify(subjects[0]));
+          logger.info(`[Dashboard] ${student.usn} — first subject sample:`, JSON.stringify(subjects[0]));
         }
 
         // 4. Compute lowestAttendance using parseFloat for safety
@@ -62,7 +63,7 @@ class ProctorController {
           ? Math.min(...attendanceValues)
           : null;
 
-        console.log(`[Dashboard] ${student.usn} — lowestAttendance: ${lowestAttendance}`);
+        logger.info(`[Dashboard] ${student.usn} — lowestAttendance: ${lowestAttendance}`);
 
         return {
           usn: student.usn,
@@ -149,8 +150,8 @@ class ProctorController {
       const academicYear = req.query.academicYear || "2027";
       const normalizedProctorId = proctorId.toUpperCase();
 
-      console.log(`[NotificationScan] ── START ─────────────────────────`);
-      console.log(`[NotificationScan] Proctor: ${normalizedProctorId} | Year: ${academicYear}`);
+      logger.info(`[NotificationScan] ── START ─────────────────────────`);
+      logger.info(`[NotificationScan] Proctor: ${normalizedProctorId} | Year: ${academicYear}`);
 
       // 1. Fetch all students mapped to this proctor
       const students = await prisma.student.findMany({
@@ -165,7 +166,7 @@ class ProctorController {
         select: { usn: true, name: true, details: true }
       });
 
-      console.log(`[NotificationScan] Students found: ${students.length}`);
+      logger.info(`[NotificationScan] Students found: ${students.length}`);
 
       const alertsData = [];
 
@@ -184,7 +185,7 @@ class ProctorController {
 
         // 4. Extract the subjects array — log what keys exist for debugging
         const keys = Object.keys(details);
-        console.log(`[NotificationScan] ${student.usn} keys: [${keys.join(', ')}]`);
+        logger.info(`[NotificationScan] ${student.usn} keys: [${keys.join(', ')}]`);
 
         const subjectsList = Array.isArray(details.subjects)
           ? details.subjects
@@ -192,7 +193,7 @@ class ProctorController {
             ? details.current_semester
             : [];
 
-        console.log(`[NotificationScan] ${student.usn} → ${subjectsList.length} subjects`);
+        logger.info(`[NotificationScan] ${student.usn} → ${subjectsList.length} subjects`);
 
         const lowAttendanceSubjects = [];
 
@@ -200,12 +201,12 @@ class ProctorController {
           // 5. Extract raw attendance from either field
           const raw = subj.attendance ?? subj.attendance_details?.percentage ?? null;
           if (raw === null || raw === undefined) {
-            console.log(`[NotificationScan]   SKIP "${subj.name}" — no attendance value`);
+            logger.info(`[NotificationScan]   SKIP "${subj.name}" — no attendance value`);
             continue;
           }
 
           const val = Number(String(raw).replace('%', '').trim());
-          console.log(`[NotificationScan]   ${student.name} | "${subj.name}" → ${val}%`);
+          logger.info(`[NotificationScan]   ${student.name} | "${subj.name}" → ${val}%`);
 
           if (!isNaN(val) && val < 75) {
             lowAttendanceSubjects.push({ name: subj.name, attendance: val });
@@ -227,13 +228,13 @@ class ProctorController {
         alertsData.sort((a, b) => a.subjects[0].attendance - b.subjects[0].attendance);
       }
 
-      console.log(`[NotificationScan] ── RESULT: ${alertsData.length} student alerts ──`);
-      console.log(JSON.stringify(alertsData, null, 2));
+      logger.info(`[NotificationScan] ── RESULT: ${alertsData.length} student alerts ──`);
+      logger.info(JSON.stringify(alertsData, null, 2));
 
       // Always return an array — never null/empty object
       return res.status(200).json({ success: true, data: alertsData });
     } catch (error) {
-      console.error("[NotificationScan] FATAL ERROR:", error.message);
+      logger.error("[NotificationScan] FATAL ERROR:", error.message);
       return res.status(200).json({ success: true, data: [] }); // safe fallback
     }
   }
@@ -352,7 +353,7 @@ YOUR REPLY:`;
       });
 
     } catch (error) {
-      console.error("[Proctor Chat] Error:", error.message);
+      logger.error("[Proctor Chat] Error:", error.message);
       return res.status(500).json({ success: false, message: "Failed to generate AI response." });
     }
   }

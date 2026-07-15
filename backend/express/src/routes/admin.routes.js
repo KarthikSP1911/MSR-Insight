@@ -1,6 +1,7 @@
 import { Router } from "express";
 import adminController from "../controllers/admin.controller.js";
 import { runWeeklyAttendanceCron } from "../services/weeklyAttendance.service.js";
+import logger from '../utils/logger.js';
 
 const router = Router();
 
@@ -41,10 +42,10 @@ router.get("/stats", adminController.getStats);
 // POST /api/admin/cron/weekly-attendance
 router.post("/cron/weekly-attendance", async (req, res) => {
     try {
-        console.log("[Admin] Manual weekly attendance cron triggered.");
+        logger.info("[Admin] Manual weekly attendance cron triggered.");
         // Run in background — don't block the HTTP response
         runWeeklyAttendanceCron().catch((err) =>
-            console.error("[Admin] Manual cron error:", err.message)
+            logger.error("[Admin] Manual cron error:", err.message)
         );
         res.json({
             success: true,

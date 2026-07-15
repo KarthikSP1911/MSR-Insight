@@ -1,4 +1,5 @@
 import adminService from "../services/admin.service.js";
+import logger from '../utils/logger.js';
 
 class AdminController {
   /**
@@ -7,11 +8,11 @@ class AdminController {
   async listProctors(req, res, next) {
     try {
       const academicYear = req.query.academicYear || "2027";
-      console.log(`[AdminController] Listing proctors for year: ${academicYear}`);
+      logger.info(`[AdminController] Listing proctors for year: ${academicYear}`);
       
       const result = await adminService.getProctors(academicYear);
 
-      console.log(`[AdminController] Found ${result.length} proctors`);
+      logger.info(`[AdminController] Found ${result.length} proctors`);
       return res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);

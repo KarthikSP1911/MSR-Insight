@@ -1,5 +1,6 @@
 import express from 'express';
 import studentService from '../services/student.service.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.post('/sync', async (req, res) => {
             successCount
         });
     } catch (error) {
-        console.error("Sync Route Error:", error);
+        logger.error("Sync Route Error:", error);
         res.status(500).json({ error: "Internal server error during sync." });
     }
 });

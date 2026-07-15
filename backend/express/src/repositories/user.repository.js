@@ -1,5 +1,6 @@
 import prisma from "../config/db.config.js";
 import { formatDOB } from "../utils/dateUtils.js";
+import logger from '../utils/logger.js';
 
 class UserRepository {
   /**
@@ -10,7 +11,7 @@ class UserRepository {
     
     // Safety check for prisma client
     if (!prisma || !prisma.student) {
-        console.error("[UserRepository] Prisma student model is undefined!");
+        logger.error("[UserRepository] Prisma student model is undefined!");
         throw new Error("Internal Database Initialization Error");
     }
 
@@ -27,7 +28,7 @@ class UserRepository {
     if (!usn || !dob) return null;
 
     if (!prisma || !prisma.student) {
-        console.error("[UserRepository] Prisma student model is undefined!");
+        logger.error("[UserRepository] Prisma student model is undefined!");
         throw new Error("Internal Database Initialization Error");
     }
 

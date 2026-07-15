@@ -1,4 +1,5 @@
 import redisClient from "../config/redis.config.js";
+import logger from '../utils/logger.js';
 
 const requireSession = async (req, res, next) => {
     try {
@@ -33,7 +34,7 @@ const requireSession = async (req, res, next) => {
         
         next();
     } catch (error) {
-        console.error("[SessionMiddleware Error]", error);
+        logger.error("[SessionMiddleware Error]", error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error during session verification"

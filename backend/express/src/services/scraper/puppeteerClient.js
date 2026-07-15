@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import axios from 'axios';
 import https from 'https';
 import { extractCourseRowsFromDashboard } from './htmlParser.js';
+import logger from '../../utils/logger.js';
 
 const resolveParentsUrl = (href) => {
     if (!href || typeof href !== "string") return "";
@@ -15,7 +16,7 @@ const resolveParentsUrl = (href) => {
 export const getCompleteStudentData = async (usn, day, month, year) => {
     let browser;
     try {
-        console.log(`[*] Launching Puppeteer for USN: ${usn}...`);
+        logger.info(`[*] Launching Puppeteer for USN: ${usn}...`);
         browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -50,7 +51,7 @@ export const getCompleteStudentData = async (usn, day, month, year) => {
         await browser.close();
         browser = null;
 
-        console.log("[*] Parsing Dashboard Course Table...");
+        logger.info("[*] Parsing Dashboard Course Table...");
         const $dash = cheerio.load(content);
 
         const courseRows = extractCourseRowsFromDashboard($dash);
@@ -107,7 +108,7 @@ export const getCompleteStudentData = async (usn, day, month, year) => {
         return scrapedData;
 
     } catch (error) {
-        console.error(`[X] Automation Error: ${error.message}`);
+        logger.error(`[X] Automation Error: ${error.message}`);
         return null;
     } finally {
         if (browser) await browser.close();

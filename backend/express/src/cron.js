@@ -1,4 +1,5 @@
 import { runWeeklyAttendanceCron } from "./services/weeklyAttendance.service.js";
+import logger from './utils/logger.js';
 
 // --- Cron Schedule Configuration ---
 // Runs every Monday at 08:00 AM IST (02:30 UTC)
@@ -34,7 +35,7 @@ const msUntilNextRun = () => {
 
   const ms = next - now;
   const hoursAway = (ms / 1000 / 60 / 60).toFixed(1);
-  console.log(
+  logger.info(
     `[WeeklyCron] ⏰ Next run: ${next.toUTCString()} (in ~${hoursAway}h)`
   );
   return ms;
@@ -50,7 +51,7 @@ const msUntilNextRun = () => {
  * 3. Then repeat every 7 days via setInterval.
  */
 export const startWeeklyCron = () => {
-  console.log(`[WeeklyCron] 📅 Scheduler initialized — ${scheduleLabel}`);
+  logger.info(`[WeeklyCron] 📅 Scheduler initialized — ${scheduleLabel}`);
 
   const firstDelay = msUntilNextRun();
   const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -60,7 +61,7 @@ export const startWeeklyCron = () => {
 
     // After first run, repeat exactly every 7 days
     setInterval(async () => {
-      console.log("[WeeklyCron] ▶ Running scheduled weekly digest...");
+      logger.info("[WeeklyCron] ▶ Running scheduled weekly digest...");
       await runWeeklyAttendanceCron();
     }, ONE_WEEK_MS);
   }, firstDelay);

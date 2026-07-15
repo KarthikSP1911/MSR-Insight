@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import expressWinston from "express-winston";
+import logger from "./utils/logger.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import reportRoutes from "./routes/report.routes.js";
@@ -49,6 +51,16 @@ app.use("/api/", apiLimiter);
 
 app.use(express.json());
 
+// 4. HTTP Request Logging
+app.use(expressWinston.logger({
+    winstonInstance: logger,
+    meta: true, // Log metadata about the request/response
+    msg: "HTTP {{req.method}} {{req.url}}", 
+    expressFormat: true, 
+    colorize: false,
+    ignoreRoute: function (req, res) { return req.url === '/api/health'; } // skip health checks
+}));
+
 app.get("/api/health", (req, res) => {
     res.json({ status: "express running" });
 });
@@ -59,6 +71,10 @@ app.use("/api/proctor", proctorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/students", studentsRouter);
 app.use("/api/admin", adminRoutes);
+
+app.use(expressWinston.errorLogger({
+    winstonInstance: logger
+}));
 
 app.use(errorHandler);
 

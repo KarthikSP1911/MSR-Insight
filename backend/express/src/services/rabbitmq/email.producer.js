@@ -1,4 +1,5 @@
 import { getChannel, getExchangeName } from "../../config/rabbitmq.config.js";
+import logger from '../../utils/logger.js';
 
 /**
  * Publish an email generation job to RabbitMQ
@@ -19,14 +20,14 @@ export const publishEmailJob = async (payload) => {
         );
         
         if (success) {
-            console.log(`[RabbitMQ] Successfully queued email job for USN: ${payload.usn}`);
+            logger.info(`[RabbitMQ] Successfully queued email job for USN: ${payload.usn}`);
         } else {
-            console.warn(`[RabbitMQ] Failed to queue email job for USN: ${payload.usn} (Channel returned false)`);
+            logger.warn(`[RabbitMQ] Failed to queue email job for USN: ${payload.usn} (Channel returned false)`);
         }
         
         return success;
     } catch (error) {
-        console.error(`[RabbitMQ] Error publishing email job for USN: ${payload?.usn}`, error.message);
+        logger.error(`[RabbitMQ] Error publishing email job for USN: ${payload?.usn}`, error.message);
         throw error;
     }
 };

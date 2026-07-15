@@ -1,6 +1,7 @@
 import { syncStudents } from './student.service.js';
 import { getCompleteStudentData } from './scraper/puppeteerClient.js';
 import { parseAndProcessData } from './scraper/htmlParser.js';
+import logger from '../utils/logger.js';
 
 // Helper for parsing DOB "DD-MM-YYYY" or "YYYY-MM-DD"
 const parseDobParts = (dobString) => {
@@ -41,18 +42,18 @@ const parseDobParts = (dobString) => {
 
 export const scrapeAndSyncStudent = async (usn, dob) => {
     const { day, month, year } = parseDobParts(dob);
-    console.log(`[Scraper] Starting scrape for ${usn} with DOB ${day}-${month}-${year}`);
+    logger.info(`[Scraper] Starting scrape for ${usn} with DOB ${day}-${month}-${year}`);
     
     const scrapedData = await getCompleteStudentData(usn, day, month, year);
     if (!scrapedData) {
         throw new Error(`Failed to scrape data for USN: ${usn}`);
     }
 
-    console.log("[Scraper] Normalizing parsed data...");
+    logger.info("[Scraper] Normalizing parsed data...");
     const normalizedData = parseAndProcessData(scrapedData);
 
     if (normalizedData) {
-        console.log(`[Scraper] Syncing ${usn} to database...`);
+        logger.info(`[Scraper] Syncing ${usn} to database...`);
         normalizedData.dob = dob; // Inject dob for the upsert
         await syncStudents({ [usn]: normalizedData });
         return normalizedData;
