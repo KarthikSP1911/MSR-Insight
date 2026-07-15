@@ -378,7 +378,33 @@ npm run dev
 start-all.bat
 ```
 
-### 5. Running Tests
+### 5. Docker Deployment (Recommended)
+You can run the entire platform, including local instances of PostgreSQL (with PGVector), Redis, and RabbitMQ, using a single command.
+
+1. Create a root `.env` file by copying `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Fill in your API keys for Groq, Gemini, Resend, and Cloudinary.
+   *(Note: The environment variables in `.env` are designed to allow you to easily swap the local container URLs with your production cloud instances like Neon, Upstash, and CloudAMQP).*
+3. Start the cluster:
+   ```bash
+   docker compose up --build
+   ```
+4. Access the services:
+   - **Frontend**: http://localhost:3000
+   - **Express API**: http://localhost:5001
+   - **FastAPI**: http://localhost:8000
+   - **RabbitMQ Admin**: http://localhost:15672
+
+To tear down the cluster and its volumes:
+```bash
+docker compose down -v
+```
+
+---
+
+### 6. Running Tests
 
 #### Express (Node.js) Unit & Integration Tests
 The Express backend uses Jest with `--experimental-vm-modules` for Native ESM testing. Mocks are isolated using dynamic `await import` and `jest.unstable_mockModule`.
