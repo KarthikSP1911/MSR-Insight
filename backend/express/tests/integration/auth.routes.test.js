@@ -1,16 +1,25 @@
-import request from 'supertest';
-import app from '../../src/app.js';
 import { jest } from '@jest/globals';
-import authService from '../../src/services/auth.service.js';
 
-jest.mock('../../src/services/auth.service.js', () => ({
-    register: jest.fn(),
-    login: jest.fn(),
-    proctorRegister: jest.fn(),
-    proctorLogin: jest.fn(),
-    logout: jest.fn(),
-    getProfile: jest.fn(),
+const mockRegister = jest.fn();
+const mockLogin = jest.fn();
+const mockProctorRegister = jest.fn();
+const mockProctorLogin = jest.fn();
+const mockLogout = jest.fn();
+const mockGetProfile = jest.fn();
+
+jest.unstable_mockModule('../../src/services/auth.service.js', () => ({
+    default: {
+        register: mockRegister,
+        login: mockLogin,
+        proctorRegister: mockProctorRegister,
+        proctorLogin: mockProctorLogin,
+        logout: mockLogout,
+        getProfile: mockGetProfile,
+    }
 }));
+
+const request = (await import('supertest')).default;
+const app = (await import('../../src/app.js')).default;
 
 describe('Auth Routes Integration Tests', () => {
     beforeEach(() => {
@@ -19,7 +28,7 @@ describe('Auth Routes Integration Tests', () => {
 
     describe('POST /api/auth/register', () => {
         it('should return 201 on successful registration', async () => {
-            authService.register.mockResolvedValue({ usn: '1MS21CS001', sessionId: 'sess-123' });
+            mockRegister.mockResolvedValue({ usn: '1MS21CS001', sessionId: 'sess-123' });
 
             const response = await request(app)
                 .post('/api/auth/register')
@@ -42,7 +51,7 @@ describe('Auth Routes Integration Tests', () => {
 
     describe('POST /api/auth/login', () => {
         it('should return 200 on successful login', async () => {
-            authService.login.mockResolvedValue({ usn: '1MS21CS001', sessionId: 'sess-123', needsSync: false });
+            mockLogin.mockResolvedValue({ usn: '1MS21CS001', sessionId: 'sess-123', needsSync: false });
 
             const response = await request(app)
                 .post('/api/auth/login')
@@ -56,7 +65,7 @@ describe('Auth Routes Integration Tests', () => {
 
     describe('GET /api/auth/profile', () => {
         it('should return 200 and profile if session valid', async () => {
-            authService.getProfile.mockResolvedValue({ usn: '1MS21CS001', name: 'John' });
+            mockGetProfile.mockResolvedValue({ usn: '1MS21CS001', name: 'John' });
 
             const response = await request(app)
                 .get('/api/auth/profile')

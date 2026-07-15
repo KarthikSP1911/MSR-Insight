@@ -1,16 +1,18 @@
 import { jest } from '@jest/globals';
-import studentService, { syncStudents } from '../../src/services/student.service.js';
-import prisma from '../../src/config/db.config.js';
 
-jest.mock('../../src/config/db.config.js', () => ({
-    __esModule: true,
+const mockFindUnique = jest.fn();
+const mockUpsert = jest.fn();
+
+jest.unstable_mockModule('../../src/config/db.config.js', () => ({
     default: {
         student: {
-            findUnique: jest.fn(),
-            upsert: jest.fn(),
+            findUnique: mockFindUnique,
+            upsert: mockUpsert,
         }
     }
 }));
+
+const { default: studentService, syncStudents } = await import('../../src/services/student.service.js');
 
 describe('StudentService Unit Tests', () => {
     beforeEach(() => {
@@ -20,11 +22,11 @@ describe('StudentService Unit Tests', () => {
     describe('getStudentDashboard', () => {
         it('should return student dashboard data if student exists', async () => {
             const mockData = { usn: '1MS21CS001', name: 'John Doe', details: { cgpa: 9.0 } };
-            prisma.student.findUnique.mockResolvedValue(mockData);
+            mockFindUnique.mockResolvedValue(mockData);
 
             const result = await studentService.getStudentDashboard('1ms21cs001');
 
-            expect(prisma.student.findUnique).toHaveBeenCalledWith({
+            expect(mockFindUnique).toHaveBeenCalledWith({
                 where: { usn: '1MS21CS001' },
                 select: expect.any(Object),
             });
@@ -32,7 +34,7 @@ describe('StudentService Unit Tests', () => {
         });
 
         it('should return null if student does not exist', async () => {
-            prisma.student.findUnique.mockResolvedValue(null);
+            mockFindUnique.mockResolvedValue(null);
 
             const result = await studentService.getStudentDashboard('1ms21cs001');
 
@@ -49,11 +51,11 @@ describe('StudentService Unit Tests', () => {
                 }
             };
 
-            prisma.student.upsert.mockResolvedValue({});
+            mockUpsert.mockResolvedValue({});
 
             const result = await syncStudents(mockData);
 
-            expect(prisma.student.upsert).toHaveBeenCalledTimes(1);
+            expect(mockUpsert).toHaveBeenCalledTimes(1);
             expect(result.success).toContain('1MS21CS001');
             expect(result.errors.length).toBe(0);
         });
@@ -65,11 +67,11 @@ describe('StudentService Unit Tests', () => {
                 }
             };
 
-            prisma.student.upsert.mockRejectedValue(new Error('DB Error'));
+            mockUpsert.mockRejectedValue(new Error('DB Error'));
 
             const result = await syncStudents(mockData);
 
-            expect(prisma.student.upsert).toHaveBeenCalledTimes(1);
+            expect(mockUpsert).toHaveBeenCalledTimes(1);
             expect(result.errors.length).toBe(1);
             expect(result.errors[0].error).toBe('DB Error');
             expect(result.success.length).toBe(0);

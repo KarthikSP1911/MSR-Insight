@@ -323,8 +323,9 @@ flowchart LR
   <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" style="margin: 4px;" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" style="margin: 4px;" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest" style="margin: 4px;" />
+  <img src="https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white" alt="Pytest" style="margin: 4px;" />
 </p>
-
 ## Getting Started
 
 ### Prerequisites
@@ -375,6 +376,26 @@ npm run dev
 ### Quick Launch (Windows)
 ```bash
 start-all.bat
+```
+
+### 5. Running Tests
+
+#### Express (Node.js) Unit & Integration Tests
+The Express backend uses Jest with `--experimental-vm-modules` for Native ESM testing. Mocks are isolated using dynamic `await import` and `jest.unstable_mockModule`.
+```bash
+cd backend/express
+npm run test                # Run all test suites
+npm run test -- --coverage  # Generate coverage report
+```
+
+#### FastAPI (Python) Unit Tests
+The FastAPI service utilizes Pytest with `unittest.mock` to isolate database drivers (PGVector) and retrievers.
+```bash
+cd backend/fastapi
+# Activate virtual environment
+venv\Scripts\activate   # Windows
+# source venv/bin/activate # macOS/Linux
+python -m pytest --cov=.
 ```
 
 ---
@@ -731,16 +752,11 @@ The project implements a **Stateless-Session Hybrid**:
 
 ---
 
-## Known Issues & Considerations
+## Upcoming Improvements
 
-1. **Admin routes have no authentication** -- All `/api/admin/*` routes are unprotected. Anyone can create/delete proctors.
-2. **`/api/auth/proctor-register` is public** -- Any user can register a new proctor without admin authorization.
-3. **`students.js` legacy route** -- `backend/express/src/routes/students.js` appears to be a duplicate of `student.routes.js`.
-4. **`mongoose` in Express dependencies** -- Listed in `package.json` but no MongoDB usage exists. Dead dependency.
-5. **`academicYear` defaults to `"2027"`** -- Hardcoded in 5+ places. Should be centralized.
-6. **No automated test suite** -- Zero test files across the entire project.
-7. **Dual chatbot implementations** -- Proctor chat uses Ollama (Express) and RAG (FastAPI). Consider consolidating.
-8. **Browser extension `host_permissions`** -- Points to `localhost:3000` but frontend runs on port 3000 (Next.js default).
+1. **Systematic Test Coverage**: While the new Express services boast 80%+ test coverage, we plan to extend unit and integration testing across legacy controllers to hit a global 70% coverage metric.
+2. **Chatbot Unification**: Exploring the consolidation of the RAG Chatbot (FastAPI) and Ollama-based chat into a single resilient AI conversational pipeline.
+3. **Caching Enhancements**: Extend Redis caching beyond session management to cache expensive DB aggregations (e.g. `getDashboardStats`).
 
 ---
 

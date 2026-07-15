@@ -33,6 +33,29 @@ jest.mock('resend', () => ({
     }))
 }));
 
+jest.mock('./src/config/redis.config.js', () => ({
+    redisClient: {
+        get: jest.fn(),
+        set: jest.fn(),
+        del: jest.fn(),
+        on: jest.fn(),
+    },
+    connectRedis: jest.fn(),
+}));
+
+jest.mock('./src/config/db.config.js', () => {
+    return {
+        __esModule: true,
+        default: {
+            student: { findUnique: jest.fn(), findMany: jest.fn(), upsert: jest.fn(), count: jest.fn() },
+            proctor: { findUnique: jest.fn(), findMany: jest.fn(), upsert: jest.fn(), delete: jest.fn(), count: jest.fn() },
+            proctorStudentMap: { findUnique: jest.fn(), findMany: jest.fn(), upsert: jest.fn(), deleteMany: jest.fn(), count: jest.fn(), delete: jest.fn() },
+            parent: { upsert: jest.fn() },
+            user: { findUnique: jest.fn(), upsert: jest.fn() }
+        }
+    };
+});
+
 // Suppress console logs during tests to keep output clean, unless it's a test specifically checking logs
 global.console = {
   ...console,
