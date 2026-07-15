@@ -1,6 +1,6 @@
 import prisma from "../config/db.config.js";
 import bcrypt from "bcrypt";
-import studentService from "../services/studentService.js";
+import studentService from "../services/student.service.js";
 
 class AdminController {
   /**

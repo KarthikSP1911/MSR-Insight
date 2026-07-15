@@ -1,5 +1,5 @@
 import express from "express";
-import { syncStudents } from "../services/studentService.js";
+import { syncStudents } from "../services/student.service.js";
 import { verifyProctorAccess } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
