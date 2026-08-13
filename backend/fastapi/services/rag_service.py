@@ -28,7 +28,7 @@ class RAGService:
         )
 
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-3.1-flash-lite-preview",
+            model="gemini-3.1-flash-lite",
             google_api_key=settings.GEMINI_API_KEY,
             temperature=0.1,
         )
@@ -36,6 +36,8 @@ class RAGService:
         self._vector_store = None
         self._is_syncing = False
         self._sync_lock = threading.Lock()
+        self._last_sync_time = None
+        self._last_sync_result = None
         
         try:
             sample = self.embeddings.embed_query("test")
@@ -69,13 +71,20 @@ class RAGService:
         if self._is_syncing:
             return {"status": "already_syncing"}
 
+        from datetime import datetime
         with self._sync_lock:
             self._is_syncing = True
             try:
                 result = fetch_and_sync_documents(self.vector_store)
+                self._last_sync_time = datetime.now().isoformat()
+                self._last_sync_result = result
                 # Ensure the vector store refreshes its connection on the next access
                 self._vector_store = None 
                 return result
+            except Exception as e:
+                self._last_sync_time = datetime.now().isoformat()
+                self._last_sync_result = {"status": "error", "message": str(e)}
+                raise e
             finally:
                 self._is_syncing = False
 
