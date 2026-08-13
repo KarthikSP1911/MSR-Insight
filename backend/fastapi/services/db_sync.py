@@ -52,6 +52,10 @@ def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
                 print(f"Notice: Could not drop tables (might not exist yet): {e}")
 
             try:
+                print("Re-creating PGVector tables...")
+                vector_store.create_tables_if_not_exists()
+                print("Creating collection...")
+                vector_store.create_collection()
                 vector_store.add_documents(all_documents)
             except Exception as e:
                 print(f"Error adding documents to PGVector: {e}")

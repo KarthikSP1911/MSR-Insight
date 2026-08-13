@@ -5,6 +5,9 @@ import logger from '../utils/logger.js';
 
 // Helper for parsing DOB "DD-MM-YYYY" or "YYYY-MM-DD"
 const parseDobParts = (dobString) => {
+    if (!dobString) {
+        throw new Error("Date of Birth is missing or invalid.");
+    }
     // If Date object
     if (dobString instanceof Date) {
         return {
@@ -40,11 +43,11 @@ const parseDobParts = (dobString) => {
     throw new Error("Invalid DOB format");
 };
 
-export const scrapeAndSyncStudent = async (usn, dob) => {
+export const scrapeAndSyncStudent = async (usn, dob, authType, last4Digits) => {
     const { day, month, year } = parseDobParts(dob);
     logger.info(`[Scraper] Starting scrape for ${usn} with DOB ${day}-${month}-${year}`);
     
-    const scrapedData = await getCompleteStudentData(usn, day, month, year);
+    const scrapedData = await getCompleteStudentData(usn, day, month, year, authType, last4Digits);
     if (!scrapedData) {
         throw new Error(`Failed to scrape data for USN: ${usn}`);
     }
@@ -55,6 +58,8 @@ export const scrapeAndSyncStudent = async (usn, dob) => {
     if (normalizedData) {
         logger.info(`[Scraper] Syncing ${usn} to database...`);
         normalizedData.dob = dob; // Inject dob for the upsert
+        if (authType) normalizedData.auth_type = authType;
+        if (last4Digits) normalizedData.last4Digits = last4Digits;
         await syncStudents({ [usn]: normalizedData });
         return normalizedData;
     }

@@ -4,6 +4,8 @@ import userRepository from "../repositories/user.repository.js";
 import proctorRepository from "../repositories/proctor.repository.js";
 import redisClient from "../config/redis.config.js";
 import logger from '../utils/logger.js';
+import studentService from "./student.service.js";
+import { decryptText } from "../utils/crypto.js";
 
 class AuthService {
   async register(usn, dob) {
@@ -29,46 +31,68 @@ class AuthService {
   }
 
   /**
-   * Refactored Student Login:
-   * Uses userRepository.findByCredentials to handle both USN and DOB in a single query.
+   * Student Login with Secondary Verification Layer:
+   * Supports stage 2 Father/Mother Mobile or ABC ID 4-digit PIN verification.
    */
-  async login(usn, dob) {
+  async login(usn, dob, authType, last4Digits, forceResync = false) {
     if (!usn || !dob) {
       throw new Error("USN and Date of Birth are required");
     }
 
-    // Single query check for both USN and DOB
-    let user = await userRepository.findByCredentials(usn, dob);
+    const normalizedUSN = usn.toUpperCase();
+    let user = await userRepository.findByCredentials(normalizedUSN, dob);
+    let existingStudent = await studentService.getStudentDashboard(normalizedUSN);
 
-    if (!user) {
-      logger.warn(`[Student Auth] User not found. Attempting to scrape and register ${usn} with DOB ${dob}`);
-      try {
-        const { scrapeAndSyncStudent } = await import("./puppeteerScraper.service.js");
-        await scrapeAndSyncStudent(usn, dob);
-        // After successful sync, fetch user again
-        user = await userRepository.findByCredentials(usn, dob);
-        if (!user) {
-          throw new Error("Failed to create user after scraping.");
-        }
-      } catch (err) {
-        logger.error(`[Student Auth] Scraping failed for ${usn}: ${err.message}`);
-        throw new Error("Invalid USN or Date of Birth");
-      }
+    const hasStoredPin = Boolean(existingStudent?.encrypted_pin || existingStudent?.details?.encrypted_pin);
+    const hasNewPinProvided = Boolean(last4Digits);
+
+    // Instant Login ONLY if student exists, has details, HAS a stored PIN, forceResync is false, and no new PIN was provided to update
+    if (user && existingStudent && existingStudent.details && Object.keys(existingStudent.details).length > 0 && hasStoredPin && !forceResync && !hasNewPinProvided) {
+      const sessionId = randomUUID();
+      await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
+      await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
+      return { usn: normalizedUSN, sessionId };
     }
 
-    const normalizedUSN = user.usn.toUpperCase();
+    // Determine secondary verification details
+    let targetAuthType = authType || existingStudent?.auth_type || existingStudent?.details?.auth_type;
+    let targetPin = last4Digits;
 
-    // Handle sessions as before
+    if (!targetPin && (existingStudent?.encrypted_pin || existingStudent?.details?.encrypted_pin)) {
+      targetPin = decryptText(existingStudent.encrypted_pin || existingStudent.details.encrypted_pin);
+    }
+
+    // If PIN or auth method is missing, prompt frontend for secondary details
+    if (!targetPin || !targetAuthType) {
+      logger.info(`[Student Auth] USN ${normalizedUSN} not found in DB (or re-syncing). Requesting secondary auth parameters...`);
+      return {
+        requiresSecondaryAuth: true,
+        message: "First-time login or PIN update requires secondary portal verification details (Father/Mother Mobile or ABC ID last 4 digits)."
+      };
+    }
+
+    logger.warn(`[Student Auth] Scraping portal for ${normalizedUSN} using secondary credentials...`);
+    try {
+      const { scrapeAndSyncStudent } = await import("./puppeteerScraper.service.js");
+      await scrapeAndSyncStudent(normalizedUSN, dob, targetAuthType, targetPin);
+      
+      user = await userRepository.findByCredentials(normalizedUSN, dob);
+      if (!user) {
+        throw new Error("Failed to retrieve student records from portal after scraping.");
+      }
+    } catch (err) {
+      logger.error(`[Student Auth] Scraping failed for ${normalizedUSN}: ${err.message}`);
+      throw new Error(err.message || "Invalid credentials or unable to fetch records from portal.");
+    }
+
     const sessionId = randomUUID();
     await redisClient.set(`session:${sessionId}`, `student:${normalizedUSN}`, { EX: 2592000 });
     await redisClient.set(`usn:${normalizedUSN}`, sessionId, { EX: 2592000 });
 
-    // Scrape will be triggered by student dashboard if data is missing or stale. 
-
     return { 
       usn: normalizedUSN, 
       sessionId, 
-      needsSync: !user.details || Object.keys(user.details).length === 0 
+      needsSync: false 
     };
   }
 

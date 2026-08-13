@@ -100,11 +100,12 @@ export const triggerReportUpdate = async (req, res, next) => {
             data: dashboardData,
         });
     } catch (error) {
-        const status = error.statusCode || 500;
+        const status = error.statusCode || 400;
         return res.status(status).json({
             success: false,
             allowed: error.statusCode !== 429,
-            message: error.message,
+            requiresRelogin: !!error.requiresRelogin,
+            message: error.message || "Failed to update records from college portal.",
             nextAllowedAt: error.nextAllowedAt
         });
     }
