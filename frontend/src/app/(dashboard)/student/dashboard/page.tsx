@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import axios from "axios";
 import {
-    Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut, BookOpen
+    Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut, BookOpen, Briefcase, BarChart3
 } from "lucide-react";
 import "@/styles/StudentDashboard.css";
 import { API_BASE_URL } from "@/config/api.config";
@@ -22,8 +22,10 @@ import AnalyticsSection from "@/components/dashboard/sections/AnalyticsSection";
 import HistorySection from "@/components/dashboard/sections/HistorySection";
 import SimulatorSection from "@/components/dashboard/sections/SimulatorSection";
 import NotesSection from "@/components/dashboard/sections/NotesSection";
+import PlacementSection from "@/components/dashboard/sections/PlacementSection";
 import LoadingScreen from "@/components/dashboard/LoadingScreen";
 import BirthdayBanner from "@/components/dashboard/BirthdayBanner";
+import PinVerificationModal from "@/components/dashboard/PinVerificationModal";
 
 
 const GRADE_COLORS: Record<string, string> = {
@@ -61,6 +63,7 @@ export default function StudentDashboard() {
     const [selectedHistoryIdx, setSelectedHistoryIdx] = useState<number>(0);
     const [updateStatus, setUpdateStatus] = useState<'loading' | 'success' | 'error' | null>(null);
     const [showMobileProfileMenu, setShowMobileProfileMenu] = useState(false);
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
 
     const { formatTime, isCooldownActive } = useCooldown(nextAllowedAt);
 
@@ -309,6 +312,8 @@ export default function StudentDashboard() {
             setUpdateStatus('error');
             if (err.response?.status === 429 && err.response?.data?.nextAllowedAt) {
                 setNextAllowedAt(err.response.data.nextAllowedAt);
+            } else if (err.response?.data?.requiresRelogin || err.response?.status === 401) {
+                setIsPinModalOpen(true);
             }
         } finally {
             setTimeout(() => setUpdateStatus(null), 3000);
@@ -333,6 +338,7 @@ export default function StudentDashboard() {
                         { id: 'performance', icon: <Target size={20} />, label: 'Current Semester' },
                         { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes & PYQs' },
                         { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
+                        { id: 'placement', icon: <Briefcase size={20} />, label: 'Placements' },
                         { id: 'history', icon: <HistoryIcon size={20} />, label: 'Exam History' },
                         { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Simulator' },
                     ].map(tab => (
@@ -457,6 +463,16 @@ export default function StudentDashboard() {
                                     examHistory={examHistory}
                                 />
                             )}
+                            {activeTab === 'placement' && (
+                                <PlacementSection
+                                    studentName={student?.name}
+                                    placementData={detailsBlob.placement}
+                                    handleUpdate={handleUpdate}
+                                    updateStatus={updateStatus}
+                                    isCooldownActive={isCooldownActive}
+                                    formatTime={formatTime}
+                                />
+                            )}
                             {activeTab === 'simulator' && (
                                 <SimulatorSection
                                     studentName={student?.name}
@@ -482,6 +498,7 @@ export default function StudentDashboard() {
                     { id: 'performance', icon: <Target size={20} />, label: 'Semester' },
                     { id: 'notes', icon: <BookOpen size={20} />, label: 'Notes' },
                     { id: 'analytics', icon: <BarChart3 size={20} />, label: 'Analytics' },
+                    { id: 'placement', icon: <Briefcase size={20} />, label: 'Placements' },
                     { id: 'history', icon: <HistoryIcon size={20} />, label: 'History' },
                     { id: 'simulator', icon: <Gamepad2 size={20} />, label: 'Sim' },
                 ].map(tab => (
@@ -495,9 +512,19 @@ export default function StudentDashboard() {
                     </button>
                 ))}
             </nav>
+
+            <PinVerificationModal
+                isOpen={isPinModalOpen}
+                usn={stdUsn}
+                dob={student?.dob || ""}
+                onClose={() => setIsPinModalOpen(false)}
+                onSuccess={(updatedData) => {
+                    if (updatedData) setStudent(updatedData);
+                    setUpdateStatus('success');
+                    handleUpdate();
+                }}
+            />
         </div>
     );
 }
-
-const BarChart3 = ({ size }: { size: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bar-chart-3"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>;
 

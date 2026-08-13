@@ -21,14 +21,14 @@ class AuthController {
         });
       }
 
-      const { sessionId, ...data } = await authService.register(usn, dob);
+      const result = await authService.register(usn, dob);
 
-      res.cookie("session_id", sessionId, cookieOptions);
+      res.cookie("session_id", result.sessionId, cookieOptions);
 
       return res.status(201).json({
         success: true,
         message: "User registered successfully",
-        data: data,
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -37,7 +37,7 @@ class AuthController {
 
   async login(req, res, next) {
     try {
-      const { usn, dob } = req.body;
+      const { usn, dob, authType, last4Digits, forceResync } = req.body;
 
       if (!usn || !dob) {
         return res.status(400).json({
@@ -46,17 +46,28 @@ class AuthController {
         });
       }
 
-      const { sessionId, ...data } = await authService.login(usn, dob);
+      const result = await authService.login(usn, dob, authType, last4Digits, forceResync);
 
-      res.cookie("session_id", sessionId, cookieOptions);
+      if (result.requiresSecondaryAuth) {
+        return res.status(200).json({
+          success: false,
+          requiresSecondaryAuth: true,
+          message: result.message || "Portal verification details required.",
+        });
+      }
+
+      res.cookie("session_id", result.sessionId, cookieOptions);
 
       return res.status(200).json({
         success: true,
         message: "Login successful",
-        data: data,
+        data: result,
       });
     } catch (error) {
-      next(error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || "Login failed",
+      });
     }
   }
 
@@ -99,17 +110,17 @@ class AuthController {
         });
       }
 
-      const { sessionId, ...data } = await authService.proctorLogin(proctorId, password);
+      const result = await authService.proctorLogin(proctorId, password);
       
       // Trigger RAG sync on login so vectors are fresh for the session
       notifyRagSync();
 
-      res.cookie("session_id", sessionId, cookieOptions);
+      res.cookie("session_id", result.sessionId, cookieOptions);
 
       return res.status(200).json({
         success: true,
         message: "Login successful",
-        data: data,
+        data: result,
       });
     } catch (error) {
       logger.error("[ProctorLogin Error]", error.message);

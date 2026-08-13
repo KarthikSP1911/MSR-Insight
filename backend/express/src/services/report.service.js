@@ -33,9 +33,9 @@ export const getRemarkByUSN = async (usn, studentData) => {
     }
 };
 
-export const triggerScrape = async (usn, dob) => {
+export const triggerScrape = async (usn, dob, authType, last4Digits) => {
     if (!usn || !dob) throw new Error("USN and DOB are required to trigger scrape");
-    return scrapeAndSyncStudent(usn, dob);
+    return scrapeAndSyncStudent(usn, dob, authType, last4Digits);
 };
 
 export const notifyRagSync = async () => {
@@ -109,12 +109,33 @@ export const handleManualReportUpdate = async (usn) => {
     }
 
     const user = await userRepository.findByUSN(usn_upper);
-    if (!user) {
-        const err = new Error("User not found");
-        err.statusCode = 404;
+    if (!user || !user.dob) {
+        const err = new Error("Student Date of Birth is missing from records.");
+        err.statusCode = 400;
         throw err;
     }
 
-    await triggerScrape(user.usn, user.dob);
+    const { decryptText } = await import("../utils/crypto.js");
+    let targetAuthType = student.auth_type || student.details?.auth_type;
+    let targetPin;
+    if (student.encrypted_pin || student.details?.encrypted_pin) {
+        targetPin = decryptText(student.encrypted_pin || student.details?.encrypted_pin);
+    }
+
+    if (!targetPin || !targetAuthType) {
+        const err = new Error("Portal PIN verification required for old accounts. Please sign in again with your 4-digit PIN to save your PIN for future syncs.");
+        err.statusCode = 401;
+        err.requiresRelogin = true;
+        throw err;
+    }
+
+    try {
+        await triggerScrape(user.usn, user.dob, targetAuthType, targetPin);
+    } catch (scrapeErr) {
+        const err = new Error(scrapeErr.message || "Failed to update records from college portal.");
+        err.statusCode = 400;
+        throw err;
+    }
+
     return studentService.getStudentDashboard(usn_upper);
 };

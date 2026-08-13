@@ -91,16 +91,24 @@ export default function StudentLogin() {
     const [day, setDay] = useState("");
     const [month, setMonth] = useState("");
     const [year, setYear] = useState("");
+
+    // Secondary authentication fields
+    const [showSecondaryAuth, setShowSecondaryAuth] = useState(false);
+    const [authType, setAuthType] = useState("Father's Mobile");
+    const [last4Digits, setLast4Digits] = useState("");
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [infoMsg, setInfoMsg] = useState("");
     const [mounted, setMounted] = useState(false);
 
     React.useEffect(() => {
-        setMounted(true);
         const sid = localStorage.getItem("studentSessionId");
-        const usn = localStorage.getItem("studentUsn");
-        if (sid && usn) {
-            router.push("/student/dashboard");
+        const userUsn = localStorage.getItem("studentUsn");
+        if (sid && userUsn) {
+            router.replace("/student/dashboard");
+        } else {
+            setMounted(true);
         }
     }, [router]);
 
@@ -111,14 +119,28 @@ export default function StudentLogin() {
     ];
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 50 }, (_, i) => String(currentYear - i - 15));
+    const authOptions = ["Father's Mobile", "Mother's Mobile", "ABC ID"];
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!usn || !day || !month || !year) {
-            setError("Please fill in all fields");
+            setError("Please fill in all basic fields (USN and Date of Birth)");
             return;
         }
+
+        if (showSecondaryAuth) {
+            if (!authType) {
+                setError("Please select a verification method");
+                return;
+            }
+            if (!last4Digits || last4Digits.length !== 4) {
+                setError("Please enter the exact last 4 digits");
+                return;
+            }
+        }
+
         setError("");
+        setInfoMsg("");
         setLoading(true);
 
         const monthIndex = String(months.indexOf(month) + 1).padStart(2, "0");
@@ -126,10 +148,25 @@ export default function StudentLogin() {
         const formattedDate = `${formattedDay}-${monthIndex}-${year}`;
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
-                usn,
+            const cleanUsn = usn.trim().toUpperCase();
+            const payload: any = {
+                usn: cleanUsn,
                 dob: formattedDate,
-            });
+            };
+
+            if (showSecondaryAuth) {
+                payload.authType = authType;
+                payload.last4Digits = last4Digits;
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, payload);
+
+            if (response.data.requiresSecondaryAuth) {
+                setShowSecondaryAuth(true);
+                setInfoMsg("Portal verification required for first-time login. Please select your verification method and enter the last 4 digits.");
+                setLoading(false);
+                return;
+            }
 
             if (response.data.success) {
                 const { sessionId, usn: userUsn } = response.data.data;
@@ -139,12 +176,18 @@ export default function StudentLogin() {
             }
         } catch (err: any) {
             setError(
-                err.response?.data?.message || "Invalid credentials"
+                err.response?.data?.message || "Invalid credentials or login failed"
             );
         } finally {
             setLoading(false);
         }
     };
+
+    if (!mounted) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg-primary, #0A0A0A)' }} />
+        );
+    }
 
     return (
         <div className="login-page">
@@ -161,7 +204,7 @@ export default function StudentLogin() {
                             type="text"
                             className="input-field"
                             value={usn}
-                            onChange={(e) => setUsn(e.target.value.toUpperCase())}
+                            onChange={(e) => setUsn(e.target.value.toUpperCase().replace(/\s+/g, ""))}
                             placeholder="e.g. 1MS24CS001"
                         />
                     </div>
@@ -190,6 +233,53 @@ export default function StudentLogin() {
                         </div>
                     </div>
 
+                    {showSecondaryAuth && (
+                        <div className="secondary-auth-section fade-in">
+                            <div className="secondary-header">
+                                <h3>Portal Verification Required</h3>
+                                <p>Select option and enter the last 4 digits</p>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Verification Option</label>
+                                <CustomSelect
+                                    value={authType}
+                                    onChange={setAuthType}
+                                    options={authOptions}
+                                    placeholder="Select Method"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Last 4 Digits</label>
+                                <input
+                                    type="password"
+                                    maxLength={4}
+                                    className="input-field pin-input"
+                                    value={last4Digits}
+                                    onChange={(e) => setLast4Digits(e.target.value.replace(/\D/g, ""))}
+                                    placeholder="e.g. 1234"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {!showSecondaryAuth && (
+                        <button
+                            type="button"
+                            className="toggle-secondary-btn"
+                            onClick={() => setShowSecondaryAuth(true)}
+                        >
+                            First time login or updating portal PIN? Click here
+                        </button>
+                    )}
+
+                    {infoMsg && (
+                        <div className="form-info">
+                            {infoMsg}
+                        </div>
+                    )}
+
                     {error && (
                         <div className="form-error">
                             {error}
@@ -197,7 +287,7 @@ export default function StudentLogin() {
                     )}
 
                     <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
-                        {loading ? "Verifying..." : "Sign In"}
+                        {loading ? "Verifying & Syncing..." : "Sign In"}
                     </button>
                     
                     <div className="login-footer">
@@ -254,11 +344,61 @@ export default function StudentLogin() {
                 .form-error {
                     background: rgba(239, 68, 68, 0.1);
                     border: 1px solid rgba(239, 68, 68, 0.2);
-                    color: var(--error);
+                    color: var(--error, #ef4444);
                     padding: 10px;
                     border-radius: var(--radius-md);
                     font-size: 0.85rem;
                     text-align: center;
+                }
+                .form-info {
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 1px solid rgba(59, 130, 246, 0.25);
+                    color: var(--accent-primary, #3b82f6);
+                    padding: 10px 14px;
+                    border-radius: var(--radius-md);
+                    font-size: 0.85rem;
+                    text-align: center;
+                    line-height: 1.4;
+                }
+                .secondary-auth-section {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    padding: 16px;
+                    background: var(--bg-surface, rgba(255, 255, 255, 0.03));
+                    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+                    border-radius: var(--radius-md);
+                    margin-top: 4px;
+                }
+                .secondary-header h3 {
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    color: var(--text-primary);
+                    margin-bottom: 2px;
+                }
+                .secondary-header p {
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                }
+                .pin-input {
+                    letter-spacing: 0.25em;
+                    font-size: 1.1rem;
+                    text-align: center;
+                    font-weight: 700;
+                }
+                .toggle-secondary-btn {
+                    background: transparent;
+                    border: none;
+                    color: var(--accent-primary, #3b82f6);
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    text-decoration: underline;
+                    padding: 4px 0;
+                    text-align: center;
+                    transition: opacity 0.2s ease;
+                }
+                .toggle-secondary-btn:hover {
+                    opacity: 0.85;
                 }
                 .login-footer {
                     margin-top: 24px;
@@ -305,4 +445,3 @@ export default function StudentLogin() {
         </div>
     );
 }
-

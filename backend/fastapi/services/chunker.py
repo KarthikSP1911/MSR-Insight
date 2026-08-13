@@ -120,8 +120,47 @@ def build_chunks_for_student(
     )
     chunks.append(Document(page_content=conduct_text, metadata={**base_meta, "chunk_type": "conduct"}))
 
-    # ── Chunk 6: Catch-all for other info ──────────────────────────
-    known_keys = {"subjects", "exam_history", "cgpa", "class_details", "remarks"}
+    # ── Chunk 6: Placement & Career Opportunities ─────────────────────
+    placement = details.get("placement")
+    if placement and isinstance(placement, dict):
+        prof = placement.get("profile", {})
+        prof_lines = [f"  - {k}: {v}" for k, v in prof.items() if v] if isinstance(prof, dict) else []
+
+        elig_events = placement.get("eligibilityEvents", [])
+        elig_lines = []
+        if isinstance(elig_events, list):
+            for ev in elig_events:
+                t = ev.get("title") or "Placement Event"
+                dets = ", ".join(ev.get("details", [])) if isinstance(ev.get("details"), list) else str(ev.get("details", ""))
+                elig_lines.append(f"  - {t}: {dets}")
+
+        in_prog_events = placement.get("inProgressEvents", [])
+        prog_lines = []
+        if isinstance(in_prog_events, list):
+            for ev in in_prog_events:
+                t = ev.get("title") or "In-Progress Event"
+                dets = ", ".join(ev.get("details", [])) if isinstance(ev.get("details"), list) else str(ev.get("details", ""))
+                prog_lines.append(f"  - {t}: {dets}")
+
+        comp_events = placement.get("completedEvents", [])
+        comp_lines = []
+        if isinstance(comp_events, list):
+            for ev in comp_events:
+                t = ev.get("title") or "Completed Event"
+                dets = ", ".join(ev.get("details", [])) if isinstance(ev.get("details"), list) else str(ev.get("details", ""))
+                comp_lines.append(f"  - {t}: {dets}")
+
+        placement_text = (
+            f"Placement Profile & Job Applications — {name} ({usn})\n"
+            f"Placement Profile:\n" + ("\n".join(prof_lines) if prof_lines else "  No profile data available.") + "\n\n"
+            f"Available Placement Events:\n" + ("\n".join(elig_lines) if elig_lines else "  No active eligibility events.") + "\n\n"
+            f"Applications In Progress:\n" + ("\n".join(prog_lines) if prog_lines else "  No in-progress applications.") + "\n\n"
+            f"Completed Drives & Offers:\n" + ("\n".join(comp_lines) if comp_lines else "  No completed drives.")
+        )
+        chunks.append(Document(page_content=placement_text, metadata={**base_meta, "chunk_type": "placement"}))
+
+    # ── Chunk 7: Catch-all for other info ──────────────────────────
+    known_keys = {"subjects", "exam_history", "cgpa", "class_details", "remarks", "placement", "auth_type", "encrypted_pin"}
     leftover = {k: v for k, v in details.items() if k not in known_keys}
     if leftover:
         misc_text = (
@@ -154,6 +193,11 @@ CHUNK_KEYWORDS: Dict[str, List[str]] = {
     "identity":   [
         "who is", "about", "details", "branch", "section", "usn", "identity", 
         "year", "contact", "phone", "email", "student", "person", "profile", "class"
+    ],
+    "placement":  [
+        "placement", "placements", "job", "jobs", "company", "companies", "ctc", 
+        "package", "lpa", "salary", "hiring", "recruit", "recruitment", "interview", 
+        "drive", "eligible", "eligibility", "registered", "offer", "puc", "sslc", "10th", "12th"
     ],
 }
 

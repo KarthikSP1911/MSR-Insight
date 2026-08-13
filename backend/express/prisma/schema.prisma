@@ -10,15 +10,17 @@ datasource db {
 }
 
 model Student {
-  usn          String               @id
-  name         String
-  dob          String?
-  phone        String?
-  email        String?
-  current_year Int
-  details      Json                 // For backward compatibility / performance metrics
-  parents      Parent[]
-  proctor_maps ProctorStudentMap[]
+  usn           String               @id
+  name          String
+  dob           String?
+  phone         String?
+  email         String?
+  current_year  Int
+  auth_type     String?
+  encrypted_pin String?
+  details       Json                 // For backward compatibility / performance metrics
+  parents       Parent[]
+  proctor_maps  ProctorStudentMap[]
 
   @@map("students")
 }
