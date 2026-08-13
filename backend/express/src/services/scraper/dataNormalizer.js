@@ -124,7 +124,8 @@ export class DataNormalizer {
             last_updated: scrapedRecord.last_updated,
             current_year: currentYear,
             subjects: normalizedSubjects,
-            exam_history: scrapedRecord.exam_history || []
+            exam_history: scrapedRecord.exam_history || [],
+            placement: scrapedRecord.placement || null
         };
     }
 
