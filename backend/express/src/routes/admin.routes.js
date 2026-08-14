@@ -2,6 +2,13 @@ import { Router } from "express";
 import adminController from "../controllers/admin.controller.js";
 import { runWeeklyAttendanceCron } from "../services/weeklyAttendance.service.js";
 import logger from '../utils/logger.js';
+import validate from "../middlewares/validate.middleware.js";
+import {
+  addProctorSchema,
+  assignStudentSchema,
+  assignMultipleStudentsSchema,
+  addParentSchema,
+} from "../schemas/admin.schema.js";
 
 const router = Router();
 
@@ -20,20 +27,20 @@ router.use(verifyAdminAccess);
 
 // Proctor management
 router.get("/proctors", adminController.listProctors);
-router.post("/proctors", adminController.addProctor);
+router.post("/proctors", validate(addProctorSchema), adminController.addProctor);
 router.delete("/proctors/:proctorId", adminController.removeProctor);
 
 // Proctor-Student management
 router.get("/proctors/:proctorId/students", adminController.listProctorStudents);
-router.post("/proctors/:proctorId/students", adminController.assignStudent);
-router.post("/proctors/:proctorId/students/bulk", adminController.assignMultipleStudents);
+router.post("/proctors/:proctorId/students", validate(assignStudentSchema), adminController.assignStudent);
+router.post("/proctors/:proctorId/students/bulk", validate(assignMultipleStudentsSchema), adminController.assignMultipleStudents);
 router.delete("/proctors/:proctorId/students/:usn", adminController.removeStudent);
 
 // Unassigned students
 router.get("/students/unassigned", adminController.listUnassignedStudents);
 
 // Parent management
-router.post("/parents", adminController.addParent);
+router.post("/parents", validate(addParentSchema), adminController.addParent);
 
 // Stats
 router.get("/stats", adminController.getStats);

@@ -26,13 +26,6 @@ class AdminController {
     try {
       const { proctorId, password, name, phone, email } = req.body;
 
-      if (!proctorId || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Proctor ID and Password are required",
-        });
-      }
-
       const proctor = await adminService.addOrUpdateProctor(proctorId, password, name, phone, email);
 
       return res.status(201).json({
@@ -100,13 +93,6 @@ class AdminController {
       const { proctorId } = req.params;
       const { usn, dob, academicYear = "2027", name, phone, email } = req.body;
 
-      if (!usn) {
-        return res.status(400).json({
-          success: false,
-          message: "Student USN is required",
-        });
-      }
-
       const assignment = await adminService.assignStudentToProctor(proctorId, {
         usn, dob, name, phone, email
       }, academicYear);
@@ -129,13 +115,6 @@ class AdminController {
     try {
       const { proctorId } = req.params;
       const { usns, academicYear = "2027" } = req.body;
-
-      if (!usns || !Array.isArray(usns) || usns.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "A list of USNs is required",
-        });
-      }
 
       const assignments = await adminService.assignMultipleStudents(proctorId, usns, academicYear);
 
@@ -206,13 +185,6 @@ class AdminController {
   async addParent(req, res, next) {
     try {
       const { usn, relation, name, phone, email } = req.body;
-
-      if (!usn || !relation || !name || !phone || !email) {
-        return res.status(400).json({
-          success: false,
-          message: "USN, relation, name, phone, and email are all required",
-        });
-      }
 
       const parent = await adminService.addParent(usn, relation, name, phone, email);
 

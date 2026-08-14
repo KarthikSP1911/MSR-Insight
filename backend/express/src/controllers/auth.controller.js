@@ -14,13 +14,6 @@ class AuthController {
     try {
       const { usn, dob } = req.body;
 
-      if (!usn || !dob) {
-        return res.status(400).json({
-          success: false,
-          message: "USN and Date of Birth are required",
-        });
-      }
-
       const result = await authService.register(usn, dob);
 
       res.cookie("session_id", result.sessionId, cookieOptions);
@@ -38,13 +31,6 @@ class AuthController {
   async login(req, res, next) {
     try {
       const { usn, dob, authType, last4Digits, forceResync } = req.body;
-
-      if (!usn || !dob) {
-        return res.status(400).json({
-          success: false,
-          message: "USN and Date of Birth are required",
-        });
-      }
 
       const result = await authService.login(usn, dob, authType, last4Digits, forceResync);
 
@@ -75,13 +61,6 @@ class AuthController {
     try {
       const { proctorId, password, name } = req.body;
 
-      if (!proctorId || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Proctor ID and Password are required",
-        });
-      }
-
       await authService.proctorRegister(proctorId, password, name);
 
       return res.status(201).json({
@@ -102,13 +81,6 @@ class AuthController {
   async proctorLogin(req, res, next) {
     try {
       const { proctorId, password } = req.body;
-
-      if (!proctorId || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Proctor ID and Password are required",
-        });
-      }
 
       const result = await authService.proctorLogin(proctorId, password);
       
