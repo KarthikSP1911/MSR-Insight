@@ -1,0 +1,42 @@
+[project]
+name = "msr-insight-fastapi"
+version = "0.1.0"
+description = "MSR Insight FastAPI backend (reports + RAG chat)"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi==0.139.0",
+  "uvicorn[standard]==0.51.0",
+  "pydantic==2.13.4",
+  "python-dotenv==1.2.2",
+  "rich==15.0.0",
+  "groq==1.5.0",
+  "langchain-core==1.4.9",
+  "langchain-classic==1.0.8",
+  "langchain-community==0.4.2",
+  "langchain-google-genai==4.2.7",
+  "langchain-postgres==0.0.17",
+  "psycopg[binary]==3.3.4",
+  "psycopg2-binary==2.9.12",
+  "pgvector==0.3.6",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.1.1",
+  "pytest-asyncio==1.4.0",
+  "pytest-cov==7.1.0",
+  "pytest-mock==3.15.1",
+]
+
+[project.optional-dependencies]
+audit = ["pip-audit==2.10.1"]
+
+[project.scripts]
+dev = "dev:main"
+
+[tool.uv]
+package = true
+
+[tool.setuptools]
+py-modules = ["main", "dev"]
+packages = ["config", "routers", "services", "models"]

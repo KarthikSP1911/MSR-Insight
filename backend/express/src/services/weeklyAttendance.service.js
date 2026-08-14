@@ -304,7 +304,7 @@ const sendWeeklyAttendanceEmail = async (
  * Main cron job runner — fetches ALL students and sends attendance digests.
  */
 export const runWeeklyAttendanceCron = async () => {
-  logger.info("[WeeklyCron] ▶ Starting weekly attendance digest...");
+  logger.info("[WeeklyCron] Starting weekly attendance digest...");
   const startTime = Date.now();
 
   const logoDataUri = getLogoDataUri();
@@ -327,7 +327,7 @@ export const runWeeklyAttendanceCron = async () => {
       },
     });
   } catch (err) {
-    logger.error("[WeeklyCron] ✗ Failed to fetch students from DB:", err.message);
+    logger.error("[WeeklyCron] Failed to fetch students from DB:", err.message);
     return;
   }
 
@@ -356,6 +356,6 @@ export const runWeeklyAttendanceCron = async () => {
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   logger.info(
-    `[WeeklyCron] ✅ Done in ${elapsed}s — Success: ${successCount}, Failed: ${failureCount}, Skipped: ${skippedCount}`
+    `[WeeklyCron] Done in ${elapsed}s — Success: ${successCount}, Failed: ${failureCount}, Skipped: ${skippedCount}`
   );
 };

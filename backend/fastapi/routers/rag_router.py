@@ -1,8 +1,10 @@
+import logging
+
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-import traceback
 from services.rag_service import RAGService
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/rag", tags=["RAG"])
 rag_service = RAGService()
 
@@ -35,6 +37,5 @@ def chat_with_rag(request: ChatRequest):
         answer = rag_service.query_chatbot(request.question, request.proctor_id)
         return {"answer": answer}
     except Exception as e:
-        print(f"ERROR: {str(e)}")
-        traceback.print_exc()
+        logger.exception("RAG chat query failed: %s", e)
         raise HTTPException(status_code=500, detail="Failed to generate response from RAG")

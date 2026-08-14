@@ -74,8 +74,8 @@ app.use(expressWinston.logger({
     winstonInstance: logger,
     meta: true, // Log metadata about the request/response
     msg: "HTTP {{req.method}} {{req.url}}", 
-    expressFormat: true, 
-    colorize: false,
+    expressFormat: true,
+    colorize: process.env.NODE_ENV !== "production",
     ignoreRoute: function (req, res) { return req.url === '/api/health'; } // skip health checks
 }));
 

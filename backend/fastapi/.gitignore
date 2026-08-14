@@ -1,4 +1,5 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -7,5 +8,6 @@ __pycache__/
 .env.*
 .pytest_cache/
 .mypy_cache/
+*.egg-info/
 .idea/
 .vscode/

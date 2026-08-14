@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import logger from './logger.js';
 
 const ALGORITHM = 'aes-256-gcm';
 const SECRET_KEY = crypto
@@ -43,7 +44,7 @@ export function decryptText(encryptedHash) {
     decrypted += decipher.final('utf8');
     return decrypted;
   } catch (error) {
-    console.error('[Crypto] Decryption failed:', error.message);
+    logger.error(`Decryption failed: ${error.message}`);
     return '';
   }
 }

@@ -2,10 +2,10 @@
 set "ROOT=%~dp0"
 
 echo Starting FastAPI Backend...
-start "FastAPI Backend" cmd /k "cd /d %ROOT%backend\fastapi && call venv\Scripts\activate && python main.py"
+start "FastAPI Backend" cmd /k "cd /d %ROOT%backend\fastapi && uv run dev"
 
 echo Starting Express Backend...
-start "Express Backend" cmd /k "cd /d %ROOT%backend\express && node server.js"
+start "Express Backend" cmd /k "cd /d %ROOT%backend\express && npm run dev"
 
 echo Starting Frontend...
 start "Frontend" cmd /k "cd /d %ROOT%frontend && npm run dev"
