@@ -1,9 +1,11 @@
-import traceback
+import logging
+
 from fastapi import APIRouter, HTTPException
 from models.request_models import RemarkRequest
 from services.ai_service import AIService
 from config.settings import settings
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 ai_service = AIService()
 
@@ -16,6 +18,5 @@ def generate_ai_remark(request: dict):
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        print(f"ERROR: {str(e)}")
-        traceback.print_exc()
+        logger.exception("AI remark generation failed: %s", e)
         raise HTTPException(status_code=500, detail="Internal Server Error during AI remark generation")

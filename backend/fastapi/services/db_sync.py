@@ -12,13 +12,13 @@ logger = logging.getLogger(__name__)
 def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
     """Fetch all student records from Postgres and upsert chunked docs into VectorStore."""
     try:
-        print("\n--- Starting Data Sync ---")
+        logger.info("Starting data sync")
         if not settings.DATABASE_URL:
             raise ValueError("DATABASE_URL is not set.")
 
         conn = psycopg2.connect(settings.DATABASE_URL)
         cursor = conn.cursor()
-        print(f"Connected to Database: {settings.DATABASE_URL.split('@')[1].split('/')[0]}")
+        logger.info(f"Connected to database: {settings.DATABASE_URL.split('@')[1].split('/')[0]}")
 
         cursor.execute("""
             SELECT s.usn, s.name, s.current_year, s.details,
@@ -27,7 +27,7 @@ def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
             JOIN proctor_student_map p ON s.usn = p.student_id
         """)
         rows = cursor.fetchall()
-        print(f"Fetched {len(rows)} student records from Postgres")
+        logger.info(f"Fetched {len(rows)} student records from Postgres")
         cursor.close()
         conn.close()
 
@@ -40,25 +40,25 @@ def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
                 usn, name, current_year, details, proctor_id, academic_year
             )
             all_documents.extend(student_chunks)
-        
-        print(f"Generated {len(all_documents)} total chunks")
+
+        logger.info(f"Generated {len(all_documents)} total chunks")
 
         if all_documents:
-            print("Updating Vector Store (PGVector in Neon)...")
+            logger.info("Updating vector store (PGVector in Neon)")
             try:
-                print("Dropping existing PGVector tables for a clean sync...")
+                logger.debug("Dropping existing PGVector tables for a clean sync")
                 vector_store.drop_tables()
             except Exception as e:
-                print(f"Notice: Could not drop tables (might not exist yet): {e}")
+                logger.warning(f"Could not drop tables (might not exist yet): {e}")
 
             try:
-                print("Re-creating PGVector tables...")
+                logger.debug("Re-creating PGVector tables")
                 vector_store.create_tables_if_not_exists()
-                print("Creating collection...")
+                logger.debug("Creating collection")
                 vector_store.create_collection()
                 vector_store.add_documents(all_documents)
             except Exception as e:
-                print(f"Error adding documents to PGVector: {e}")
+                logger.error(f"Error adding documents to PGVector: {e}")
                 raise e
 
         sync_time = datetime.now().isoformat()
@@ -68,9 +68,8 @@ def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
             "chunks": len(all_documents),
             "timestamp": sync_time
         }
-        
-        print("--- Sync Completed Successfully ---")
-        logger.info(f"Synced {len(rows)} students → {len(all_documents)} chunks")
+
+        logger.info(f"Sync completed successfully: {len(rows)} students -> {len(all_documents)} chunks")
         return result
 
     except Exception as e:

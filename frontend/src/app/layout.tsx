@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import AppWrapper from "@/components/AppWrapper";
@@ -13,6 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MSR Insight",
   description: "Advanced Academic Reporting System",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
