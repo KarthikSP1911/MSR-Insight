@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piyyg Scraper Orchestrator</title>
+    <title>MSR Insight — Proctor Scraper</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -21,11 +21,23 @@
             padding-bottom: 12px;
             border-bottom: 1px solid #2a2a35;
         }
+        .header img {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
         .header h1 {
             font-size: 14px;
             font-weight: 600;
             color: #a78bfa;
+            flex: 1;
         }
+        .header a {
+            font-size: 10px;
+            color: #6b6b80;
+            text-decoration: none;
+        }
+        .header a:hover { color: #a78bfa; }
         .status-dot {
             width: 8px;
             height: 8px;
@@ -101,6 +113,19 @@
             cursor: not-allowed;
         }
         
+        .error-banner {
+            display: none;
+            margin-top: 12px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .error-banner.active { display: block; }
+
         .footer {
             margin-top: 16px;
             padding-top: 12px;
@@ -113,8 +138,9 @@
 </head>
 <body>
     <div class="header">
-        <div class="status-dot" id="statusDot"></div>
-        <h1>Piyyg Scraper (Proctor Mode)</h1>
+        <img src="icons/icon32.png" alt="MSR Insight" />
+        <h1>Proctor Scraper</h1>
+        <a href="http://localhost:3000/proctor-login" target="_blank" rel="noopener">Open Dashboard ↗</a>
     </div>
 
     <div class="section">
@@ -141,9 +167,11 @@
         </div>
     </div>
 
+    <div class="error-banner" id="errorBanner"></div>
+
     <button class="btn" id="startBtn" disabled>Start Batch Scrape</button>
 
-    <div class="footer">MSR-Insight • Automated Orchestration</div>
+    <div class="footer">MSR Insight • Automated Orchestration • v1.0.0</div>
 
     <script src="popup.js"></script>
 </body>
