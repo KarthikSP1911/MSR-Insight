@@ -42,13 +42,13 @@ const CustomSelect = ({ value, onChange, options, placeholder }: { value: string
                 .select-trigger {
                     background: var(--bg-primary);
                     border: 1px solid var(--border-subtle);
-                    padding: 10px 14px;
+                    padding: 9px 12px;
                     border-radius: var(--radius-md);
                     cursor: pointer;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    font-size: 0.9rem;
+                    font-size: 0.85rem;
                     transition: all 0.2s ease;
                 }
                 .select-trigger:hover { border-color: var(--border-bright); background: var(--bg-secondary); }
@@ -78,7 +78,7 @@ const CustomSelect = ({ value, onChange, options, placeholder }: { value: string
                     transition: all 0.2s ease;
                 }
                 .select-option:hover { background: var(--bg-surface); color: var(--text-primary); }
-                .select-option.selected { background: var(--bg-surface); color: var(--accent-primary); font-weight: 600; }
+                .select-option.selected { background: var(--bg-surface); color: var(--text-primary); font-weight: 600; }
                 .select-overlay { position: fixed; inset: 0; z-index: 90; }
             `}</style>
         </div>
@@ -194,7 +194,6 @@ export default function StudentLogin() {
             <div className="login-card fade-in">
                 <header className="login-header">
                     <h1 className="login-title">Student Portal</h1>
-                    <p className="login-subtitle">Sign in to access your reports</p>
                 </header>
 
                 <form onSubmit={handleSubmit} className="login-form">
@@ -205,7 +204,9 @@ export default function StudentLogin() {
                             className="input-field"
                             value={usn}
                             onChange={(e) => setUsn(e.target.value.toUpperCase().replace(/\s+/g, ""))}
-                            placeholder="e.g. 1MS24CS001"
+                            placeholder="1MS20AB000"
+                            autoComplete="off"
+                            name="usn"
                         />
                     </div>
 
@@ -258,7 +259,7 @@ export default function StudentLogin() {
                                     className="input-field pin-input"
                                     value={last4Digits}
                                     onChange={(e) => setLast4Digits(e.target.value.replace(/\D/g, ""))}
-                                    placeholder="e.g. 1234"
+                                    placeholder="••••"
                                 />
                             </div>
                         </div>
@@ -289,10 +290,6 @@ export default function StudentLogin() {
                     <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
                         {loading ? "Verifying & Syncing..." : "Sign In"}
                     </button>
-                    
-                    <div className="login-footer">
-                        Secure academic access powered by MSR Insight
-                    </div>
                 </form>
             </div>
 
@@ -301,144 +298,145 @@ export default function StudentLogin() {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    min-height: calc(100vh - var(--nav-height));
+                    height: calc(100vh - var(--nav-height));
+                    padding: 24px 16px;
                     background: var(--bg-primary);
+                    overflow: hidden;
                 }
                 .login-card {
                     background: var(--bg-secondary);
                     border: 1px solid var(--border-subtle);
                     border-radius: var(--radius-lg);
-                    padding: 40px;
+                    padding: 28px 28px 36px;
+                    max-height: 100%;
+                    overflow-y: auto;
+                    scrollbar-width: none;
                     width: 100%;
-                    max-width: 440px;
+                    max-width: 380px;
                     box-shadow: var(--shadow-lg);
                 }
+                .login-card::-webkit-scrollbar {
+                    display: none;
+                }
                 .login-header {
-                    margin-bottom: 32px;
+                    margin-bottom: 18px;
                     text-align: center;
                 }
                 .login-title {
-                    font-size: 1.75rem;
+                    font-size: 1.4rem;
                     font-weight: 800;
-                    margin-bottom: 8px;
                     color: var(--text-primary);
-                }
-                .login-subtitle {
-                    color: var(--text-secondary);
-                    font-size: 0.95rem;
                 }
                 .login-form {
                     display: flex;
                     flex-direction: column;
-                    gap: 20px;
+                    gap: 14px;
+                }
+                .form-label {
+                    margin-bottom: 4px;
+                    font-size: 0.8rem;
+                }
+                .input-field {
+                    padding: 9px 12px;
+                    font-size: 0.9rem;
                 }
                 .dob-grid {
                     display: flex;
-                    gap: 10px;
+                    gap: 8px;
                 }
                 .login-btn {
-                    margin-top: 10px;
+                    margin-top: 6px;
                     font-weight: 600;
-                    height: 44px;
+                    height: 40px;
                 }
                 .form-error {
                     background: rgba(239, 68, 68, 0.1);
                     border: 1px solid rgba(239, 68, 68, 0.2);
                     color: var(--error, #ef4444);
-                    padding: 10px;
+                    padding: 8px;
                     border-radius: var(--radius-md);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
                     text-align: center;
                 }
                 .form-info {
-                    background: rgba(59, 130, 246, 0.1);
-                    border: 1px solid rgba(59, 130, 246, 0.25);
-                    color: var(--accent-primary, #3b82f6);
-                    padding: 10px 14px;
+                    background: var(--bg-surface, rgba(255, 255, 255, 0.03));
+                    border: 1px solid var(--border-subtle);
+                    color: var(--text-secondary);
+                    padding: 8px 12px;
                     border-radius: var(--radius-md);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
                     text-align: center;
-                    line-height: 1.4;
+                    line-height: 1.35;
                 }
                 .secondary-auth-section {
                     display: flex;
                     flex-direction: column;
-                    gap: 16px;
-                    padding: 16px;
+                    gap: 10px;
+                    padding: 12px;
                     background: var(--bg-surface, rgba(255, 255, 255, 0.03));
                     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
                     border-radius: var(--radius-md);
-                    margin-top: 4px;
                 }
                 .secondary-header h3 {
-                    font-size: 0.95rem;
+                    font-size: 0.88rem;
                     font-weight: 700;
                     color: var(--text-primary);
                     margin-bottom: 2px;
                 }
                 .secondary-header p {
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
                     color: var(--text-muted);
                 }
                 .pin-input {
                     letter-spacing: 0.25em;
-                    font-size: 1.1rem;
+                    font-size: 1rem;
                     text-align: center;
                     font-weight: 700;
                 }
                 .toggle-secondary-btn {
                     background: transparent;
                     border: none;
-                    color: var(--accent-primary, #3b82f6);
-                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    font-size: 0.75rem;
                     cursor: pointer;
                     text-decoration: underline;
-                    padding: 4px 0;
+                    padding: 2px 0;
                     text-align: center;
-                    transition: opacity 0.2s ease;
+                    transition: color 0.2s ease;
                 }
                 .toggle-secondary-btn:hover {
-                    opacity: 0.85;
-                }
-                .login-footer {
-                    margin-top: 24px;
-                    text-align: center;
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
+                    color: var(--text-primary);
                 }
 
                 @media (max-width: 768px) {
+                    .login-page {
+                        padding: 24px 16px;
+                    }
                     .login-card {
-                        padding: 32px 24px;
-                        max-width: 380px;
-                        margin: 20px;
+                        padding: 24px 20px 30px;
+                        max-width: 340px;
                     }
                     .login-title {
-                        font-size: 1.5rem;
+                        font-size: 1.3rem;
                     }
                 }
 
                 @media (max-width: 480px) {
                     .login-page {
-                        align-items: flex-start;
-                        padding-top: 40px;
+                        padding: 16px 12px;
                     }
                     .login-card {
-                        padding: 24px 20px;
-                        margin: 16px;
+                        padding: 20px 16px 26px;
                         border-radius: var(--radius-md);
                     }
                     .dob-grid {
-                        flex-direction: column;
-                        gap: 12px;
+                        gap: 6px;
+                    }
+                    .select-trigger {
+                        padding: 9px 6px;
                     }
                     .login-title {
-                        font-size: 1.35rem;
-                    }
-                    .login-subtitle {
-                        font-size: 0.85rem;
+                        font-size: 1.2rem;
                     }
                 }
             `}</style>
