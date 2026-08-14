@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar/Navbar";
 import InboxPanel from "@/components/dashboard/InboxPanel";
 import { API_BASE_URL } from "@/config/api.config";
 import { AppProvider, useAppContext, Alert } from "@/lib/AppContext";
+import QueryProvider from "@/lib/QueryProvider";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -132,8 +133,10 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <AppProvider>
-      <AppContent>{children}</AppContent>
-    </AppProvider>
+    <QueryProvider>
+      <AppProvider>
+        <AppContent>{children}</AppContent>
+      </AppProvider>
+    </QueryProvider>
   );
 }

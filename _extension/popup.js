@@ -47,7 +47,17 @@ function updateUI(session, state) {
 
     // Update System Status
     $('systemStatus').textContent = state.statusMessage || 'Idle';
-    
+
+    // Surface failures/errors in a dedicated banner instead of burying them in the status line
+    const isFailure = /error|failed/i.test(state.statusMessage || '');
+    const errorBanner = $('errorBanner');
+    if (isFailure) {
+        errorBanner.textContent = state.statusMessage;
+        errorBanner.classList.add('active');
+    } else {
+        errorBanner.classList.remove('active');
+    }
+
     // Update Progress UI
     const progressContainer = $('progressContainer');
     
@@ -85,7 +95,10 @@ function startScrape() {
     
     chrome.runtime.sendMessage({ type: 'START_BATCH_SCRAPE' }, (response) => {
         if (!response || !response.started) {
-            $('systemStatus').textContent = response?.reason || "Failed to start.";
+            const reason = response?.reason || "Failed to start.";
+            $('systemStatus').textContent = reason;
+            $('errorBanner').textContent = reason;
+            $('errorBanner').classList.add('active');
             $('startBtn').disabled = false;
             $('startBtn').textContent = 'Start Batch Scrape';
         }

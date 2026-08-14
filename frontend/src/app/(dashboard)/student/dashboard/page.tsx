@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import axios from "axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Target, History as HistoryIcon, Award, Menu, X, Gamepad2, LogOut, BookOpen, Briefcase, BarChart3
 } from "lucide-react";
@@ -46,14 +47,22 @@ const GRADE_POINTS: Record<string, number> = {
 export default function StudentDashboard() {
     // 1. Core Hooks & State
     const router = useRouter();
-    const [student, setStudent] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [mounted, setMounted] = useState(false);
-    
+
     // 1b. Route-aware Tab State
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const activeTab = searchParams.get('tab') || 'performance';
+
+    // 1c. Profile query params (proctor-viewing-student vs. self)
+    const proctorView = searchParams.get("proctorView") === "true";
+    const proctorViewProctorId = searchParams.get("proctorId");
+    const proctorViewUsn = searchParams.get("usn");
+    const isProctorViewing = proctorView && !!proctorViewProctorId && !!proctorViewUsn;
+    const profileQueryKey = isProctorViewing
+        ? ["studentProfile", "proctorView", proctorViewProctorId, proctorViewUsn]
+        : ["studentProfile", "self"];
     
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [nextAllowedAt, setNextAllowedAt] = useState<string | null>(null);
@@ -84,6 +93,58 @@ export default function StudentDashboard() {
         }
         return () => document.removeEventListener('click', handleOutsideClick);
     }, [showMobileProfileMenu]);
+
+    // 2b. Profile fetch (cached, deduped, retried by React Query)
+    const {
+        data: student,
+        isLoading: profileLoading,
+        error: profileError,
+    } = useQuery({
+        queryKey: profileQueryKey,
+        enabled: mounted,
+        retry: false,
+        queryFn: async () => {
+            if (isProctorViewing) {
+                const pSessionId = localStorage.getItem("proctorSessionId");
+                if (!pSessionId) throw { redirectTo: "/proctor-login" };
+
+                const response = await axios.get(
+                    `${API_BASE_URL}/api/proctor/${proctorViewProctorId}/student/${proctorViewUsn}`,
+                    { headers: { "x-session-id": pSessionId } }
+                );
+                if (response.data.success && response.data.data) return response.data.data;
+                throw { redirectTo: "/proctor-login" };
+            }
+
+            const sessionId = localStorage.getItem("studentSessionId");
+            const usn = localStorage.getItem("studentUsn");
+            if (!sessionId || !usn) throw { redirectTo: "/student-login" };
+
+            const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
+                headers: { "x-session-id": sessionId },
+            });
+            if (response.data.success && response.data.data) return response.data.data;
+
+            localStorage.clear();
+            throw { redirectTo: "/student-login" };
+        },
+    });
+    const loading = !mounted || profileLoading;
+
+    // Redirect side-effects when the profile fetch fails
+    useEffect(() => {
+        if (!profileError) return;
+        const err: any = profileError;
+        console.error("Dashboard mount error:", err);
+
+        if (err?.redirectTo) {
+            router.push(err.redirectTo);
+        } else if (err?.response?.status === 401) {
+            const loginPath = isProctorViewing ? "/proctor-login" : "/student-login";
+            if (!isProctorViewing) localStorage.clear();
+            router.push(loginPath);
+        }
+    }, [profileError, router, isProctorViewing]);
 
     // 2. Derived Data (useMemo)
     const detailsBlob = useMemo(() => student?.details || {}, [student]);
@@ -184,80 +245,14 @@ export default function StudentDashboard() {
         }
     }, [student]);
 
-    // 3. Effects
+    // Derive the next allowed re-sync time whenever fresh student data lands
     useEffect(() => {
-        const fetchProfile = async () => {
-            const proctorView = searchParams.get("proctorView");
-            const proctorId = searchParams.get("proctorId");
-            const queryUsn = searchParams.get("usn");
-
-            if (proctorView === "true" && proctorId && queryUsn) {
-                const pSessionId = localStorage.getItem("proctorSessionId");
-                if (!pSessionId) { router.push("/proctor-login"); return; }
-
-                try {
-                    const response = await axios.get(`${API_BASE_URL}/api/proctor/${proctorId}/student/${queryUsn}`, {
-                        headers: { "x-session-id": pSessionId },
-                    });
-                    if (response.data.success && response.data.data) {
-                        const data = response.data.data;
-                        setStudent(data);
-
-                        const lastSync = data.details?.last_updated || data.last_updated;
-                        if (lastSync) {
-                            const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
-                            setNextAllowedAt(next);
-                        }
-                    } else {
-                        router.push("/proctor-login");
-                    }
-                } catch (err: any) {
-                    console.error("Proctor view mount error:", err);
-                    if (err.response?.status === 401) {
-                        localStorage.clear();
-                        router.push("/proctor-login");
-                    }
-                } finally {
-                    setLoading(false);
-                }
-                return;
-            }
-
-            const sessionId = localStorage.getItem("studentSessionId");
-            const usn = localStorage.getItem("studentUsn");
-            if (!sessionId || !usn) { router.push("/student-login"); return; }
-
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
-                    headers: { "x-session-id": sessionId },
-                });
-                if (response.data.success && response.data.data) {
-                    const data = response.data.data;
-                    setStudent(data);
-
-                    const lastSync = data.details?.last_updated || data.last_updated;
-                    if (lastSync) {
-                        const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
-                        setNextAllowedAt(next);
-                    }
-
-                } else {
-                    // If success is false or no data, redirect to login
-                    localStorage.clear();
-                    router.push("/student-login");
-                }
-            } catch (err: any) {
-                console.error("Dashboard mount error:", err);
-                if (err.response?.status === 401) {
-                    localStorage.clear();
-                    router.push("/student-login");
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [router, searchParams]);
+        const lastSync = detailsBlob.last_updated || student?.last_updated;
+        if (lastSync) {
+            const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
+            setNextAllowedAt(next);
+        }
+    }, [student, detailsBlob]);
 
     useEffect(() => {
         if (currentSem.length > 0 && Object.keys(predictedGrades).length === 0) {
@@ -282,32 +277,26 @@ export default function StudentDashboard() {
     };
     const handleLogout = () => { localStorage.clear(); router.push("/"); };
 
-    const handleUpdate = async () => {
-        if (isCooldownActive) return;
-        const sessionId = localStorage.getItem("studentSessionId");
-        if (!sessionId || !stdUsn) return;
-
-        setUpdateStatus('loading');
-        try {
-            const response = await axios.post(`${API_BASE_URL}/api/report/update`, 
+    const updateMutation = useMutation({
+        mutationFn: async () => {
+            const sessionId = localStorage.getItem("studentSessionId");
+            if (!sessionId || !stdUsn) throw new Error("Missing session");
+            const response = await axios.post(
+                `${API_BASE_URL}/api/report/update`,
                 { usn: stdUsn },
                 { headers: { "x-session-id": sessionId } }
             );
-
-            if (response.data.success && response.data.data) {
-                setStudent(response.data.data);
+            return response.data;
+        },
+        onSuccess: (data) => {
+            if (data.success && data.data) {
+                queryClient.setQueryData(profileQueryKey, data.data);
                 setUpdateStatus('success');
-                
-                const lastSync = response.data.data.details?.last_updated || response.data.data.last_updated;
-                if (lastSync) {
-                    const next = new Date(new Date(lastSync).getTime() + 5 * 60 * 1000).toISOString();
-                    setNextAllowedAt(next);
-                }
-
             } else {
                 setUpdateStatus('error');
             }
-        } catch (err: any) {
+        },
+        onError: (err: any) => {
             console.error("Manual update failed:", err);
             setUpdateStatus('error');
             if (err.response?.status === 429 && err.response?.data?.nextAllowedAt) {
@@ -315,9 +304,16 @@ export default function StudentDashboard() {
             } else if (err.response?.data?.requiresRelogin || err.response?.status === 401) {
                 setIsPinModalOpen(true);
             }
-        } finally {
+        },
+        onSettled: () => {
             setTimeout(() => setUpdateStatus(null), 3000);
-        }
+        },
+    });
+
+    const handleUpdate = () => {
+        if (isCooldownActive) return;
+        setUpdateStatus('loading');
+        updateMutation.mutate();
     };
 
     if (!mounted || loading || !student) return <LoadingScreen />;
@@ -519,7 +515,7 @@ export default function StudentDashboard() {
                 dob={student?.dob || ""}
                 onClose={() => setIsPinModalOpen(false)}
                 onSuccess={(updatedData) => {
-                    if (updatedData) setStudent(updatedData);
+                    if (updatedData) queryClient.setQueryData(profileQueryKey, updatedData);
                     setUpdateStatus('success');
                     handleUpdate();
                 }}
