@@ -245,10 +245,6 @@ class ProctorController {
       const { message, academicYear = "2027" } = req.body;
       const normalizedProctorId = proctorId.toUpperCase();
 
-      if (!message) {
-        return res.status(400).json({ success: false, message: "Message is required." });
-      }
-
       if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ success: false, message: "Gemini API Key is not configured." });
       }

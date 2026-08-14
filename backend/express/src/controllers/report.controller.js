@@ -89,7 +89,6 @@ export const getStudentDashboardReport = async (req, res, next) => {
 export const triggerReportUpdate = async (req, res, next) => {
     try {
         const usn = req.body.usn;
-        if (!usn) return res.status(400).json({ success: false, message: "USN is required" });
 
         const dashboardData = await handleManualReportUpdate(usn);
 
@@ -117,9 +116,6 @@ export const triggerReportUpdate = async (req, res, next) => {
 export const sendReportViaEmail = async (req, res, next) => {
     try {
         const { usn, htmlContent } = req.body;
-        if (!usn || !htmlContent) {
-            return res.status(400).json({ success: false, message: "USN and HTML report content are required" });
-        }
 
         await queueEmailReport(usn, htmlContent);
 
@@ -138,9 +134,6 @@ export const sendReportViaEmail = async (req, res, next) => {
 export const sendReportViaWhatsApp = async (req, res, next) => {
     try {
         const { usn, htmlContent } = req.body;
-        if (!usn || !htmlContent) {
-            return res.status(400).json({ success: false, message: "USN and HTML report content are required" });
-        }
 
         const whatsappResult = await sendWhatsAppReport(usn, htmlContent);
 

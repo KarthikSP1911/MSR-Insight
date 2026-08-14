@@ -36,7 +36,8 @@
     "puppeteer": "^22.0.0",
     "redis": "^4.6.5",
     "resend": "^3.0.0",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "jest": "^30.4.2",

@@ -12,7 +12,7 @@ interface PlacementSectionProps {
         inProgressEvents?: any[];
         completedEvents?: any[];
     } | null;
-    handleUpdate: () => Promise<void>;
+    handleUpdate: () => void;
     updateStatus: "loading" | "success" | "error" | null;
     isCooldownActive: boolean;
     formatTime: string;
