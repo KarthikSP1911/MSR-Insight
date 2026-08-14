@@ -41,9 +41,9 @@ class RAGService:
         
         try:
             sample = self.embeddings.embed_query("test")
-            print(f"--- RAG Service Initialized (Embedding Dim: {len(sample)}) ---")
+            logger.info(f"RAG service initialized (embedding dim: {len(sample)})")
         except Exception as e:
-            print(f"--- RAG Service Initialized (Embedding Error: {e}) ---")
+            logger.error(f"RAG service initialized with embedding error: {e}")
 
     @property
     def is_syncing(self):
@@ -52,7 +52,7 @@ class RAGService:
     @property
     def vector_store(self):
         if self._vector_store is None:
-            print(f"Initializing PGVector with collection: student_data_v2")
+            logger.info("Initializing PGVector with collection: student_data_v2")
             
             db_url = settings.DATABASE_URL
             if db_url and db_url.startswith("postgresql://"):
@@ -90,9 +90,9 @@ class RAGService:
 
     def query_chatbot(self, question: str, proctor_id: str) -> str:
         """Answer a question using intent-aware RAG, scoped to the proctor's students."""
-        print(f"\n--- New Chat Query ---\nQuestion: {question}\nProctor ID: {proctor_id}")
+        logger.info(f"New chat query from proctor {proctor_id}: {question!r}")
 
-        print("Rewriting query...")
+        logger.debug("Rewriting query")
         rewrite_prompt = PromptTemplate.from_template("""
 You are a strict text normalizer.
 Rules:
@@ -105,7 +105,7 @@ Input: {question}
 Output: """)
         rewrite_chain = rewrite_prompt | self.llm | StrOutputParser()
         clean_question = rewrite_chain.invoke({"question": question}).strip()
-        print(f"Cleaned Question: {clean_question}")
+        logger.debug(f"Cleaned question: {clean_question}")
 
         def format_docs(docs: List[Document]) -> str:
             if not docs:
@@ -118,7 +118,7 @@ Output: """)
                     seen.add(key)
                     unique_docs.append(d)
             
-            print(f"Retrieved {len(unique_docs)} unique context chunks")
+            logger.debug(f"Retrieved {len(unique_docs)} unique context chunks")
             return "\n\n---\n\n".join(d.page_content for d in unique_docs)
 
         def get_docs(query: str):
@@ -150,7 +150,7 @@ Answer:"""
             | StrOutputParser()
         )
 
-        print("Invoking RAG Chain...")
+        logger.debug("Invoking RAG chain")
         response = rag_chain.invoke(clean_question)
-        print("--- Query Finished ---")
+        logger.info("Chat query finished")
         return response

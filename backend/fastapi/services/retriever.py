@@ -1,3 +1,4 @@
+import logging
 import psycopg2
 import json
 from typing import List
@@ -7,9 +8,11 @@ from langchain_community.retrievers import BM25Retriever
 from config.settings import settings
 from .chunker import detect_chunk_types, build_chunks_for_student
 
+logger = logging.getLogger(__name__)
+
 def get_ensemble_retriever(query: str, proctor_id: str, vector_store) -> EnsembleRetriever:
     """Gets an ensemble retriever combining PGVector (Semantic) and BM25 (Keyword)."""
-    print(f"Retrieving documents for query: {query}...")
+    logger.debug(f"Retrieving documents for query: {query!r}")
     
     chunk_types = detect_chunk_types(query)
     retriever_list = []
@@ -44,9 +47,9 @@ def get_ensemble_retriever(query: str, proctor_id: str, vector_store) -> Ensembl
             bm25_retriever.k = 5
             retriever_list.append(bm25_retriever)
             weights.append(0.3)  # Weight for BM25
-            print(f"Added BM25 Retriever with {len(all_proctor_docs)} proctor documents.")
+            logger.debug(f"Added BM25 retriever with {len(all_proctor_docs)} proctor documents")
     except Exception as e:
-        print(f"Error setting up BM25 Retriever: {e}")
+        logger.error(f"Error setting up BM25 retriever: {e}")
 
     # 2. Setup Semantic Retrievers
     if chunk_types:

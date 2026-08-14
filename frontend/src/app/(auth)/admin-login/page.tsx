@@ -65,10 +65,6 @@ export default function AdminLogin() {
                     <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
                         {loading ? "Authenticating..." : "Access Control Panel"}
                     </button>
-
-                    <div className="login-footer">
-                        Highly restricted area. Unauthorized access prohibited.
-                    </div>
                 </form>
             </div>
 
@@ -84,34 +80,42 @@ export default function AdminLogin() {
                     background: var(--bg-secondary);
                     border: 1px solid var(--border-subtle);
                     border-radius: var(--radius-lg);
-                    padding: 40px;
+                    padding: 28px 28px 36px;
                     width: 100%;
-                    max-width: 400px;
+                    max-width: 380px;
                     box-shadow: var(--shadow-lg);
                 }
                 .login-header {
-                    margin-bottom: 32px;
+                    margin-bottom: 18px;
                     text-align: center;
                 }
                 .login-title {
-                    font-size: 1.75rem;
+                    font-size: 1.4rem;
                     font-weight: 800;
-                    margin-bottom: 8px;
+                    margin-bottom: 4px;
                     color: var(--error);
                 }
                 .login-subtitle {
                     color: var(--text-secondary);
-                    font-size: 0.95rem;
+                    font-size: 0.85rem;
                 }
                 .login-form {
                     display: flex;
                     flex-direction: column;
-                    gap: 20px;
+                    gap: 14px;
+                }
+                .form-label {
+                    margin-bottom: 4px;
+                    font-size: 0.8rem;
+                }
+                .input-field {
+                    padding: 9px 12px;
+                    font-size: 0.9rem;
                 }
                 .login-btn {
-                    margin-top: 10px;
+                    margin-top: 6px;
                     font-weight: 600;
-                    height: 44px;
+                    height: 40px;
                     background: var(--error);
                     color: white;
                     border: none;
@@ -123,46 +127,34 @@ export default function AdminLogin() {
                     background: rgba(239, 68, 68, 0.1);
                     border: 1px solid rgba(239, 68, 68, 0.2);
                     color: var(--error);
-                    padding: 10px;
+                    padding: 8px;
                     border-radius: var(--radius-md);
-                    font-size: 0.85rem;
+                    font-size: 0.8rem;
                     text-align: center;
-                }
-                .login-footer {
-                    margin-top: 24px;
-                    text-align: center;
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.05em;
                 }
 
                 @media (max-width: 768px) {
                     .login-card {
-                        padding: 32px 24px;
-                        max-width: 360px;
-                        margin: 20px;
+                        padding: 24px 20px 30px;
+                        max-width: 340px;
+                        margin: 16px;
                     }
                     .login-title {
-                        font-size: 1.5rem;
+                        font-size: 1.3rem;
                     }
                 }
 
                 @media (max-width: 480px) {
-                    .login-page {
-                        align-items: flex-start;
-                        padding-top: 40px;
-                    }
                     .login-card {
-                        padding: 24px 20px;
-                        margin: 16px;
+                        padding: 20px 16px 26px;
+                        margin: 12px;
                         border-radius: var(--radius-md);
                     }
                     .login-title {
-                        font-size: 1.35rem;
+                        font-size: 1.2rem;
                     }
                     .login-subtitle {
-                        font-size: 0.85rem;
+                        font-size: 0.8rem;
                     }
                 }
             `}</style>
