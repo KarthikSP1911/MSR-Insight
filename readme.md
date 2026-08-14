@@ -298,13 +298,13 @@ flowchart LR
 
   <tr>
     <td><b>Package Manager</b></td>
-    <td>npm (Node), pip (Python)</td>
+    <td>npm (Node), uv (Python)</td>
     <td>—</td>
   </tr>
 
   <tr>
     <td><b>Dev Runner</b></td>
-    <td>nodemon, uvicorn --reload</td>
+    <td>nodemon, uv run dev</td>
     <td>—</td>
   </tr>
 
@@ -332,6 +332,7 @@ flowchart LR
 
 - Node.js (v18+)
 - Python (v3.10+)
+- uv (Python package/dependency manager)
 - PostgreSQL Database
 - Redis Instance
 - RabbitMQ / CloudAMQP Instance
@@ -341,12 +342,9 @@ flowchart LR
 ### 1. Intelligence Service (FastAPI)
 ```bash
 cd backend/fastapi
-python -m venv venv
-source venv/bin/activate  # macOS/Linux
-# .\venv\Scripts\activate # Windows
-pip install -r requirements.txt
+uv sync
 # Create .env with GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL
-uvicorn main:app --reload --port 8000
+uv run dev
 ```
 
 ### 2. Logic Gateway (Express)
@@ -418,10 +416,7 @@ npm run test -- --coverage  # Generate coverage report
 The FastAPI service utilizes Pytest with `unittest.mock` to isolate database drivers (PGVector) and retrievers.
 ```bash
 cd backend/fastapi
-# Activate virtual environment
-venv\Scripts\activate   # Windows
-# source venv/bin/activate # macOS/Linux
-python -m pytest --cov=.
+uv run python -m pytest --cov=.
 ```
 
 ---
