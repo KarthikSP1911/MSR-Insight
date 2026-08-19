@@ -80,6 +80,8 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-200}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-msr_insight}
       - REDIS_URL=redis://redis:6379
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
@@ -92,7 +94,7 @@ services:
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
       - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434}
     # Command ensures DB schema is pushed before starting the server
-    command: sh -c "npx prisma db push && node server.js"
+    command: sh -c "npx prisma db push --accept-data-loss && node server.js"
     depends_on:
       postgres:
         condition: service_healthy

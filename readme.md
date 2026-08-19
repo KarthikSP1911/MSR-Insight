@@ -774,6 +774,132 @@ The project implements a **Stateless-Session Hybrid**:
 
 ---
 
+## 📊 Performance & Load Test Results
+
+> Load tested with [k6](https://k6.io/) against the Express API gateway running via `docker compose`.
+> Full scripts and orchestration: [`load-tests/`](./load-tests/). Every number below comes from an
+> actual run against this codebase on 2026-08-19 — nothing here is estimated or extrapolated.
+
+**TL;DR:** Sustains **500 concurrent users / ~440 RPS** with 0% errors and 67ms p95 latency.
+Pushed further to find the real ceiling: still healthy at 1,000 VUs, breaks by 2,500 VUs
+(Express Node.js CPU saturation — see [Capacity Conclusion](#capacity-conclusion)).
+
+### Test Environment
+
+| | |
+|---|---|
+| Date tested | 2026-08-19 |
+| Host | Intel Core i5-1235U · 10 cores / 12 logical processors · 15.68 GB RAM · Windows 11 |
+| Docker resource limits | None configured (`docker-compose.yml` sets no `deploy.resources` — containers can use the full host pool) |
+| Stack | `docker compose up -d --build` (postgres, redis, rabbitmq, fastapi, express, frontend) |
+| Endpoint under test | `GET /api/auth/profile` — authenticated via `x-session-id` header, session minted once per test via `POST /api/auth/proctor-login` in k6's `setup()` |
+| k6 version | v2.2.0 (windows/amd64) |
+
+### Methodology
+
+- **Executor:** k6 `ramping-vus`, one invocation per level (30s ramp + fixed hold), rather than one blended ramp — keeps CPU/RAM/connection sampling attributable to a steady-state VU count.
+- **Levels:** 10, 25, 50, 100, 250, 500 concurrent VUs (the originally-scoped range), each preceded by a short discarded warm-up run, 2 minutes hold, ~25s cooldown between levels.
+- **Sampling:** container CPU%/RAM via `docker stats --no-stream` every 5s during each level's window; Postgres connections via `SELECT count(*) FROM pg_stat_activity` (total) and `... WHERE state = 'active'` (active). RPS/latency/error-rate always come from k6's own `http_req_*` metrics, independent of container sampling.
+- **Rate limiter:** raised for this benchmark only (`RATE_LIMIT_MAX=1000000`, see `backend/express/src/app.js`) since the shipped default (200 req/15min/IP) is sized for many real client IPs, not a single-IP load generator. Default production behavior (200/15min) is unchanged when these env vars are unset.
+- **SLOs:** error rate < 1%, p95 < 2000ms, no container OOM/restart, no container pegged at 100% CPU for the whole window, Postgres connections comfortably below any configured limit. A level that fails any SLO stops the sweep from advancing further — all 6 scoped levels below completed and passed.
+
+<details>
+<summary><strong>Known data gap at 50 VUs — investigated and confirmed non-reproducing</strong></summary>
+
+The original 50-VU run hit a transient stall: the container-stats sampling process stopped producing
+data partway through, one request logged a 2m21s outlier (vs. <80ms max everywhere else), and 50
+iterations were interrupted at shutdown. Since the sampling process and the live requests stalled in the
+*same* window, and 100/250/500 VUs (higher load, run right after) scaled perfectly cleanly, this pointed
+to a one-off host/Docker Desktop hiccup rather than a real bottleneck at 50 VUs specifically.
+
+Verified directly: the 50-VU level was re-run twice in isolation immediately afterward. Both were
+completely clean — 0 interrupted iterations, max latency 69.78ms and 78.4ms, 0% errors — confirming the
+stall does not reproduce. The table below uses that clean re-run for RPS/latency/error %; CPU/RAM/PG
+figures use a partial ~45s sample from the original run's ramp window (footnoted, not a full steady-state
+average like the other rows).
+</details>
+
+### Results (10 → 500 VUs, as scoped)
+
+| Concurrent Users | RPS | p50 | p95 | p99 | Error % | Express CPU | Express RAM | FastAPI CPU | FastAPI RAM | PG Conn (active/total) |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 10  | 8.80 | 7.5 ms | 11.6 ms | 14.6 ms | 0% | 5.21% | 164.8 MiB | 0.24% | 167.0 MiB | 1 / 9 |
+| 25  | 22.17 | 7.4 ms | 11.6 ms | 15.6 ms | 0% | 10.40% | 173.4 MiB | 0.24% | 167.2 MiB | 1 / 9 |
+| 50¹ | 44.38 | 7.3 ms | 12.7 ms | 19.3 ms | 0% | 14.42% | 174.0 MiB | 0.23% | 168.2 MiB | 1.0 / 9.1 |
+| 100 | 88.94 | 6.7 ms | 13.7 ms | 23.5 ms | 0% | 27.83% | 176.6 MiB | 0.22% | 169.1 MiB | 1 / 10 |
+| 250 | 222.44 | 5.7 ms | 19.3 ms | 36.0 ms | 0% | 47.10% | 191.6 MiB | 0.19% | 169.1 MiB | 1 / 10 |
+| 500 | 439.67 | 8.1 ms | 67.2 ms | 191.6 ms | 0% | 69.23% | 314.8 MiB | 0.18% | 168.5 MiB | 1.1 / 10 |
+
+**All 6 levels pass every SLO.** Latency and error rate stay flat and low throughout; the only metric
+trending toward its limit is Express CPU, climbing roughly in step with load (5% → 10% → 14% → 28% →
+47% → 69%).
+
+<sub>¹ See "Known data gap" above — RPS/latency/error % from a clean isolated re-run; CPU/RAM/PG figures from a ~45s partial sample (ramp window only) of the original run, not a full steady-state average like the other rows.</sub>
+
+<sub>Source data: `load-tests/results/summary.csv` and the per-level `api-load-<n>vus.json` / `docker-stats-<n>vus.csv` files.</sub>
+
+### Optional: Student Login / Puppeteer Scraping Path
+
+A separate, much lower-concurrency (1–5 VUs) scenario (`load-tests/puppeteer-login.js`) exercises
+`POST /api/auth/login`, which may trigger a real Puppeteer-driven scrape against the college portal.
+Not directly comparable to the API benchmark above — Puppeteer's resource cost is heavy, highly
+variable, and depends on an external portal. Not run as part of this pass; run
+`.\run-benchmark.ps1 -IncludePuppeteer` (or `k6 run load-tests/puppeteer-login.js` standalone) to
+collect it separately.
+
+### Beyond 500 VUs: Finding the Real Ceiling (exploratory, outside the original scope)
+
+500 VUs passed every SLO comfortably, so two further ad hoc runs pushed past the scoped range to find
+where the system actually breaks. These are quicker single-shot runs (k6 metrics + manual `docker
+stats`/`pg_stat_activity` snapshots every 10s, no discarded warm-up) — directionally reliable, not as
+rigorous as the table above.
+
+| Concurrent Users | RPS | p95 | p99 | Error % | Result | Express CPU (observed) |
+|---:|---:|---:|---:|---:|:---|---:|
+| 1,000 | 848.15 | 252 ms | 494 ms | 0% | ✅ **Pass** — all SLOs met | Sustained 80–115% (saturating) |
+| 2,500 | 762.59 | 2,092 ms | 60,000 ms | 1.31% | ❌ **Fail** — latency & error-rate thresholds both crossed | Sustained 100–140% (pegged) |
+
+At 2,500 VUs, Express's container CPU stayed pegged at 100–140% (more than a full core) for nearly the
+entire run; its memory climbed steadily (161 → 600 MiB) as requests queued up behind the saturated event
+loop, and a large share eventually hit a 60s request timeout. FastAPI stayed under 1% CPU and Postgres
+connections held steady at 10 throughout — **no crash, no OOM, no DB exhaustion**. This isolates the
+failure mode cleanly: **Node.js single-threaded CPU/event-loop saturation on Express**, not memory,
+Postgres, or connection limits.
+
+The true breaking point sits somewhere between 1,000 and 2,500 VUs — not narrowed further, since only
+two exploratory runs beyond the main sweep were budgeted. A finer bisection (e.g. 1,500 / 1,750 VUs)
+would pin it down more precisely.
+
+### Capacity Conclusion
+
+> **Actual measured load capacity:** The system sustainably handles **500 concurrent users / ~440 RPS** on **15.68 GB RAM and 10 CPU cores** (12 logical processors), with **P95 latency of 67.2 ms** and **0% error rate**. The first observed bottleneck is **Express API CPU utilization**, which climbed in step with load and, in exploratory testing beyond the original scope, was confirmed as the actual failure mode: the system stays healthy through 1,000 VUs but breaks by 2,500 VUs (1.31% errors, p95 > 2s) once Express's single-threaded event loop saturates a full CPU core. Within the originally-scoped 10→500 VU range, the system did not fail.
+
+### Reproducing These Results
+
+```powershell
+# 1. Start the stack
+docker compose up -d --build
+
+# 2. Seed test data (proctor P000 / password123, two students)
+docker compose exec express npx prisma db seed
+
+# 3. Install k6 (one-time)
+winget install k6 --source winget
+
+# 4. Run the full staged benchmark (10 -> 25 -> 50 -> 100 -> 250 -> 500 VUs)
+cd load-tests
+.\run-benchmark.ps1
+
+# 5. (Optional) Run the separate, low-VU Puppeteer login scenario
+.\run-benchmark.ps1 -IncludePuppeteer
+```
+
+Raw per-level results are written to `load-tests/results/` (gitignored). See
+[`load-tests/README.md`](./load-tests/README.md) for details on how raw output maps into the
+table above.
+
+---
+
 ## Recent Improvements
 
 1. **Enterprise Security Hardening**: Migrated from LocalStorage to HttpOnly Cookies, instituted strict Helmet CSP headers, and patched all critical npm dependencies (`html2pdf.js`, `Next.js`).
