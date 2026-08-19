@@ -57,8 +57,8 @@ app.use(cors({
 
 // 3. Rate Limiting to prevent brute-force
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // Limit each IP to 200 requests per `window`
+    windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+    max: Number(process.env.RATE_LIMIT_MAX) || 200, // Limit each IP to 200 requests per `window`
     message: "Too many requests from this IP, please try again after 15 minutes",
     standardHeaders: true,
     legacyHeaders: false,

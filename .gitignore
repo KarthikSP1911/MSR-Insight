@@ -8,3 +8,6 @@ notes_hr/
 # RAG Data
 backend/fastapi/data/chroma_db/
 backend/fastapi/data/*.json
+
+# Load-test raw results (regenerable, machine/run-specific)
+load-tests/results/

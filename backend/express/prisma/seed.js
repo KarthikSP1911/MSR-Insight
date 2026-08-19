@@ -8,6 +8,8 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+const ACADEMIC_YEAR = "2027";
+
 async function main() {
     console.log("Seeding / cleaning data...");
 
@@ -15,74 +17,94 @@ async function main() {
 
     // Upsert Proctor P000 with a hashed password
     const proctor = await prisma.proctor.upsert({
-        where: { proctorId: "P000" },
-        update: { password: hashedPassword, name: "Default Proctor" },
+        where: { proctor_id: "P000" },
+        update: { password_hash: hashedPassword, name: "Default Proctor" },
         create: {
-            proctorId: "P000",
-            password: hashedPassword,
+            proctor_id: "P000",
+            password_hash: hashedPassword,
             name: "Default Proctor",
         },
     });
 
-    console.log(`Proctor seeded: ${proctor.proctorId} (id: ${proctor.id})`);
+    console.log(`Proctor seeded: ${proctor.proctor_id}`);
 
-    // Delete duplicate uppercase entry if it exists and has no proctor link
-    await prisma.user.deleteMany({
-        where: {
-            usn: "1MS23IS051",
-            proctorId: null,
-        },
-    });
-    console.log("Removed stale 1MS23IS051 record (if it existed).");
-
-    await prisma.user.deleteMany({
-        where: {
-            usn: "1MS24IS400",
-            proctorId: null,
-        },
-    });
-    console.log("Removed stale 1MS24IS400 record (if it existed).");
-
-    // Upsert Student 1ms23is051 (canonical lowercase) linked to P000
-    const student = await prisma.user.upsert({
+    // Upsert Student 1ms23is051, linked to P000 via ProctorStudentMap
+    const student = await prisma.student.upsert({
         where: { usn: "1ms23is051" },
-        update: {
-            proctorId: proctor.id,
-            dob: "2004-11-19",
-        },
+        update: { dob: "2004-11-19" },
         create: {
             usn: "1ms23is051",
+            name: "Student One",
             dob: "2004-11-19",
-            proctorId: proctor.id,
+            current_year: 3,
+            details: {},
         },
     });
 
-    console.log(`Student seeded: ${student.usn} → Proctor ${proctor.proctorId}`);
-
-    const student2 = await prisma.user.upsert({
-        where: { usn: "1ms24is400" },
-        update: {
-            proctorId: proctor.id,
-            dob: "2005-10-20",
+    await prisma.proctorStudentMap.upsert({
+        where: {
+            student_id_academic_year: {
+                student_id: student.usn,
+                academic_year: ACADEMIC_YEAR,
+            },
         },
+        update: { proctor_id: proctor.proctor_id },
+        create: {
+            proctor_id: proctor.proctor_id,
+            student_id: student.usn,
+            academic_year: ACADEMIC_YEAR,
+        },
+    });
+
+    console.log(`Student seeded: ${student.usn} -> Proctor ${proctor.proctor_id}`);
+
+    // Upsert Student 1ms24is400, linked to P000 via ProctorStudentMap
+    const student2 = await prisma.student.upsert({
+        where: { usn: "1ms24is400" },
+        update: { dob: "2005-10-20" },
         create: {
             usn: "1ms24is400",
+            name: "Student Two",
             dob: "2005-10-20",
-            proctorId: proctor.id,
+            current_year: 2,
+            details: {},
         },
     });
 
-    console.log(`Student seeded: ${student2.usn} → Proctor ${proctor.proctorId}`);
+    await prisma.proctorStudentMap.upsert({
+        where: {
+            student_id_academic_year: {
+                student_id: student2.usn,
+                academic_year: ACADEMIC_YEAR,
+            },
+        },
+        update: { proctor_id: proctor.proctor_id },
+        create: {
+            proctor_id: proctor.proctor_id,
+            student_id: student2.usn,
+            academic_year: ACADEMIC_YEAR,
+        },
+    });
+
+    console.log(`Student seeded: ${student2.usn} -> Proctor ${proctor.proctor_id}`);
 
     // Verify the link
     const linked = await prisma.proctor.findUnique({
-        where: { proctorId: "P000" },
-        include: { students: { select: { usn: true, dob: true } } },
+        where: { proctor_id: "P000" },
+        include: {
+            student_maps: {
+                where: { academic_year: ACADEMIC_YEAR },
+                include: { student: { select: { usn: true, dob: true } } },
+            },
+        },
     });
 
     console.log("\n--- Verification ---");
-    console.log(`Proctor: ${linked.proctorId}`);
-    console.log(`Assigned Students:`, linked.students);
+    console.log(`Proctor: ${linked.proctor_id}`);
+    console.log(
+        `Assigned Students:`,
+        linked.student_maps.map((m) => m.student)
+    );
     console.log("\nSeeding completed.");
 }
 
