@@ -852,12 +852,16 @@ collect it separately.
 500 VUs passed every SLO comfortably, so two further ad hoc runs pushed past the scoped range to find
 where the system actually breaks. These are quicker single-shot runs (k6 metrics + manual `docker
 stats`/`pg_stat_activity` snapshots every 10s, no discarded warm-up) — directionally reliable, not as
-rigorous as the table above.
+rigorous as the table above. Same host/environment as the "Test Environment" section: Intel Core
+i5-1235U · 10 cores / 12 logical processors · 15.68 GB RAM · Windows 11 · no Docker resource limits
+configured.
 
-| Concurrent Users | RPS | p95 | p99 | Error % | Result | Express CPU (observed) |
-|---:|---:|---:|---:|---:|:---|---:|
-| 1,000 | 848.15 | 252 ms | 494 ms | 0% | ✅ **Pass** — all SLOs met | Sustained 80–115% (saturating) |
-| 2,500 | 762.59 | 2,092 ms | 60,000 ms | 1.31% | ❌ **Fail** — latency & error-rate thresholds both crossed | Sustained 100–140% (pegged) |
+| Concurrent Users | RPS | p50 | p95 | p99 | Error % | Express CPU | Express RAM | FastAPI CPU | FastAPI RAM | PG Conn (total) | Result |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|:---|
+| 1,000 | 848.15 | 22.8 ms | 252.1 ms | 493.5 ms | 0% | 91.88% (80–115% sustained) | 379.5 MiB | N/A¹ | N/A¹ | 10 | ✅ **Pass** — all SLOs met |
+| 2,500 | 762.59 | 667.6 ms | 2,092.4 ms | 59,998.8 ms | 1.31% | 111.00% (100–140% pegged) | 572.9 MiB | N/A¹ | N/A¹ | 10 | ❌ **Fail** — latency & error-rate thresholds both crossed |
+
+<sub>¹ FastAPI CPU/RAM were not sampled during these two ad hoc runs; PG connection count is a single post-run spot-check via `pg_stat_activity`, not a sampled average like the main table.</sub>
 
 At 2,500 VUs, Express's container CPU stayed pegged at 100–140% (more than a full core) for nearly the
 entire run; its memory climbed steadily (161 → 600 MiB) as requests queued up behind the saturated event
