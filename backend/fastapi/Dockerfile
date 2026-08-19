@@ -17,12 +17,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Copy dependency manifests and install dependencies
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
-
-# Copy the rest of the application files
+# Copy application files (uv sync below needs the source present, since
+# this project installs itself as a package per pyproject.toml's
+# [tool.uv] package = true)
 COPY . .
+
+# Install dependencies
+RUN uv sync --frozen --no-dev
 
 # Expose port (Cloud Run will override this via $PORT env var)
 EXPOSE 8000
