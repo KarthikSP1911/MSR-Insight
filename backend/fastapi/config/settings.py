@@ -33,4 +33,8 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL")
     CHROMA_PERSIST_DIR: str = os.path.join(DATA_DIR, "chroma_db")
 
+    # Agentic AI (LangGraph) configuration — independent of the RAG chatbot above
+    AGENT_LLM_MODEL: str = os.getenv("AGENT_LLM_MODEL", "gemini-3.1-flash-lite")
+    AGENT_GATEWAY_SECRET: str = os.getenv("AGENT_GATEWAY_SECRET", "")
+
 settings = Settings()

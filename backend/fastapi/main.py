@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 from routers.report_router import router as report_router
 from routers.rag_router import router as rag_router, rag_service
+from routers.agent_router import router as agent_router
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -24,6 +25,7 @@ app.add_middleware(
 # Include Routers
 app.include_router(report_router)
 app.include_router(rag_router)
+app.include_router(agent_router)
 
 # @app.on_event("startup")
 # async def startup_event():
