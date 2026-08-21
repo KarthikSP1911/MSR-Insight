@@ -5,13 +5,21 @@ from pydantic import BaseModel
 
 from config.settings import settings
 from agent.service import AgentService
+from agent.tools.student_tools import get_student_profile, list_proctor_students
+from agent.tools.risk_tools import analyze_at_risk_students
+from agent.tools.insight_tools import generate_weekly_insights
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agent", tags=["Agentic AI"])
 
-# Tool list grows in later steps (read-only analysis tools, then confirmation-gated
-# action tools) without changing this router's shape.
-agent_service = AgentService(tools=[])
+# Tool list grows in later steps (confirmation-gated action tools next) without
+# changing this router's shape.
+agent_service = AgentService(tools=[
+    get_student_profile,
+    list_proctor_students,
+    analyze_at_risk_students,
+    generate_weekly_insights,
+])
 
 
 def verify_gateway_secret(x_agent_gateway_secret: str = Header(default="")):

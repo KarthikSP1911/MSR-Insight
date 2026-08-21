@@ -10,6 +10,7 @@ from langchain_core.messages import HumanMessage
 
 from .graph import build_graph
 from .checkpointer import get_checkpointer
+from .ids import thread_id_for
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +42,9 @@ class AgentService:
             self._graph = build_graph(self._tools, get_checkpointer())
         return self._graph
 
-    def _thread_id(self, proctor_id: str) -> str:
-        return f"proctor:{proctor_id}"
-
     def chat(self, proctor_id: str, message: str) -> dict:
         graph = self._get_graph()
-        config = {"configurable": {"thread_id": self._thread_id(proctor_id)}}
+        config = {"configurable": {"thread_id": thread_id_for(proctor_id)}}
         result = graph.invoke(
             {"messages": [HumanMessage(content=message)], "proctor_id": proctor_id},
             config=config,
