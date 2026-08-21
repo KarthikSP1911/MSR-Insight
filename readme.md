@@ -7,6 +7,7 @@ An industry-grade, AI-powered academic reporting platform designed to transform 
 
 - **AI-Powered Insights**: Real-time performance analysis using Groq (Llama 3.1) and AI-generated academic remarks.
 - **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, PGVector (Postgres), and Google Gemini, enabling proctors to query student data conversationally.
+- **Agentic AI Assistant**: A separate LangGraph-based agent (own routes, DB tables, and UI panel) that proactively flags at-risk students, summarizes weekly priorities, and drafts/sends parent communications -- side-effect actions like email/WhatsApp pause on a real human-in-the-loop confirmation before anything is sent.
 - **Interactive Dashboards**: Specialized views for Students (personal progress tracking) and Proctors (administrative management with attendance alerts).
 - **Professional A4 Reports**: Pixel-perfect reporting engine with Tiptap rich-text editing and high-fidelity PDF export.
 - **Automated Email Delivery**: Asynchronous, RabbitMQ-backed Producer-Consumer queue for fast PDF generation (Puppeteer) and email dispatch (Resend).
@@ -22,7 +23,7 @@ The system operates on a **distributed monolith** architecture with four indepen
 
 1. **Frontend (Next.js)**: Modern, responsive UI built with Next.js 16 App Router, TypeScript, and Tailwind CSS v4.
 2. **Logic Gateway (Express)**: Orchestrates business logic, manages PostgreSQL through Prisma ORM, handles session caching in Redis, and runs Puppeteer-based scraping.
-3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + PGVector), and data normalization.
+3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + PGVector), the Agentic AI chatbot (Gemini + LangGraph), and data normalization.
 4. **Browser Extension (Chrome)**: Manifest V3 extension that detects proctor sessions and orchestrates batch scraping of assigned students.
 
 ## ✨ Component Interaction
@@ -128,6 +129,49 @@ flowchart LR
     RMQP -->|Queue Job| MQ
     MQ -->|Process Job| RMQC
 ```
+
+## ✨ Agentic AI Chatbot
+
+A second, independent chatbot alongside the RAG chatbot -- built with **LangGraph** instead of a plain LCEL chain, because it needs to *act*, not just answer. One agent dynamically decides which of four capabilities a proctor's request needs, rather than routing to four separate bots:
+
+1. **At-Risk Student Analysis** -- flags attendance shortages, low/dropping CGPA & SGPA, with evidence, and persists alerts.
+2. **Weekly Proctor Insights** -- a priority-ranked summary of which students most need attention.
+3. **Action-Taking Assistant** -- looks up students, creates reminders, and orchestrates the other three capabilities via tool calls.
+4. **Parent Communication** -- drafts an email/WhatsApp message grounded in real data, then only sends it after the proctor explicitly approves.
+
+**Isolation from RAG:** separate FastAPI router (`/api/agent/*` vs `/api/rag/*`), separate Express router, separate DB tables, separate frontend panel, separate `.py`/`.tsx` files end to end -- the RAG chatbot's files are never touched by this feature.
+
+**Human-in-the-loop by design:** `send_email` and `send_whatsapp` are the only two tools that reach outside the system. Each calls LangGraph's `interrupt()` before doing anything, pausing the graph and handing the proposed action back to the UI as an approval card; the graph only resumes -- and only then calls Express to actually send -- after the proctor clicks Confirm. Every tool call (auto-executed or confirmed) is written to an audit log.
+
+**Authorization, defense in depth:** the LLM never supplies a student's USN as ground truth. `proctor_id` is bound from the authenticated session into the graph; every tool that touches a specific student independently re-checks `proctor_student_map` ownership -- once in the FastAPI tool, and again in Express's internal route before any parent contact data is touched.
+
+```mermaid
+flowchart LR
+    UI["AgentPanel.tsx<br/>(slide-in drawer)"] -->|"x-session-id"| GW["Express<br/>/api/agent/:proctorId/*<br/>(verifyProctorAccess)"]
+    GW -->|"shared secret"| AR["FastAPI<br/>/api/agent/*"]
+
+    subgraph Graph["LangGraph StateGraph"]
+        Agent["agent node<br/>(Gemini + bind_tools)"]
+        Tools["ToolNode<br/>(read-only + reminders)"]
+        Agent -->|tool_calls| Tools
+        Tools --> Agent
+    end
+
+    AR --> Graph
+    Graph -->|"interrupt()"| Pending["pending_confirmation"]
+    Pending -->|"Confirm / Reject"| GW
+    Graph -.->|"send_email / send_whatsapp<br/>(after approval)"| Internal["Express<br/>/api/agent/internal/*<br/>(shared secret)"]
+    Internal --> Resend[(Resend)]
+    Internal --> Twilio[(Twilio WhatsApp)]
+
+    Graph <--> CP[(Postgres Checkpointer<br/>persistent thread state)]
+    Graph --> Log[(agent_action_log<br/>agent_alerts<br/>agent_reminders)]
+
+    style UI fill:#EDE4FF,stroke:#000,stroke-width:2px,color:#000
+    style Graph fill:#F3E8FF,stroke:#8B5CF6,stroke-width:2px,color:#000
+    style Internal fill:#F8E7A6,stroke:#000,stroke-width:2px,color:#000
+```
+
 ## ✨ Tech Stack
 
 
@@ -343,7 +387,7 @@ flowchart LR
 ```bash
 cd backend/fastapi
 uv sync
-# Create .env with GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL
+# Create .env with GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL, AGENT_GATEWAY_SECRET
 uv run dev
 ```
 
@@ -351,7 +395,7 @@ uv run dev
 ```bash
 cd backend/express
 npm install
-# Setup .env with DATABASE_URL, REDIS_URL, FASTAPI_URL, RABBITMQ_URL and PORT=5001
+# Setup .env with DATABASE_URL, REDIS_URL, FASTAPI_URL, RABBITMQ_URL, AGENT_GATEWAY_SECRET and PORT=5001
 npx prisma generate
 node prisma/seed.js # To populate initial proctor data
 npm run dev
@@ -446,10 +490,12 @@ MSR-Insight/
 │   │       │   ├── auth.controller.js      # Student & proctor auth
 │   │       │   ├── admin.controller.js     # Proctor CRUD + student assignment
 │   │       │   ├── proctor.controller.js   # Dashboard, chat, notifications, scrape-list
-│   │       │   └── report.controller.js    # Dashboard data, AI remarks, email dispatch
+│   │       │   ├── report.controller.js    # Dashboard data, AI remarks, email dispatch
+│   │       │   └── agent.controller.js     # Agentic AI proxy + internal send-email/send-whatsapp
 │   │       ├── middlewares/
 │   │       │   ├── session.middleware.js   # Redis session validation + sliding TTL
 │   │       │   ├── auth.middleware.js       # Re-exports session middleware
+│   │       │   ├── agentGatewaySecret.middleware.js  # Shared-secret gate for /api/agent/internal/*
 │   │       │   └── error.middleware.js      # Global error handler
 │   │       ├── repositories/
 │   │       │   ├── user.repository.js       # Prisma queries for Student model
@@ -461,13 +507,15 @@ MSR-Insight/
 │   │       │   ├── report.routes.js         # /api/report/*
 │   │       │   ├── notification.routes.js   # /api/notifications/*
 │   │       │   ├── student.routes.js        # /api/students/sync
-│   │       │   └── students.js              # Legacy sync route
+│   │       │   ├── students.js              # Legacy sync route
+│   │       │   └── agent.routes.js          # /api/agent/* (proctor-facing + internal)
 │   │       ├── services/
 │   │       │   ├── auth.service.js          # Login, register, session lifecycle
 │   │       │   ├── report.service.js        # FastAPI proxy (remarks + RAG sync trigger)
 │   │       │   ├── studentService.js        # Dashboard reads + JSONB sync
 │   │       │   ├── puppeteerScraper.service.js  # Puppeteer scraper + data normalizer
-│   │       │   └── email.service.js         # Puppeteer PDF + Resend + Cloudinary
+│   │       │   ├── email.service.js         # Puppeteer PDF + Resend + Cloudinary + sendCustomEmail
+│   │       │   └── whatsapp.service.js      # Twilio WhatsApp dispatch
 │   │       └── utils/
 │   │           └── dateUtils.js             # DOB format normalization
 │   └── fastapi/                    # Python Intelligence Service
@@ -478,12 +526,28 @@ MSR-Insight/
 │       │   └── request_models.py   # Pydantic request schemas
 │       ├── routers/
 │       │   ├── report_router.py    # /generate-remark endpoint
-│       │   └── rag_router.py       # /api/rag/* (sync, chat, status)
+│       │   ├── rag_router.py       # /api/rag/* (sync, chat, status)
+│       │   └── agent_router.py     # /api/agent/* (chat, confirm)
 │       ├── services/
 │       │   ├── ai_service.py       # Validates input + calls Groq LLM
 │       │   ├── prompt_builder.py   # Builds structured prompt for remark generation
 │       │   ├── llm_provider.py     # Groq SDK wrapper
 │       │   └── rag_service.py     # Full RAG pipeline (PGVector + Gemini + LangChain)
+│       ├── agent/                  # Agentic AI (LangGraph) -- isolated from services/rag_service.py
+│       │   ├── state.py            # AgentState (messages, proctor_id)
+│       │   ├── graph.py            # StateGraph: agent node + ToolNode + system prompt
+│       │   ├── service.py          # chat()/confirm() orchestration
+│       │   ├── llm.py              # Own ChatGoogleGenerativeAI instance
+│       │   ├── db.py               # Own psycopg2 connection + ownership check helper
+│       │   ├── checkpointer.py     # Postgres-backed persistent thread state
+│       │   ├── ids.py              # thread_id_for(proctor_id)
+│       │   └── tools/
+│       │       ├── student_tools.py       # get_student_profile, list_proctor_students
+│       │       ├── risk_tools.py          # analyze_at_risk_students
+│       │       ├── insight_tools.py       # generate_weekly_insights
+│       │       ├── reminder_tools.py      # create_reminder, list_reminders
+│       │       ├── communication_tools.py # send_email, send_whatsapp (interrupt-gated)
+│       │       └── logging.py             # Writes every tool call to agent_action_log
 │       └── data/
 │           └── *.json              # Legacy data files
 ├── frontend/                       # Next.js 16 App Router SPA
@@ -500,12 +564,13 @@ MSR-Insight/
 │       │   ├── admin/page.tsx      # Admin CRUD panel
 │       │   └── report/[usn]/      # A4 report with Tiptap editor
 │       ├── components/
-│       │   ├── AppWrapper.tsx      # Global layout: Navbar + Inbox + session logic
+│       │   ├── AppWrapper.tsx      # Global layout: Navbar + Inbox + Agent panel + session logic
 │       │   ├── dashboard/
 │       │   │   ├── DOBSelector.tsx  # Date of birth input
 │       │   │   ├── Editor.tsx       # Tiptap rich text editor wrapper
 │       │   │   ├── InboxPanel.tsx  # Attendance alert inbox
-│       │   │   ├── ProctorChatbot.tsx  # RAG chatbot interface
+│       │   │   ├── ProctorChatbot.tsx  # RAG chatbot interface (floating bubble)
+│       │   │   ├── AgentPanel.tsx  # Agentic AI chatbot interface (slide-in drawer)
 │       │   │   ├── ReportComponent.tsx  # A4 report renderer + PDF export
 │       │   │   ├── UpdateButton.tsx    # Scrape trigger with cooldown
 │       │   │   ├── LoadingScreen.tsx
@@ -524,7 +589,7 @@ MSR-Insight/
 │       ├── hooks/
 │       │   └── useCooldown.ts      # 5-minute scrape cooldown hook
 │       ├── lib/
-│       │   └── AppContext.tsx       # Global state: academicYear, alerts, inbox
+│       │   └── AppContext.tsx       # Global state: academicYear, alerts, inbox, agent panel
 │       └── styles/                 # CSS modules + globals
 └── start-all.bat                  # Quick-launch script for Windows
 ```
@@ -569,7 +634,43 @@ proctor_student_map
   student_id    String  FK -> students.usn
   academic_year String               -- e.g. "2027"
   @@unique([student_id, academic_year])   -- one proctor per student per year
+
+-- Agentic AI (LangGraph) tables -- isolated from the RAG chatbot's PGVector tables
+
+agent_action_log
+  id            Int      @id @autoincrement
+  proctor_id    String
+  thread_id     String
+  action_type   String               -- "send_email" | "send_whatsapp" | "create_reminder" | "risk_analysis" | ...
+  status        String               -- "completed" | "pending_confirmation" | "rejected" | "failed"
+  student_usn   String?
+  payload       Json
+  result        Json?
+  created_at    DateTime @default(now())
+  executed_at   DateTime?
+
+agent_alerts
+  id            Int      @id @autoincrement
+  student_usn   String
+  proctor_id    String
+  risk_type     String               -- "attendance" | "cgpa" | "sgpa_drop"
+  severity      String               -- "low" | "medium" | "high"
+  evidence      Json
+  message       String
+  resolved      Boolean  @default(false)
+  created_at    DateTime @default(now())
+
+agent_reminders
+  id            Int      @id @autoincrement
+  proctor_id    String
+  student_usn   String?
+  title         String
+  due_date      DateTime
+  status        String   @default("pending")   -- pending | done | dismissed
+  created_at    DateTime @default(now())
 ```
+
+LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoint_blobs`) live in the same Postgres, created and managed by `langgraph-checkpoint-postgres` -- not part of the Prisma schema.
 
 ### `details` JSONB Schema
 
@@ -655,6 +756,12 @@ proctor_student_map
 | DELETE | `/api/admin/proctors/:id/students/:usn` | None | Remove student assignment |
 | GET | `/api/admin/students/unassigned` | None | Unassigned students |
 | GET | `/api/admin/stats` | None | System counts |
+| POST | `/api/agent/:proctorId/chat` | Session | Agentic AI chat message |
+| POST | `/api/agent/:proctorId/confirm` | Session | Approve/reject a pending agent action |
+| GET | `/api/agent/:proctorId/actions` | Session | Agent action/audit log feed |
+| GET | `/api/agent/:proctorId/alerts` | Session | Unresolved at-risk alerts |
+| POST | `/api/agent/internal/send-email` | Shared secret | FastAPI-only: dispatch a confirmed agent email |
+| POST | `/api/agent/internal/send-whatsapp` | Shared secret | FastAPI-only: dispatch a confirmed agent WhatsApp message |
 
 **Auth mechanism**: Standard `HttpOnly`, `Secure`, `SameSite=Strict` cookies (`session_id`) validated against Redis to prevent XSS attacks. Legacy clients can fallback to the `x-session-id: <uuid>` header. No JWTs are used.
 
@@ -668,6 +775,8 @@ proctor_student_map
 | POST | `/api/rag/sync` | Trigger RAG data sync (background) |
 | GET | `/api/rag/sync/status` | Check RAG sync status |
 | POST | `/api/rag/chat` | RAG chatbot query (Gemini + PGVector) |
+| POST | `/api/agent/chat` | Agentic AI chat message (shared-secret gated; called by Express, not the browser) |
+| POST | `/api/agent/confirm` | Resume a paused agent action after proctor approval/rejection |
 
 ### Frontend Routes (Next.js App Router)
 
@@ -715,6 +824,14 @@ proctor_student_map
 5. PDF uploaded to Cloudinary for archival and Resend API delivers the email.
 6. Failed jobs are automatically routed to a Dead Letter Queue (DLQ).
 
+### Agentic AI: Confirmed Parent Communication
+1. Proctor opens the Agentic AI panel and asks it to email/WhatsApp a parent -> Express verifies the session, forwards to FastAPI's LangGraph agent.
+2. Agent calls `get_student_profile` to ground a draft in real data, replies with the draft, and waits for the proctor to agree to the content.
+3. Proctor asks the agent to send it -> the agent calls `send_email`/`send_whatsapp`, which calls LangGraph's `interrupt()` before doing anything.
+4. FastAPI returns `pending_confirmation` with the full proposed action; the panel renders an approval card.
+5. Proctor clicks Confirm -> `POST /api/agent/:proctorId/confirm` -> FastAPI resumes the paused graph with `Command(resume=...)`, re-checks `proctor_student_map` ownership, then calls Express's `/api/agent/internal/*` (shared-secret gated) to actually send via Resend/Twilio.
+6. Outcome (sent, rejected, or failed) is written to `agent_action_log`; Reject short-circuits before step 5 ever reaches Express.
+
 ### Browser Extension Batch Scrape
 1. Content script detects proctor session in localStorage
 2. Background service fetches proctee list from `/api/proctor/:id/scrape-list`
@@ -753,6 +870,7 @@ The project implements a **Stateless-Session Hybrid**:
 | `GEMINI_API_KEY` | Google Gemini API key |
 | `OLLAMA_API_URL` | Ollama API endpoint |
 | `RABBITMQ_URL` | CloudAMQP connection string (`amqps://`) |
+| `AGENT_GATEWAY_SECRET` | Shared secret between Express and FastAPI for Agentic AI internal calls (must match FastAPI's) |
 
 ### FastAPI (`backend/fastapi/.env`)
 
@@ -764,6 +882,9 @@ The project implements a **Stateless-Session Hybrid**:
 | `DATABASE_URL` | PostgreSQL connection string |
 | `OLLAMA_API_URL` | Ollama API endpoint |
 | `OLLAMA_MODEL` | Ollama model name |
+| `AGENT_LLM_MODEL` | Gemini model for the Agentic AI chatbot (default `gemini-3.1-flash-lite`, independent of the RAG chatbot's model choice) |
+| `AGENT_GATEWAY_SECRET` | Shared secret validating that only Express may call `/api/agent/*` |
+| `EXPRESS_BASE_URL` | Express base URL, used by `send_email`/`send_whatsapp` to call back after a confirmed action |
 
 ### Frontend (`frontend/.env`)
 
@@ -910,6 +1031,7 @@ table above.
 2. **Comprehensive Automated Testing**: Implemented 100% mocked unit and integration test suites using Jest (Express) and Pytest (FastAPI), achieving high coverage without touching production databases or external APIs.
 3. **Winston Structured Logging**: Replaced scattered console logs with structured, JSON-formatted Winston logs for production readiness.
 4. **Single Command Dockerization**: Containerized the entire distributed stack (PostgreSQL, Redis, RabbitMQ, Express, FastAPI, Next.js) using a root `docker-compose.yml`.
+5. **Agentic AI Chatbot**: Added a second, LangGraph-based agent (own routes/DB tables/UI panel, fully isolated from the RAG chatbot) for at-risk analysis, weekly insights, and human-in-the-loop parent communication.
 
 ---
 
