@@ -59,3 +59,48 @@ model ProctorStudentMap {
   @@unique([student_id, academic_year])
   @@map("proctor_student_map")
 }
+
+// ── Agentic AI (LangGraph) tables ──────────────────────────────────────
+// Independent of the RAG chatbot. Written to by the FastAPI agent service
+// via raw SQL; schema is managed here via Prisma for a single source of truth.
+
+model AgentActionLog {
+  id           Int       @id @default(autoincrement())
+  proctor_id   String
+  thread_id    String
+  action_type  String // "send_email" | "send_whatsapp" | "create_reminder" | "risk_analysis" | ...
+  status       String // "completed" | "pending_confirmation" | "rejected" | "failed"
+  student_usn  String?
+  payload      Json
+  result       Json?
+  created_at   DateTime  @default(now())
+  executed_at  DateTime?
+
+  @@map("agent_action_log")
+}
+
+model AgentAlert {
+  id          Int      @id @default(autoincrement())
+  student_usn String
+  proctor_id  String
+  risk_type   String // "attendance" | "cgpa" | "sgpa_drop"
+  severity    String // "low" | "medium" | "high"
+  evidence    Json
+  message     String
+  resolved    Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  @@map("agent_alerts")
+}
+
+model AgentReminder {
+  id          Int      @id @default(autoincrement())
+  proctor_id  String
+  student_usn String?
+  title       String
+  due_date    DateTime
+  status      String   @default("pending") // pending | done | dismissed
+  created_at  DateTime @default(now())
+
+  @@map("agent_reminders")
+}
