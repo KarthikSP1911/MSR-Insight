@@ -130,47 +130,7 @@ flowchart LR
     MQ -->|Process Job| RMQC
 ```
 
-## ✨ Agentic AI Chatbot
 
-A second, independent chatbot alongside the RAG chatbot -- built with **LangGraph** instead of a plain LCEL chain, because it needs to *act*, not just answer. One agent dynamically decides which of four capabilities a proctor's request needs, rather than routing to four separate bots:
-
-1. **At-Risk Student Analysis** -- flags attendance shortages, low/dropping CGPA & SGPA, with evidence, and persists alerts.
-2. **Weekly Proctor Insights** -- a priority-ranked summary of which students most need attention.
-3. **Action-Taking Assistant** -- looks up students, creates reminders, and orchestrates the other three capabilities via tool calls.
-4. **Parent Communication** -- drafts an email/WhatsApp message grounded in real data, then only sends it after the proctor explicitly approves.
-
-**Isolation from RAG:** separate FastAPI router (`/api/agent/*` vs `/api/rag/*`), separate Express router, separate DB tables, separate frontend panel, separate `.py`/`.tsx` files end to end -- the RAG chatbot's files are never touched by this feature.
-
-**Human-in-the-loop by design:** `send_email` and `send_whatsapp` are the only two tools that reach outside the system. Each calls LangGraph's `interrupt()` before doing anything, pausing the graph and handing the proposed action back to the UI as an approval card; the graph only resumes -- and only then calls Express to actually send -- after the proctor clicks Confirm. Every tool call (auto-executed or confirmed) is written to an audit log.
-
-**Authorization, defense in depth:** the LLM never supplies a student's USN as ground truth. `proctor_id` is bound from the authenticated session into the graph; every tool that touches a specific student independently re-checks `proctor_student_map` ownership -- once in the FastAPI tool, and again in Express's internal route before any parent contact data is touched.
-
-```mermaid
-flowchart LR
-    UI["AgentPanel.tsx<br/>(slide-in drawer)"] -->|"x-session-id"| GW["Express<br/>/api/agent/:proctorId/*<br/>(verifyProctorAccess)"]
-    GW -->|"shared secret"| AR["FastAPI<br/>/api/agent/*"]
-
-    subgraph Graph["LangGraph StateGraph"]
-        Agent["agent node<br/>(Gemini + bind_tools)"]
-        Tools["ToolNode<br/>(read-only + reminders)"]
-        Agent -->|tool_calls| Tools
-        Tools --> Agent
-    end
-
-    AR --> Graph
-    Graph -->|"interrupt()"| Pending["pending_confirmation"]
-    Pending -->|"Confirm / Reject"| GW
-    Graph -.->|"send_email / send_whatsapp<br/>(after approval)"| Internal["Express<br/>/api/agent/internal/*<br/>(shared secret)"]
-    Internal --> Resend[(Resend)]
-    Internal --> Twilio[(Twilio WhatsApp)]
-
-    Graph <--> CP[(Postgres Checkpointer<br/>persistent thread state)]
-    Graph --> Log[(agent_action_log<br/>agent_alerts<br/>agent_reminders)]
-
-    style UI fill:#EDE4FF,stroke:#000,stroke-width:2px,color:#000
-    style Graph fill:#F3E8FF,stroke:#8B5CF6,stroke-width:2px,color:#000
-    style Internal fill:#F8E7A6,stroke:#000,stroke-width:2px,color:#000
-```
 
 ## ✨ Tech Stack
 
