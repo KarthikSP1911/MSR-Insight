@@ -36,5 +36,8 @@ class Settings:
     # Agentic AI (LangGraph) configuration — independent of the RAG chatbot above
     AGENT_LLM_MODEL: str = os.getenv("AGENT_LLM_MODEL", "gemini-3.1-flash-lite")
     AGENT_GATEWAY_SECRET: str = os.getenv("AGENT_GATEWAY_SECRET", "")
+    # Base URL for the agent's confirmed side-effect tools to call back into
+    # Express (send_email/send_whatsapp) -- distinct from EXPRESS_API_URL above.
+    EXPRESS_BASE_URL: str = os.getenv("EXPRESS_BASE_URL", "http://localhost:5001")
 
 settings = Settings()
