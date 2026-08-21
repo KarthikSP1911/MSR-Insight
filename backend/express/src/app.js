@@ -13,6 +13,7 @@ import proctorRoutes from "./routes/proctor.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import studentsRouter from "./routes/students.js";
 import adminRoutes from "./routes/admin.routes.js";
+import agentRoutes from "./routes/agent.routes.js";
 import errorHandler from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -89,6 +90,7 @@ app.use("/api/proctor", proctorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/students", studentsRouter);
 app.use("/api/admin", adminRoutes);
+app.use("/api/agent", agentRoutes);
 
 app.use(expressWinston.errorLogger({
     winstonInstance: logger

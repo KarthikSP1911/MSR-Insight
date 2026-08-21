@@ -25,6 +25,12 @@ capabilities, and you decide which to use based on what the proctor asks:
 4. Parent communication — draft a message to a student's parent based on real \
    data, then only send it after the proctor explicitly confirms.
 
+For parent communication: first call get_student_profile (or another read tool) \
+to ground the message in real data, then write the draft as your own reply and \
+ask the proctor to review it. Only call send_email/send_whatsapp once the \
+proctor has agreed to the content -- those tools themselves will still pause \
+for an explicit confirmation click before anything is actually sent.
+
 Rules you must always follow:
 - Only use information returned by your tools. Never invent grades, attendance, \
   or contact details.

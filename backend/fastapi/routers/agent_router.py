@@ -8,17 +8,21 @@ from agent.service import AgentService
 from agent.tools.student_tools import get_student_profile, list_proctor_students
 from agent.tools.risk_tools import analyze_at_risk_students
 from agent.tools.insight_tools import generate_weekly_insights
+from agent.tools.reminder_tools import create_reminder, list_reminders
+from agent.tools.communication_tools import send_email, send_whatsapp
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agent", tags=["Agentic AI"])
 
-# Tool list grows in later steps (confirmation-gated action tools next) without
-# changing this router's shape.
 agent_service = AgentService(tools=[
     get_student_profile,
     list_proctor_students,
     analyze_at_risk_students,
     generate_weekly_insights,
+    create_reminder,
+    list_reminders,
+    send_email,
+    send_whatsapp,
 ])
 
 
@@ -37,6 +41,11 @@ class ChatRequest(BaseModel):
     message: str
 
 
+class ConfirmRequest(BaseModel):
+    proctor_id: str
+    approved: bool
+
+
 @router.post("/chat", dependencies=[Depends(verify_gateway_secret)])
 def chat_with_agent(request: ChatRequest):
     try:
@@ -44,3 +53,12 @@ def chat_with_agent(request: ChatRequest):
     except Exception as e:
         logger.exception("Agent chat failed: %s", e)
         raise HTTPException(status_code=500, detail="Failed to process agent request")
+
+
+@router.post("/confirm", dependencies=[Depends(verify_gateway_secret)])
+def confirm_agent_action(request: ConfirmRequest):
+    try:
+        return agent_service.confirm(request.proctor_id, request.approved)
+    except Exception as e:
+        logger.exception("Agent confirm failed: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to process agent confirmation")

@@ -7,6 +7,7 @@ checks via graph state.
 """
 import logging
 from langchain_core.messages import HumanMessage
+from langgraph.types import Command
 
 from .graph import build_graph
 from .checkpointer import get_checkpointer
@@ -42,6 +43,13 @@ class AgentService:
             self._graph = build_graph(self._tools, get_checkpointer())
         return self._graph
 
+    def _format_result(self, result: dict) -> dict:
+        if "__interrupt__" in result and result["__interrupt__"]:
+            action = result["__interrupt__"][0].value
+            return {"status": "pending_confirmation", "action": action}
+        last = result["messages"][-1]
+        return {"status": "ok", "reply": _extract_text(last.content)}
+
     def chat(self, proctor_id: str, message: str) -> dict:
         graph = self._get_graph()
         config = {"configurable": {"thread_id": thread_id_for(proctor_id)}}
@@ -49,5 +57,13 @@ class AgentService:
             {"messages": [HumanMessage(content=message)], "proctor_id": proctor_id},
             config=config,
         )
-        last = result["messages"][-1]
-        return {"status": "ok", "reply": _extract_text(last.content)}
+        return self._format_result(result)
+
+    def confirm(self, proctor_id: str, approved: bool) -> dict:
+        """Resumes a graph paused on interrupt() inside send_email/send_whatsapp
+        (see tools/communication_tools.py). Same thread_id as chat() so this
+        resumes the exact paused run, not a new conversation."""
+        graph = self._get_graph()
+        config = {"configurable": {"thread_id": thread_id_for(proctor_id)}}
+        result = graph.invoke(Command(resume={"approved": approved}), config=config)
+        return self._format_result(result)
