@@ -659,6 +659,29 @@ export const sendReportEmailViaResend = async (
 };
 
 /**
+ * Send a plain (non-report, no PDF attachment) email via Resend. Used by the
+ * Agentic AI chatbot's send_email tool for ad-hoc parent communication drafts,
+ * as opposed to sendReportEmailViaResend which is tied to the PDF report flow.
+ * @param {string} to - Recipient email address
+ * @param {string} subject - Email subject
+ * @param {string} html - Email HTML body
+ * @returns {Promise<Object>} Resend response
+ */
+export const sendCustomEmail = async (to, subject, html) => {
+  try {
+    const response = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
+      to,
+      subject,
+      html,
+    });
+    return response;
+  } catch (error) {
+    throw new Error(`Email sending failed: ${error.message}`);
+  }
+};
+
+/**
  * Send report to all parents of a student
  * @param {string} studentUSN - Student USN
  * @param {Object} studentData - Student data including name

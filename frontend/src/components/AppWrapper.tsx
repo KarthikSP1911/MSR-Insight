@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import axios from "axios";
 import Navbar from "@/components/navbar/Navbar";
 import InboxPanel from "@/components/dashboard/InboxPanel";
+import AgentPanel from "@/components/dashboard/AgentPanel";
 import { API_BASE_URL } from "@/config/api.config";
 import { AppProvider, useAppContext, Alert } from "@/lib/AppContext";
 import QueryProvider from "@/lib/QueryProvider";
@@ -13,7 +14,38 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isReportPage = pathname.includes("/report/");
   const isStudentDashboard = pathname.startsWith("/student/dashboard");
-  const { academicYear, setAcademicYear, inboxOpen, setInboxOpen, alerts, setAlerts } = useAppContext();
+  const { academicYear, setAcademicYear, inboxOpen, setInboxOpen, alerts, setAlerts, agentPanelOpen, setAgentPanelOpen } = useAppContext();
+  const [agentAlertCount, setAgentAlertCount] = useState(0);
+
+  const isProctorRoute = pathname.startsWith("/proctor/") && !pathname.includes("login") && !isReportPage;
+  const proctorIdMatch = pathname.match(/^\/proctor\/([^\/]+)/);
+  const currentProctorId = isProctorRoute && proctorIdMatch ? proctorIdMatch[1] : null;
+
+  // Fetch the Agentic AI's unresolved alert count for the navbar badge --
+  // independent of AgentPanel's own alert fetch, which only runs while open.
+  useEffect(() => {
+    if (!currentProctorId) return;
+    const fetchAgentAlertCount = async () => {
+      try {
+        const sessionId = localStorage.getItem("proctorSessionId");
+        const res = await axios.get(`${API_BASE_URL}/api/agent/${currentProctorId}/alerts`, {
+          headers: { "x-session-id": sessionId },
+        });
+        setAgentAlertCount((res.data?.data || []).length);
+      } catch (err) {
+        console.error("[App] Failed to fetch agent alert count:", err);
+      }
+    };
+    fetchAgentAlertCount();
+  }, [currentProctorId]);
+
+  // Keep the agent panel and inbox mutually exclusive -- only one drawer open at a time.
+  useEffect(() => {
+    if (agentPanelOpen) setInboxOpen(false);
+  }, [agentPanelOpen, setInboxOpen]);
+  useEffect(() => {
+    if (inboxOpen) setAgentPanelOpen(false);
+  }, [inboxOpen, setAgentPanelOpen]);
 
   // Fetch live notifications for Proctor
   useEffect(() => {
@@ -92,19 +124,19 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   // Manage body scroll
   useEffect(() => {
-    if (isReportPage || inboxOpen) {
+    if (isReportPage || inboxOpen || agentPanelOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
-  }, [isReportPage, inboxOpen]);
+  }, [isReportPage, inboxOpen, agentPanelOpen]);
 
   return (
     <div className="app-wrapper">
       {!isReportPage && !isStudentDashboard && !isHomePage && (
-        <Navbar 
-          academicYear={academicYear} 
-          setAcademicYear={setAcademicYear} 
+        <Navbar
+          academicYear={academicYear}
+          setAcademicYear={setAcademicYear}
           inboxOpen={inboxOpen}
           setInboxOpen={setInboxOpen}
           notificationCount={[
@@ -114,15 +146,27 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 .map(a => a.message.slice(0, a.message.indexOf(' - ')).trim())
             )
           ].length}
+          agentPanelOpen={agentPanelOpen}
+          onToggleAgentPanel={() => setAgentPanelOpen(!agentPanelOpen)}
+          agentAlertCount={agentAlertCount}
         />
       )}
-      
-      <InboxPanel 
-        isOpen={inboxOpen} 
-        onClose={() => setInboxOpen(false)} 
+
+      <InboxPanel
+        isOpen={inboxOpen}
+        onClose={() => setInboxOpen(false)}
         alerts={alerts}
         onRemove={removeAlert}
       />
+
+      {currentProctorId && (
+        <AgentPanel
+          proctorId={currentProctorId}
+          isOpen={agentPanelOpen}
+          onClose={() => setAgentPanelOpen(false)}
+          onAlertCountChange={setAgentAlertCount}
+        />
+      )}
 
       <main className="content">
         {children}
