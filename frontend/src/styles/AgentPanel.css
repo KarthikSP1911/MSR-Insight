@@ -1,0 +1,409 @@
+/* Agentic AI panel. Deliberately styled with a distinct accent (violet) from
+   ProctorChatbot.css's teal, so it reads as a different system at a glance. */
+:root {
+  --agent-accent: #8b5cf6;
+  --agent-accent-hover: #7c3aed;
+  --agent-glow: rgba(139, 92, 246, 0.18);
+}
+
+.agent-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1099;
+}
+
+.agent-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.agent-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 460px;
+  max-width: 100vw;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1100;
+}
+
+.agent-panel.open {
+  transform: translateX(0);
+}
+
+.agent-panel-header {
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agent-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--agent-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.agent-panel-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.agent-panel-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.agent-alerts-section {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.agent-alerts-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  color: var(--agent-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+}
+
+.agent-alerts-chevron {
+  transition: transform 0.2s ease;
+}
+
+.agent-alerts-chevron.open {
+  transform: rotate(180deg);
+}
+
+.agent-alerts-list {
+  padding: 0 1.5rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agent-alert-card {
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  border-left: 3px solid var(--text-muted);
+  background: var(--bg-primary);
+}
+
+.agent-alert-card.severity-high {
+  border-left-color: #ef4444;
+}
+
+.agent-alert-card.severity-medium {
+  border-left-color: #f59e0b;
+}
+
+.agent-alert-card.severity-low {
+  border-left-color: #eab308;
+}
+
+.agent-alert-usn {
+  display: block;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.agent-alert-message {
+  color: var(--text-secondary);
+}
+
+.agent-quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.agent-quick-actions button {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agent-quick-actions button:hover {
+  border-color: var(--agent-accent);
+  color: var(--agent-accent);
+}
+
+.agent-messages {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  background: var(--bg-primary);
+}
+
+.agent-message {
+  max-width: 90%;
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.agent-message.user {
+  align-self: flex-end;
+  background: var(--agent-accent);
+  color: #fff;
+  font-weight: 500;
+  border-bottom-right-radius: 2px;
+}
+
+.agent-message.assistant {
+  align-self: flex-start;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-bottom-left-radius: 2px;
+}
+
+.agent-message .markdown-container p {
+  margin: 0 0 8px 0;
+}
+
+.agent-message .markdown-container p:last-child {
+  margin-bottom: 0;
+}
+
+.agent-approval-card {
+  align-self: stretch;
+  background: var(--bg-card);
+  border: 1px solid var(--agent-accent);
+  box-shadow: 0 0 0 3px var(--agent-glow);
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.85rem;
+}
+
+.agent-approval-card.resolved {
+  border-color: var(--border-subtle);
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.agent-approval-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.agent-approval-badge {
+  background: var(--agent-glow);
+  color: var(--agent-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.agent-approval-type {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.agent-approval-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-secondary);
+  margin-bottom: 0.85rem;
+}
+
+.agent-approval-message {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.agent-approval-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.agent-approve-btn,
+.agent-reject-btn {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agent-approve-btn {
+  background: var(--agent-accent);
+  color: #fff;
+}
+
+.agent-approve-btn:hover:not(:disabled) {
+  background: var(--agent-accent-hover);
+}
+
+.agent-reject-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.agent-reject-btn:hover:not(:disabled) {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.agent-approve-btn:disabled,
+.agent-reject-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.agent-approval-outcome {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agent-approval-outcome.approved {
+  color: var(--agent-accent);
+}
+
+.agent-approval-outcome.rejected {
+  color: var(--text-muted);
+}
+
+.agent-progress-chip {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+}
+
+.agent-progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--agent-accent);
+  animation: agent-pulse 1.2s infinite;
+}
+
+@keyframes agent-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.agent-input-area {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.agent-input {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.agent-input:focus {
+  border-color: var(--agent-accent);
+}
+
+.agent-send-btn {
+  background: none;
+  border: none;
+  color: var(--agent-accent);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.agent-send-btn:hover:not(:disabled) {
+  color: var(--agent-accent-hover);
+  transform: scale(1.1);
+}
+
+.agent-send-btn:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.agent-panel-toggle.active {
+  color: var(--agent-accent);
+}
+
+.agent-alert-badge {
+  background: #ef4444 !important;
+}
+
+@media (max-width: 768px) {
+  .agent-panel {
+    width: 100vw;
+  }
+}

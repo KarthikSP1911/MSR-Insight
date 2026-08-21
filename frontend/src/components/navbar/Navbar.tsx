@@ -12,6 +12,9 @@ interface NavbarProps {
   inboxOpen: boolean;
   setInboxOpen: (open: boolean) => void;
   notificationCount: number;
+  agentPanelOpen: boolean;
+  onToggleAgentPanel: () => void;
+  agentAlertCount: number;
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -19,7 +22,10 @@ const Navbar: React.FC<NavbarProps> = ({
   setAcademicYear,
   inboxOpen,
   setInboxOpen,
-  notificationCount
+  notificationCount,
+  agentPanelOpen,
+  onToggleAgentPanel,
+  agentAlertCount
 }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const pathname = usePathname();
@@ -168,6 +174,22 @@ const Navbar: React.FC<NavbarProps> = ({
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                 </svg>
                 {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+              </button>
+
+              <button
+                className={`icon-btn agent-panel-toggle ${agentPanelOpen ? 'active' : ''}`}
+                onClick={onToggleAgentPanel}
+                title="AI Agent"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 8V4H8" />
+                  <rect width="16" height="12" x="4" y="8" rx="2" />
+                  <path d="M2 14h2" />
+                  <path d="M20 14h2" />
+                  <path d="M15 13v2" />
+                  <path d="M9 13v2" />
+                </svg>
+                {agentAlertCount > 0 && <span className="notification-badge agent-alert-badge">{agentAlertCount}</span>}
               </button>
 
               <button onClick={handleLogout} className="logout-btn">
