@@ -60,15 +60,19 @@ class AgentService:
         return self._format_result(result)
 
     def confirm(self, proctor_id: str, approved: bool, subject: str | None = None,
-                message: str | None = None, conversation_id: str | None = None) -> dict:
-        """Resumes a graph paused on interrupt() inside send_email/send_whatsapp
-        (see tools/communication_tools.py). Same thread_id as chat() so this
-        resumes the exact paused run, not a new conversation. subject/message
+                message: str | None = None, conversation_id: str | None = None,
+                proctor_remarks: str | None = None) -> dict:
+        """Resumes a graph paused on interrupt() inside communication_tools.py
+        or report_tools.py. Same thread_id as chat() so this resumes the exact
+        paused run, not a new conversation. subject/message/proctor_remarks
         carry the proctor's edits to the drafted content, if any."""
         graph = self._get_graph()
         config = {"configurable": {"thread_id": thread_id_for(proctor_id, conversation_id)}}
         result = graph.invoke(
-            Command(resume={"approved": approved, "subject": subject, "message": message}),
+            Command(resume={
+                "approved": approved, "subject": subject, "message": message,
+                "proctor_remarks": proctor_remarks,
+            }),
             config=config,
         )
         return self._format_result(result)

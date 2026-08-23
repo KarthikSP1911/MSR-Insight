@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     chatWithAgent,
     confirmAgentAction,
+    generateAgentReportPdfInternal,
     getAgentActions,
     getAgentAlerts,
     getAgentRemindersDueToday,
@@ -14,6 +15,7 @@ import validate from "../middlewares/validate.middleware.js";
 import {
     agentChatSchema,
     agentConfirmSchema,
+    agentInternalGenerateReportPdfSchema,
     agentInternalSendEmailSchema,
     agentInternalSendWhatsAppSchema,
 } from "../schemas/agent.schema.js";
@@ -28,6 +30,7 @@ const router = Router();
 // match `/internal/send-email` with proctorId="internal").
 router.post("/internal/send-email", verifyAgentGatewaySecret, validate(agentInternalSendEmailSchema), sendAgentEmailInternal);
 router.post("/internal/send-whatsapp", verifyAgentGatewaySecret, validate(agentInternalSendWhatsAppSchema), sendAgentWhatsAppInternal);
+router.post("/internal/generate-report-pdf", verifyAgentGatewaySecret, validate(agentInternalGenerateReportPdfSchema), generateAgentReportPdfInternal);
 
 // Proctor-facing: session-gated, same pattern as proctor.routes.js.
 router.use(verifyProctorAccess);

@@ -12,6 +12,9 @@ interface PendingAction {
   usn?: string;
   subject?: string;
   message?: string;
+  pdf_base64?: string;
+  include_proctor_remarks?: boolean;
+  proctor_remarks?: string | null;
 }
 
 interface ChatEntry {
@@ -44,6 +47,7 @@ const sessionHeaders = () => ({
 const ACTION_LABELS: Record<string, string> = {
   send_email: "Send Email",
   send_whatsapp: "Send WhatsApp Message",
+  send_report_email: "Email Student Report",
 };
 
 const GREETING = "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?";
@@ -60,6 +64,7 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [editedSubject, setEditedSubject] = useState("");
   const [editedMessage, setEditedMessage] = useState("");
+  const [editedProctorRemarks, setEditedProctorRemarks] = useState("");
   const [alerts, setAlerts] = useState<AgentAlert[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [digestShown, setDigestShown] = useState(false);
@@ -136,6 +141,7 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
       setPendingAction(data.action);
       setEditedSubject(data.action.subject || "");
       setEditedMessage(data.action.message || "");
+      setEditedProctorRemarks(data.action.proctor_remarks || "");
       setEntries((prev) => [...prev, { kind: "pending", action: data.action }]);
     } else if (data?.status === "ok") {
       setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: data.reply || "" }]);
@@ -148,7 +154,10 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const resolveConfirmation = async (approved: boolean) => {
     if (!pendingAction || isLoading) return;
     setIsLoading(true);
-    const finalAction = approved ? { ...pendingAction, subject: editedSubject, message: editedMessage } : pendingAction;
+    const isReport = pendingAction.action_type === "send_report_email";
+    const finalAction = approved
+      ? { ...pendingAction, subject: editedSubject, message: editedMessage, proctor_remarks: isReport ? editedProctorRemarks : pendingAction.proctor_remarks }
+      : pendingAction;
     setEntries((prev) =>
       prev.map((e) => (e.kind === "pending" && e.action === pendingAction ? { ...e, action: finalAction, kind: "resolved-pending", resolution: approved ? "approved" : "rejected" } : e))
     );
@@ -158,7 +167,13 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
       const res = await axios.post(
         `${API_BASE_URL}/api/agent/${proctorId}/confirm`,
         approved
-          ? { approved, subject: editedSubject || undefined, message: editedMessage || undefined, conversation_id: conversationId }
+          ? {
+              approved,
+              subject: editedSubject || undefined,
+              message: editedMessage || undefined,
+              proctor_remarks: isReport ? editedProctorRemarks || undefined : undefined,
+              conversation_id: conversationId,
+            }
           : { approved, conversation_id: conversationId },
         { headers: sessionHeaders() },
       );
@@ -293,6 +308,31 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
                     )}
                     {resolved && action.subject && <div><strong>Subject:</strong> {action.subject}</div>}
                     {resolved && action.message && <div className="agent-approval-message">{action.message}</div>}
+                    {action.action_type === "send_report_email" && action.pdf_base64 && (
+                      <div>
+                        <strong>Report preview:</strong>
+                        <iframe
+                          className="agent-approval-pdf-preview"
+                          src={`data:application/pdf;base64,${action.pdf_base64}`}
+                          title="Report preview"
+                        />
+                      </div>
+                    )}
+                    {action.action_type === "send_report_email" && action.include_proctor_remarks && !resolved && (
+                      <div>
+                        <strong>Proctor remarks:</strong>
+                        <textarea
+                          className="agent-approval-edit-textarea"
+                          value={editedProctorRemarks}
+                          onChange={(e) => setEditedProctorRemarks(e.target.value)}
+                          disabled={isLoading}
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                    {action.action_type === "send_report_email" && action.include_proctor_remarks && resolved && action.proctor_remarks && (
+                      <div className="agent-approval-message">{action.proctor_remarks}</div>
+                    )}
                   </div>
                   {!resolved ? (
                     <div className="agent-approval-actions">

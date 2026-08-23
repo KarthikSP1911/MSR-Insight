@@ -1,7 +1,8 @@
 import axios from "axios";
 import prisma from "../config/db.config.js";
-import { sendCustomEmail } from "../services/email.service.js";
+import { sendCustomEmail, generatePDFFromHTML, sendReportEmailViaResend } from "../services/email.service.js";
 import { sendTwilioWhatsAppMessage } from "../services/whatsapp.service.js";
+import { buildProctorReportHTML } from "../services/agentReport.service.js";
 import logger from "../utils/logger.js";
 
 const FASTAPI_INTERNAL_URL = process.env.FASTAPI_URL || "http://localhost:8000";
@@ -55,11 +56,11 @@ export const chatWithAgent = async (req, res, next) => {
 export const confirmAgentAction = async (req, res, next) => {
     try {
         const proctorId = req.params.proctorId;
-        const { approved, subject, message, conversation_id } = req.body;
+        const { approved, subject, message, proctor_remarks, conversation_id } = req.body;
 
         const response = await axios.post(
             `${FASTAPI_INTERNAL_URL}/api/agent/confirm`,
-            { proctor_id: proctorId, approved, subject, message, conversation_id },
+            { proctor_id: proctorId, approved, subject, message, proctor_remarks, conversation_id },
             { headers: fastapiHeaders() },
         );
 
@@ -143,6 +144,60 @@ export const sendAgentEmailInternal = async (req, res, next) => {
         }
 
         return res.status(200).json({ success: true, sent: results.filter(r => r.status === "success").length, results });
+    } catch (error) {
+        const status = error.statusCode || 500;
+        return res.status(status).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Internal endpoint (shared-secret gated, no session): FastAPI's
+ * generate_report_pdf tool calls this twice -- once with mode="preview" to
+ * render the PDF for the proctor to review in AgentPanel.tsx before
+ * confirming, and again with mode="send" after confirmation to actually
+ * email it. Re-checks ownership independently of the two checks already
+ * done in the FastAPI tool (defense in depth, same pattern as the other
+ * internal routes).
+ */
+export const generateAgentReportPdfInternal = async (req, res, next) => {
+    try {
+        const { proctor_id, usn, include_proctor_remarks, proctor_remarks, ai_remark, mode } = req.body;
+        await assertProctorOwnsStudent(proctor_id, usn);
+
+        const student = await prisma.student.findUnique({ where: { usn }, include: { parents: true } });
+        if (!student) {
+            const err = new Error(`No student record found for ${usn}`);
+            err.statusCode = 404;
+            throw err;
+        }
+
+        const html = buildProctorReportHTML(
+            student,
+            ai_remark,
+            include_proctor_remarks ? proctor_remarks : null,
+        );
+        const pdfBuffer = await generatePDFFromHTML(html, `report_${usn}.pdf`);
+
+        if (mode === "preview") {
+            return res.status(200).json({ success: true, pdf_base64: pdfBuffer.toString("base64") });
+        }
+
+        const withEmail = (student.parents || []).filter((p) => p.email);
+        if (withEmail.length === 0) {
+            return res.status(200).json({ success: true, sent: 0, message: "No parent email on file for this student." });
+        }
+
+        const results = [];
+        for (const parent of withEmail) {
+            try {
+                const result = await sendReportEmailViaResend(parent.email, student.name, usn, pdfBuffer, parent.name || "Parent/Guardian");
+                results.push({ parentEmail: parent.email, status: "success", messageId: result.id });
+            } catch (error) {
+                results.push({ parentEmail: parent.email, status: "failed", error: error.message });
+            }
+        }
+
+        return res.status(200).json({ success: true, sent: results.filter((r) => r.status === "success").length, results });
     } catch (error) {
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });

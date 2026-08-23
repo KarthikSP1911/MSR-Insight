@@ -14,6 +14,7 @@ export const agentConfirmSchema = z.object({
   approved: z.boolean(),
   subject: z.string().trim().min(1).optional(),
   message: z.string().trim().min(1).optional(),
+  proctor_remarks: z.string().trim().optional().nullable(),
   conversation_id: conversationId,
 });
 
@@ -28,4 +29,13 @@ export const agentInternalSendWhatsAppSchema = z.object({
   proctor_id: proctorId,
   usn,
   message: z.string().trim().min(1, "message is required"),
+});
+
+export const agentInternalGenerateReportPdfSchema = z.object({
+  proctor_id: proctorId,
+  usn,
+  include_proctor_remarks: z.boolean(),
+  proctor_remarks: z.string().trim().optional().nullable(),
+  ai_remark: z.string().trim().min(1, "ai_remark is required"),
+  mode: z.enum(["preview", "send"]),
 });

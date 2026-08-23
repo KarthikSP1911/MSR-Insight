@@ -10,6 +10,7 @@ from app.services.agent.tools.risk_tools import analyze_at_risk_students, calcul
 from app.services.agent.tools.insight_tools import generate_weekly_insights
 from app.services.agent.tools.reminder_tools import create_reminder, list_reminders
 from app.services.agent.tools.communication_tools import send_email, send_whatsapp
+from app.services.agent.tools.report_tools import generate_report_pdf
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agent", tags=["Agentic AI"])
@@ -25,6 +26,7 @@ agent_service = AgentService(tools=[
     list_reminders,
     send_email,
     send_whatsapp,
+    generate_report_pdf,
 ])
 
 
@@ -51,7 +53,8 @@ def chat_with_agent(request: ChatRequest):
 def confirm_agent_action(request: ConfirmRequest):
     try:
         return agent_service.confirm(
-            request.proctor_id, request.approved, request.subject, request.message, request.conversation_id
+            request.proctor_id, request.approved, request.subject, request.message,
+            request.conversation_id, request.proctor_remarks,
         )
     except Exception as e:
         logger.exception("Agent confirm failed: %s", e)
