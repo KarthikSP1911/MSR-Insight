@@ -206,3 +206,44 @@ def calculate_attendance_recovery(usn: str, subject_code: str, state: Annotated[
         f"{subject.get('name', subject_code)}: must attend at least {classes_needed} of the remaining "
         f"{remaining} class(es) to reach 75% attendance."
     )
+
+
+@tool
+def explain_alert(usn: str, state: Annotated[AgentState, InjectedState]) -> str:
+    """Explain the most recent unresolved risk alert(s) already recorded for a
+    student. Reads the stored risk_type/severity/evidence/message from the
+    agent_alerts table -- summarize only that stored evidence, do not
+    re-compute risk or invent new reasoning not present in it. `usn` must be a
+    real USN you already learned -- never guess it."""
+    proctor_id = state["proctor_id"]
+    if not is_proctor_owner_of_student(proctor_id, usn):
+        return f"Not authorized: {usn} is not one of your assigned students."
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT risk_type, severity, evidence, message, created_at
+            FROM agent_alerts
+            WHERE student_usn = %s AND proctor_id = %s AND resolved = false
+            ORDER BY created_at DESC
+            """,
+            (usn, proctor_id),
+        )
+        rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    if not rows:
+        return f"No unresolved alerts on record for {usn}."
+
+    lines = [f"Unresolved alert(s) on record for {usn}:"]
+    for risk_type, severity, evidence, message, created_at in rows:
+        if isinstance(evidence, str):
+            evidence = json.loads(evidence)
+        lines.append(
+            f"\n- [{severity.upper()}] {risk_type} (flagged {created_at}): {message}\n"
+            f"  Evidence: {json.dumps(evidence)}"
+        )
+    return "\n".join(lines)
