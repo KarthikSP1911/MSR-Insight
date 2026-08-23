@@ -46,7 +46,7 @@ export const chatWithAgent = async (req, res, next) => {
             { headers: fastapiHeaders(), responseType: "stream" },
         );
     } catch (error) {
-        logger.error(`[Agent] chat stream proxy failed: ${error.message}`);
+        logger.error("[Agent] chat stream proxy failed:", error);
         return res.status(502).json({ success: false, message: "Agent service unavailable" });
     }
 
@@ -57,7 +57,7 @@ export const chatWithAgent = async (req, res, next) => {
 
     upstream.data.pipe(res);
     upstream.data.on("error", (err) => {
-        logger.error(`[Agent] chat stream errored mid-flight: ${err.message}`);
+        logger.error("[Agent] chat stream errored mid-flight:", err);
         res.end();
     });
     req.on("close", () => {
@@ -82,7 +82,7 @@ export const confirmAgentAction = async (req, res, next) => {
 
         return res.status(200).json({ success: true, ...response.data });
     } catch (error) {
-        logger.error(`[Agent] confirm proxy failed: ${error.message}`);
+        logger.error("[Agent] confirm proxy failed:", error);
         return res.status(502).json({ success: false, message: "Agent service unavailable" });
     }
 };
@@ -161,6 +161,7 @@ export const sendAgentEmailInternal = async (req, res, next) => {
 
         return res.status(200).json({ success: true, sent: results.filter(r => r.status === "success").length, results });
     } catch (error) {
+        logger.error("[Agent] sendAgentEmailInternal failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }
@@ -215,6 +216,7 @@ export const generateAgentReportPdfInternal = async (req, res, next) => {
 
         return res.status(200).json({ success: true, sent: results.filter((r) => r.status === "success").length, results });
     } catch (error) {
+        logger.error("[Agent] generateAgentReportPdfInternal failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }
@@ -253,6 +255,7 @@ export const sendAgentWhatsAppInternal = async (req, res, next) => {
 
         return res.status(200).json({ success: true, sent: results.filter(r => r.status === "success").length, results });
     } catch (error) {
+        logger.error("[Agent] sendAgentWhatsAppInternal failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }
