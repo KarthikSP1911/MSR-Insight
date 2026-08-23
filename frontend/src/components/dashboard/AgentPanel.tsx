@@ -52,6 +52,24 @@ const ACTION_LABELS: Record<string, string> = {
 
 const GREETING = "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?";
 
+// Parses one "event: name\ndata: {...}\ndata: {...}" SSE frame (already
+// split on the blank-line frame separator by the caller).
+const parseSSEEvent = (raw: string): { event: string | null; data: any } => {
+  let event: string | null = null;
+  const dataLines: string[] = [];
+  for (const line of raw.split("\n")) {
+    if (line.startsWith("event:")) event = line.slice(6).trim();
+    else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+  }
+  let data: any = {};
+  try {
+    data = dataLines.length ? JSON.parse(dataLines.join("\n")) : {};
+  } catch {
+    data = {};
+  }
+  return { event, data };
+};
+
 export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountChange }: AgentPanelProps) {
   const [entries, setEntries] = useState<ChatEntry[]>([
     { kind: "text", role: "assistant", text: GREETING },
@@ -118,19 +136,63 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
-    setEntries((prev) => [...prev, { kind: "text", role: "user", text }]);
+    setEntries((prev) => [...prev, { kind: "text", role: "user", text }, { kind: "text", role: "assistant", text: "" }]);
     setInputValue("");
     setIsLoading(true);
 
+    // The placeholder assistant entry we just pushed is always the last
+    // entry while a stream is in flight (isLoading blocks a second send).
+    const replaceLastEntry = (entry: ChatEntry) =>
+      setEntries((prev) => [...prev.slice(0, -1), entry]);
+
+    let streamedText = "";
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/agent/${proctorId}/chat`,
-        { message: text, conversation_id: conversationId },
-        { headers: sessionHeaders() },
-      );
-      handleAgentResponse(res.data);
+      const res = await fetch(`${API_BASE_URL}/api/agent/${proctorId}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-session-id": sessionHeaders()["x-session-id"] || "" },
+        body: JSON.stringify({ message: text, conversation_id: conversationId }),
+      });
+      if (!res.ok || !res.body) throw new Error(`Agent stream request failed (${res.status})`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let boundary: number;
+        while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+          const rawEvent = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+          const { event, data } = parseSSEEvent(rawEvent);
+          if (!event) continue;
+
+          if (event === "token") {
+            streamedText += data.text || "";
+            replaceLastEntry({ kind: "text", role: "assistant", text: streamedText });
+          } else if (event === "status") {
+            if (data.status === "pending_confirmation" && data.action) {
+              replaceLastEntry({ kind: "pending", action: data.action });
+              setPendingAction(data.action);
+              setEditedSubject(data.action.subject || "");
+              setEditedMessage(data.action.message || "");
+              setEditedProctorRemarks(data.action.proctor_remarks || "");
+            } else if (data.status === "ok") {
+              replaceLastEntry({ kind: "text", role: "assistant", text: data.reply || streamedText });
+              fetchAlerts();
+            } else {
+              replaceLastEntry({ kind: "text", role: "assistant", text: "Sorry, I couldn't process that request." });
+            }
+          } else if (event === "error") {
+            replaceLastEntry({ kind: "text", role: "assistant", text: data.message || "Sorry, something went wrong." });
+          }
+        }
+      }
     } catch (err) {
-      setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: "Sorry, I couldn't reach the agent service. Please try again." }]);
+      replaceLastEntry({ kind: "text", role: "assistant", text: "Sorry, I couldn't reach the agent service. Please try again." });
     } finally {
       setIsLoading(false);
     }

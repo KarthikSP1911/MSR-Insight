@@ -27,26 +27,42 @@ const assertProctorOwnsStudent = async (proctorId, usn) => {
 };
 
 /**
- * Proxies a chat message to the FastAPI Agentic AI graph. Session auth for
- * this route is already enforced by verifyProctorAccess (see agent.routes.js);
- * FastAPI trusts the proctor_id we send because we've already verified it.
+ * Proxies a chat message to FastAPI's streaming /api/agent/chat/stream and
+ * re-emits it as Server-Sent Events to the browser, rather than buffering
+ * the whole reply before responding. Session auth for this route is already
+ * enforced by verifyProctorAccess (see agent.routes.js) *before* this stream
+ * is opened; FastAPI trusts the proctor_id we send because we've already
+ * verified it.
  */
 export const chatWithAgent = async (req, res, next) => {
+    const proctorId = req.params.proctorId;
+    const { message, conversation_id } = req.body;
+
+    let upstream;
     try {
-        const proctorId = req.params.proctorId;
-        const { message, conversation_id } = req.body;
-
-        const response = await axios.post(
-            `${FASTAPI_INTERNAL_URL}/api/agent/chat`,
+        upstream = await axios.post(
+            `${FASTAPI_INTERNAL_URL}/api/agent/chat/stream`,
             { proctor_id: proctorId, message, conversation_id },
-            { headers: fastapiHeaders() },
+            { headers: fastapiHeaders(), responseType: "stream" },
         );
-
-        return res.status(200).json({ success: true, ...response.data });
     } catch (error) {
-        logger.error(`[Agent] chat proxy failed: ${error.message}`);
+        logger.error(`[Agent] chat stream proxy failed: ${error.message}`);
         return res.status(502).json({ success: false, message: "Agent service unavailable" });
     }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    upstream.data.pipe(res);
+    upstream.data.on("error", (err) => {
+        logger.error(`[Agent] chat stream errored mid-flight: ${err.message}`);
+        res.end();
+    });
+    req.on("close", () => {
+        upstream.data.destroy();
+    });
 };
 
 /**
