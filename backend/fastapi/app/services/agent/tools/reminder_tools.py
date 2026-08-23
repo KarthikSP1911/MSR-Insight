@@ -17,7 +17,9 @@ def create_reminder(title: str, due_date: str, state: Annotated[AgentState, Inje
     """Create a reminder for the proctor, e.g. 'follow up with a student's
     parent next week'. `due_date` must be an ISO date (YYYY-MM-DD). `usn` is
     optional -- include it only if the reminder is about one of your specific
-    students (it will be checked against your assigned students)."""
+    students (it will be checked against your assigned students). For a bulk
+    request ("create a reminder for each at-risk student"), call this tool
+    once per student in the same turn -- there is no separate bulk tool."""
     proctor_id = state["proctor_id"]
     cid = state.get("conversation_id")
 
