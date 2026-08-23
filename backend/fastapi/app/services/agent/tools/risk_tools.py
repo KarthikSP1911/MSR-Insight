@@ -2,14 +2,16 @@
 students (no usn argument, no way for the LLM to point this at anyone else's
 students)."""
 import json
+import math
 from typing import Annotated
 
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 from ..state import AgentState
-from app.repositories.agent_repository import get_connection
+from app.repositories.agent_repository import get_connection, is_proctor_owner_of_student
 from .logging import log_action
+from .student_tools import _load_student_row
 
 CGPA_RISK_THRESHOLD = 6.0
 ATTENDANCE_RISK_THRESHOLD = 75
@@ -153,3 +155,54 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
         for f in entry["findings"]:
             lines.append(f"  - [{f['severity'].upper()}] {f['message']}")
     return "\n".join(lines)
+
+
+@tool
+def calculate_attendance_recovery(usn: str, subject_code: str, state: Annotated[AgentState, InjectedState]) -> str:
+    """Calculate the minimum number of additional classes a student must
+    attend, out of the classes remaining in a specific subject, to reach 75%
+    overall attendance in that subject. `usn` and `subject_code` must be real
+    values you already learned (e.g. via get_student_profile) -- never guess
+    them. If even attending every remaining class can't reach 75%, say so
+    explicitly rather than returning a number that implies otherwise."""
+    proctor_id = state["proctor_id"]
+    if not is_proctor_owner_of_student(proctor_id, usn):
+        return f"Not authorized: {usn} is not one of your assigned students."
+
+    student = _load_student_row(usn)
+    if not student:
+        return f"No student record found for {usn}."
+
+    subjects = student["details"].get("subjects", [])
+    subject = next((s for s in subjects if s.get("code") == subject_code), None)
+    if not subject:
+        return f"No subject with code {subject_code} found for {usn}."
+
+    ad = subject.get("attendance_details") or {}
+    present = ad.get("present")
+    absent = ad.get("absent")
+    remaining = ad.get("remaining")
+    if not all(isinstance(v, (int, float)) for v in (present, absent, remaining)):
+        return f"Attendance breakdown (present/absent/remaining) is not available for {subject.get('name', subject_code)}."
+
+    total = present + absent + remaining
+    if total <= 0:
+        return f"No classes recorded yet for {subject.get('name', subject_code)}."
+
+    needed = 0.75 * total - present
+    max_possible = (present + remaining) / total * 100
+
+    if needed <= 0:
+        return f"{subject.get('name', subject_code)}: already at or above 75% attendance."
+
+    if needed > remaining:
+        return (
+            f"{subject.get('name', subject_code)}: even attending all {remaining} remaining classes only "
+            f"reaches {max_possible:.1f}%, which is below the 75% requirement. 75% is not achievable this semester."
+        )
+
+    classes_needed = math.ceil(needed)
+    return (
+        f"{subject.get('name', subject_code)}: must attend at least {classes_needed} of the remaining "
+        f"{remaining} class(es) to reach 75% attendance."
+    )
