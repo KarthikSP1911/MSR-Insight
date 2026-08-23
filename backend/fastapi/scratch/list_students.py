@@ -3,7 +3,7 @@ import os
 import psycopg2
 
 sys.path.append(os.getcwd())
-from config.settings import settings
+from app.core.config import settings
 
 def list_students():
     try:
