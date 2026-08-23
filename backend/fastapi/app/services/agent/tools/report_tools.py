@@ -6,6 +6,7 @@ The AI remark reuses AIService.generate_remark() in-process (same subsystem,
 not a network round trip); the PDF itself is rendered server-side by Express
 (Puppeteer) via the generate-report-pdf internal route, first in preview mode
 then, on confirmation, in send mode."""
+import logging
 from typing import Annotated
 
 from langchain_core.tools import tool
@@ -19,6 +20,7 @@ from .express_client import call_express_internal
 from .logging import log_action
 from .student_tools import _load_student_row
 
+logger = logging.getLogger(__name__)
 _ai_service = AIService()
 
 
@@ -60,6 +62,7 @@ def generate_report_pdf(
     try:
         ai_remark = _ai_service.generate_remark(remark_data)["ai_remark"]
     except Exception as e:
+        logger.exception("generate_report_pdf: AI remark generation failed for %s", usn)
         return f"Could not generate the report: AI remark generation failed ({e})."
 
     effective_remarks = proctor_remarks if include_proctor_remarks else None
@@ -74,6 +77,7 @@ def generate_report_pdf(
     try:
         preview = call_express_internal("generate-report-pdf", payload)
     except Exception as e:
+        logger.exception("generate_report_pdf: preview call to Express failed for %s", usn)
         return f"Failed to generate the report PDF: {e}"
 
     decision = interrupt({
@@ -109,6 +113,7 @@ def generate_report_pdf(
             return f"No report email was sent: {result.get('message', 'no parent email on file.')}"
         return f"Report emailed to {result.get('sent')} parent(s)."
     except Exception as e:
+        logger.exception("generate_report_pdf: send call to Express failed for %s", usn)
         log_action(proctor_id, "generate_report_pdf", "failed", student_usn=usn,
                     payload={"include_proctor_remarks": include_proctor_remarks}, result={"error": str(e)}, conversation_id=cid)
         return f"Failed to send report email: {e}"
