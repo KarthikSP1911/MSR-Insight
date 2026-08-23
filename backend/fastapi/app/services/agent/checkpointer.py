@@ -7,7 +7,7 @@ from both Prisma's tables and the RAG chatbot's PGVector tables, same Postgres.
 import logging
 from psycopg_pool import ConnectionPool
 from langgraph.checkpoint.postgres import PostgresSaver
-from config.settings import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ smoke test confirmed reliable tool-calling with the model already used by RAG
 (see plan doc); Groq's tool-calling support was not verified and is not used here.
 """
 from langchain_google_genai import ChatGoogleGenerativeAI
-from config.settings import settings
+from app.core.config import settings
 
 
 def get_agent_llm():

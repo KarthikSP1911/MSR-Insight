@@ -4,7 +4,7 @@ Deliberately independent from the RAG chatbot's DB access (services/db_sync.py) 
 no shared connection helper, so the two systems can evolve without coupling.
 """
 import psycopg2
-from config.settings import settings
+from app.core.config import settings
 
 
 def get_connection():

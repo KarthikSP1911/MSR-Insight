@@ -12,7 +12,7 @@ from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 from ..state import AgentState
-from ..db import get_connection, is_proctor_owner_of_student
+from app.repositories.agent_repository import get_connection, is_proctor_owner_of_student
 from .logging import log_action
 
 

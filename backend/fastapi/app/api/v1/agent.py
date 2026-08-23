@@ -1,15 +1,15 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, Header, Depends
-from pydantic import BaseModel
 
-from config.settings import settings
-from agent.service import AgentService
-from agent.tools.student_tools import get_student_profile, list_proctor_students
-from agent.tools.risk_tools import analyze_at_risk_students
-from agent.tools.insight_tools import generate_weekly_insights
-from agent.tools.reminder_tools import create_reminder, list_reminders
-from agent.tools.communication_tools import send_email, send_whatsapp
+from app.core.config import settings
+from app.schemas.agent import ChatRequest, ConfirmRequest
+from app.services.agent.service import AgentService
+from app.services.agent.tools.student_tools import get_student_profile, list_proctor_students
+from app.services.agent.tools.risk_tools import analyze_at_risk_students
+from app.services.agent.tools.insight_tools import generate_weekly_insights
+from app.services.agent.tools.reminder_tools import create_reminder, list_reminders
+from app.services.agent.tools.communication_tools import send_email, send_whatsapp
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/agent", tags=["Agentic AI"])
@@ -34,16 +34,6 @@ def verify_gateway_secret(x_agent_gateway_secret: str = Header(default="")):
         raise HTTPException(status_code=500, detail="Agent gateway secret not configured")
     if x_agent_gateway_secret != settings.AGENT_GATEWAY_SECRET:
         raise HTTPException(status_code=401, detail="Unauthorized: invalid agent gateway secret")
-
-
-class ChatRequest(BaseModel):
-    proctor_id: str
-    message: str
-
-
-class ConfirmRequest(BaseModel):
-    proctor_id: str
-    approved: bool
 
 
 @router.post("/chat", dependencies=[Depends(verify_gateway_secret)])

@@ -8,7 +8,7 @@ from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 from ..state import AgentState
-from ..db import get_connection
+from app.repositories.agent_repository import get_connection
 from .logging import log_action
 
 CGPA_RISK_THRESHOLD = 6.0
