@@ -25,6 +25,19 @@ const getGrade = (score: number) => {
 };
 
 /**
+ * CIE score (out of 50) highlighting band. A score of 0 means every
+ * assessment component (T1, T2, AQ1, AQ2) is itself 0 -- indistinguishable
+ * from "not graded yet" in the data we're given, so it's left unhighlighted
+ * rather than flagged red.
+ */
+const getScoreClass = (score: number) => {
+    if (score <= 0) return '';
+    if (score < 21) return 'low-score';
+    if (score <= 30) return 'mid-score';
+    return '';
+};
+
+/**
  * ReportComponent: Generates a printable A4 academic report.
  * Migrated to Next.js App Router with full feature parity and improved UI.
  */
@@ -515,7 +528,7 @@ export default function ReportComponent() {
                                                 <td>{index + 1}</td>
                                                 <td>{item.subject}</td>
                                                 <td className={item.attendance < 75 ? 'low-attendance' : ''}>{item.attendance}%</td>
-                                                <td>{item.score} / 50</td>
+                                                <td className={getScoreClass(item.score)}>{item.score} / 50</td>
                                             </tr>
                                         )) : (
                                             <tr>
