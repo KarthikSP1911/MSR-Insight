@@ -12,4 +12,5 @@ class ConfirmRequest(BaseModel):
     approved: bool
     subject: str | None = None
     message: str | None = None
+    proctor_remarks: str | None = None
     conversation_id: str | None = None

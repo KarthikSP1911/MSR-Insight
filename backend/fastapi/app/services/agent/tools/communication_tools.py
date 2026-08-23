@@ -7,7 +7,6 @@ inside the tool rather than a separate graph node (LangGraph's documented
 human-in-the-loop pattern)."""
 from typing import Annotated
 
-import httpx
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 from langgraph.types import interrupt
@@ -15,18 +14,7 @@ from langgraph.types import interrupt
 from ..state import AgentState
 from app.repositories.agent_repository import is_proctor_owner_of_student
 from .logging import log_action
-from app.core.config import settings
-
-
-def _call_express_internal(path: str, payload: dict) -> dict:
-    resp = httpx.post(
-        f"{settings.EXPRESS_BASE_URL}/api/agent/internal/{path}",
-        json=payload,
-        headers={"x-agent-gateway-secret": settings.AGENT_GATEWAY_SECRET},
-        timeout=30.0,
-    )
-    resp.raise_for_status()
-    return resp.json()
+from .express_client import call_express_internal
 
 
 @tool
@@ -64,7 +52,7 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
         return f"Not authorized: {usn} is not one of your assigned students."
 
     try:
-        result = _call_express_internal("send-email", {
+        result = call_express_internal("send-email", {
             "proctor_id": proctor_id, "usn": usn, "subject": subject, "message": message,
         })
         log_action(proctor_id, "send_email", "completed", student_usn=usn,
@@ -106,7 +94,7 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
         return f"Not authorized: {usn} is not one of your assigned students."
 
     try:
-        result = _call_express_internal("send-whatsapp", {
+        result = call_express_internal("send-whatsapp", {
             "proctor_id": proctor_id, "usn": usn, "message": message,
         })
         log_action(proctor_id, "send_whatsapp", "completed", student_usn=usn,
