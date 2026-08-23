@@ -32,11 +32,18 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
       const held = (ad.present || 0) + (ad.absent || 0);
       const attendance = held > 0 ? Math.round(s.attendance || 0) : 100;
       const isLow = held > 0 && attendance < 75;
+      // Inline style on just this cell rather than a "low-attendance" class:
+      // the shared CSS's tr.low-attendance rule expects the class on the
+      // <tr>, which would also redden the marks cell in this 4-column table
+      // (unlike the 3-column weekly-attendance report it was written for).
+      const attendanceStyle = isLow
+        ? "text-align:center; background:#fee2e2; color:#991b1b; font-weight:600;"
+        : "text-align:center;";
       return `
         <tr>
           <td>${idx + 1}</td>
           <td>${s.name || "Unknown Subject"}</td>
-          <td ${isLow ? 'class="low-attendance"' : ""} style="text-align:center;">${attendance}%</td>
+          <td style="${attendanceStyle}">${attendance}%</td>
           <td style="text-align:center;">${s.marks ?? "N/A"} / 50</td>
         </tr>`;
     })
@@ -76,6 +83,31 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
     : "";
 
   return `
+    <style>
+      /* Scoped to this report only -- tighter than the shared .marks-table/
+         .tiptap-content defaults so a full subject list (up to ~10-12
+         subjects) plus remarks still fits on one A4 page instead of
+         spilling a mostly-empty second page. */
+      /* The shared wrapper forces .a4-sheet to a flat 1123px min-height
+         regardless of actual content -- combined with its own outer
+         padding, that alone already exceeds one printable A4 page, so a
+         report this short would spill onto a near-empty second page no
+         matter how compact the content below is. This report's content is
+         well under a page, so let the box size to it instead. */
+      #report-sheet.a4-sheet { padding: 24px 40px; min-height: 0; }
+      #report-sheet .sheet-header { margin-bottom: 8px; }
+      #report-sheet .college-logo-img { height: 56px; }
+      #report-sheet .divider { margin: 4px 0 12px 0; }
+      #report-sheet .table-section { margin-bottom: 14px; }
+      #report-sheet .table-section h3 { margin-bottom: 6px; }
+      #report-sheet .marks-table th,
+      #report-sheet .marks-table td { padding: 5px 10px; font-size: 0.72rem; }
+      #report-sheet .remarks-section { gap: 10px; }
+      #report-sheet .editable-remarks-container h4 { margin-bottom: 4px; font-size: 0.72rem; }
+      #report-sheet .tiptap-content { padding: 8px; min-height: 0; font-size: 0.76rem; }
+      #report-sheet .tiptap-content p { line-height: 1.4; margin-bottom: 4px; }
+      #report-sheet .sheet-footer { margin-top: 16px; padding-top: 10px; }
+    </style>
     <div id="report-sheet" class="a4-sheet">
       <header class="sheet-header">
         <div class="college-logo">
