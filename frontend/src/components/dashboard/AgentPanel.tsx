@@ -53,6 +53,8 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [editedSubject, setEditedSubject] = useState("");
+  const [editedMessage, setEditedMessage] = useState("");
   const [alerts, setAlerts] = useState<AgentAlert[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
 
@@ -99,6 +101,8 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const handleAgentResponse = (data: any) => {
     if (data?.status === "pending_confirmation" && data.action) {
       setPendingAction(data.action);
+      setEditedSubject(data.action.subject || "");
+      setEditedMessage(data.action.message || "");
       setEntries((prev) => [...prev, { kind: "pending", action: data.action }]);
     } else if (data?.status === "ok") {
       setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: data.reply || "" }]);
@@ -111,15 +115,16 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const resolveConfirmation = async (approved: boolean) => {
     if (!pendingAction || isLoading) return;
     setIsLoading(true);
+    const finalAction = approved ? { ...pendingAction, subject: editedSubject, message: editedMessage } : pendingAction;
     setEntries((prev) =>
-      prev.map((e) => (e.kind === "pending" && e.action === pendingAction ? { ...e, kind: "resolved-pending", resolution: approved ? "approved" : "rejected" } : e))
+      prev.map((e) => (e.kind === "pending" && e.action === pendingAction ? { ...e, action: finalAction, kind: "resolved-pending", resolution: approved ? "approved" : "rejected" } : e))
     );
     setPendingAction(null);
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/agent/${proctorId}/confirm`,
-        { approved },
+        approved ? { approved, subject: editedSubject || undefined, message: editedMessage || undefined } : { approved },
         { headers: sessionHeaders() },
       );
       handleAgentResponse(res.data);
@@ -211,8 +216,32 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
                   </div>
                   <div className="agent-approval-body">
                     {action.usn && <div><strong>Student:</strong> {action.usn}</div>}
-                    {action.subject && <div><strong>Subject:</strong> {action.subject}</div>}
-                    {action.message && <div className="agent-approval-message">{action.message}</div>}
+                    {!resolved && action.subject !== undefined && (
+                      <div>
+                        <strong>Subject:</strong>
+                        <input
+                          type="text"
+                          className="agent-approval-edit-input"
+                          value={editedSubject}
+                          onChange={(e) => setEditedSubject(e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
+                    {!resolved && action.message !== undefined && (
+                      <div>
+                        <strong>Message:</strong>
+                        <textarea
+                          className="agent-approval-edit-textarea"
+                          value={editedMessage}
+                          onChange={(e) => setEditedMessage(e.target.value)}
+                          disabled={isLoading}
+                          rows={4}
+                        />
+                      </div>
+                    )}
+                    {resolved && action.subject && <div><strong>Subject:</strong> {action.subject}</div>}
+                    {resolved && action.message && <div className="agent-approval-message">{action.message}</div>}
                   </div>
                   {!resolved ? (
                     <div className="agent-approval-actions">

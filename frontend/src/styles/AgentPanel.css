@@ -257,6 +257,30 @@
   margin-bottom: 0.85rem;
 }
 
+.agent-approval-edit-input,
+.agent-approval-edit-textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  margin-top: 4px;
+  transition: border-color 0.2s ease;
+}
+
+.agent-approval-edit-textarea {
+  resize: vertical;
+}
+
+.agent-approval-edit-input:focus,
+.agent-approval-edit-textarea:focus {
+  border-color: var(--agent-accent);
+}
+
 .agent-approval-message {
   background: var(--bg-primary);
   border-radius: 8px;

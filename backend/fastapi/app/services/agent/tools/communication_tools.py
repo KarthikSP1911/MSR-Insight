@@ -53,6 +53,11 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
                     payload={"subject": subject, "message": message})
         return "The proctor did not approve this email. It was not sent."
 
+    # The proctor may have edited the draft before confirming; their edited
+    # text takes precedence over what the agent originally drafted.
+    subject = decision.get("subject") or subject
+    message = decision.get("message") or message
+
     # Re-check ownership at execute time too (defense in depth).
     if not is_proctor_owner_of_student(proctor_id, usn):
         return f"Not authorized: {usn} is not one of your assigned students."
@@ -92,6 +97,8 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
     if not decision.get("approved"):
         log_action(proctor_id, "send_whatsapp", "rejected", student_usn=usn, payload={"message": message})
         return "The proctor did not approve this WhatsApp message. It was not sent."
+
+    message = decision.get("message") or message
 
     if not is_proctor_owner_of_student(proctor_id, usn):
         return f"Not authorized: {usn} is not one of your assigned students."
