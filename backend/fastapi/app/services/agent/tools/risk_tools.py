@@ -63,6 +63,17 @@ def _insert_alert(conn, usn, proctor_id, risk_type, severity, evidence, message)
     )
 
 
+def _low_attendance_subjects(subjects: list[dict]) -> list[dict]:
+    """Shared by compute_risks (per-student view) and summarize_risk_by_subject
+    (per-subject view) so the "what counts as low attendance" rule lives in
+    exactly one place."""
+    return [
+        {"subject": s.get("name"), "code": s.get("code"), "attendance": s.get("attendance")}
+        for s in subjects
+        if isinstance(s.get("attendance"), (int, float)) and 0 < s["attendance"] < ATTENDANCE_RISK_THRESHOLD
+    ]
+
+
 def compute_risks(student: dict) -> list[dict]:
     """Pure function: student dict -> list of risk findings. Kept separate from
     DB/tool wiring so it's easy to unit test and reuse from insight_tools."""
@@ -70,11 +81,7 @@ def compute_risks(student: dict) -> list[dict]:
     findings = []
 
     subjects = details.get("subjects", [])
-    low_attendance = [
-        {"subject": s.get("name"), "attendance": s.get("attendance")}
-        for s in subjects
-        if isinstance(s.get("attendance"), (int, float)) and 0 < s["attendance"] < ATTENDANCE_RISK_THRESHOLD
-    ]
+    low_attendance = _low_attendance_subjects(subjects)
     if low_attendance:
         severity = "high" if any(s["attendance"] < 65 for s in low_attendance) else "medium"
         findings.append({
@@ -247,4 +254,35 @@ def explain_alert(usn: str, state: Annotated[AgentState, InjectedState]) -> str:
             f"\n- [{severity.upper()}] {risk_type} (flagged {created_at}): {message}\n"
             f"  Evidence: {json.dumps(evidence)}"
         )
+    return "\n".join(lines)
+
+
+@tool
+def summarize_risk_by_subject(state: Annotated[AgentState, InjectedState]) -> str:
+    """Summarize attendance risk aggregated by subject across all of the
+    requesting proctor's students -- e.g. "22IS45: 4 students below 75%
+    attendance" -- rather than per student. Use this when the proctor asks
+    for a class-wide or subject-wise breakdown instead of a per-student list."""
+    proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
+    students = _fetch_proctor_students(proctor_id)
+
+    by_subject: dict[str, dict] = {}
+    for student in students:
+        subjects = student["details"].get("subjects", [])
+        for s in _low_attendance_subjects(subjects):
+            key = s.get("code") or s.get("subject") or "Unknown"
+            entry = by_subject.setdefault(key, {"name": s.get("subject"), "count": 0, "students": []})
+            entry["count"] += 1
+            entry["students"].append(f"{student['name']} ({student['usn']})")
+
+    log_action(proctor_id, "risk_by_subject", "completed", result={"subject_count": len(by_subject)}, conversation_id=cid)
+
+    if not by_subject:
+        return "No subjects currently show attendance risk among your students."
+
+    lines = [f"Attendance risk by subject ({len(by_subject)} subject(s) affected):"]
+    for code, info in sorted(by_subject.items(), key=lambda kv: -kv[1]["count"]):
+        lines.append(f"\n{info['name']} ({code}): {info['count']} student(s) below {ATTENDANCE_RISK_THRESHOLD}% attendance")
+        lines.append("  " + ", ".join(info["students"]))
     return "\n".join(lines)

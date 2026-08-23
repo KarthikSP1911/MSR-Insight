@@ -24,7 +24,10 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
     is sent -- do not tell the proctor it has been sent until you receive a
     tool result confirming that. Draft the `subject` and `message` yourself
     based on real data you already looked up (e.g. via get_student_profile);
-    never invent grades, attendance, or names in the message."""
+    never invent grades, attendance, or names in the message. For a bulk
+    request ("email all at-risk students' parents"), call this once per
+    student -- each call pauses for its own separate approval, there is no
+    "send to all" bypass."""
     proctor_id = state["proctor_id"]
     cid = state.get("conversation_id")
     if not is_proctor_owner_of_student(proctor_id, usn):
