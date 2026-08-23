@@ -99,6 +99,23 @@ export const getAgentAlerts = async (req, res, next) => {
     }
 };
 
+/** Pending reminders due today or overdue, for the panel's proactive digest on open. */
+export const getAgentRemindersDueToday = async (req, res, next) => {
+    try {
+        const proctorId = req.params.proctorId;
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const reminders = await prisma.agentReminder.findMany({
+            where: { proctor_id: proctorId, status: "pending", due_date: { lte: endOfToday } },
+            orderBy: { due_date: "asc" },
+        });
+        return res.status(200).json({ success: true, data: reminders });
+    } catch (error) {
+        next(error);
+    }
+};
+
 /**
  * Internal endpoint (shared-secret gated, no session): FastAPI calls this
  * after the proctor has confirmed a send_email action.

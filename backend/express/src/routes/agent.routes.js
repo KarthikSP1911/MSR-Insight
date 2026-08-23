@@ -4,6 +4,7 @@ import {
     confirmAgentAction,
     getAgentActions,
     getAgentAlerts,
+    getAgentRemindersDueToday,
     sendAgentEmailInternal,
     sendAgentWhatsAppInternal,
 } from "../controllers/agent.controller.js";
@@ -34,5 +35,6 @@ router.post("/:proctorId/chat", validate(agentChatSchema), chatWithAgent);
 router.post("/:proctorId/confirm", validate(agentConfirmSchema), confirmAgentAction);
 router.get("/:proctorId/actions", getAgentActions);
 router.get("/:proctorId/alerts", getAgentAlerts);
+router.get("/:proctorId/reminders/due-today", getAgentRemindersDueToday);
 
 export default router;
