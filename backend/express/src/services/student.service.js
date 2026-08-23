@@ -97,7 +97,7 @@ class StudentService {
         });
         results.success.push(normalizedUsn);
       } catch (error) {
-        logger.error(`Error syncing student ${normalizedUsn}:`, error.message);
+        logger.error(`Error syncing student ${normalizedUsn}:`, error);
         results.errors.push({ usn: normalizedUsn, error: error.message });
       }
     }

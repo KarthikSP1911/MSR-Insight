@@ -27,7 +27,7 @@ export const publishEmailJob = async (payload) => {
         
         return success;
     } catch (error) {
-        logger.error(`[RabbitMQ] Error publishing email job for USN: ${payload?.usn}`, error.message);
+        logger.error(`[RabbitMQ] Error publishing email job for USN: ${payload?.usn}`, error);
         throw error;
     }
 };

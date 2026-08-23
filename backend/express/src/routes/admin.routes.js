@@ -52,7 +52,7 @@ router.post("/cron/weekly-attendance", async (req, res) => {
         logger.info("[Admin] Manual weekly attendance cron triggered.");
         // Run in background — don't block the HTTP response
         runWeeklyAttendanceCron().catch((err) =>
-            logger.error("[Admin] Manual cron error:", err.message)
+            logger.error("[Admin] Manual cron error:", err)
         );
         res.json({
             success: true,

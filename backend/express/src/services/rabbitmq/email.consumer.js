@@ -71,7 +71,7 @@ export const startEmailConsumer = async () => {
                 // 3. Acknowledge message successfully
                 channel.ack(msg);
             } catch (error) {
-                logger.error(`[RabbitMQ Consumer] Failed to process email job for USN: ${usn}. Error: ${error.message}`);
+                logger.error(`[RabbitMQ Consumer] Failed to process email job for USN: ${usn}.`, error);
                 
                 // Nack (negative acknowledgement) pushes to DLQ because we configured x-dead-letter-exchange
                 // The second parameter "false" tells RabbitMQ NOT to requeue it to the main queue,
@@ -80,6 +80,6 @@ export const startEmailConsumer = async () => {
             }
         });
     } catch (error) {
-        logger.error("[RabbitMQ] Error starting email consumer:", error.message);
+        logger.error("[RabbitMQ] Error starting email consumer:", error);
     }
 };
