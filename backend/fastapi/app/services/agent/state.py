@@ -7,3 +7,4 @@ class AgentState(TypedDict):
     """Graph state for the Agentic AI chatbot. Independent of the RAG chatbot's state."""
     messages: Annotated[list, add_messages]
     proctor_id: str
+    conversation_id: str | None

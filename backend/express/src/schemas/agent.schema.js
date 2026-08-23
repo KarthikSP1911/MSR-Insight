@@ -3,14 +3,18 @@ import { z } from "zod";
 const usn = z.string().trim().min(1, "USN is required");
 const proctorId = z.string().trim().min(1, "proctor_id is required");
 
+const conversationId = z.string().trim().min(1).optional();
+
 export const agentChatSchema = z.object({
   message: z.string().trim().min(1, "message is required"),
+  conversation_id: conversationId,
 });
 
 export const agentConfirmSchema = z.object({
   approved: z.boolean(),
   subject: z.string().trim().min(1).optional(),
   message: z.string().trim().min(1).optional(),
+  conversation_id: conversationId,
 });
 
 export const agentInternalSendEmailSchema = z.object({

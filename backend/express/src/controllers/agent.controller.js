@@ -33,11 +33,11 @@ const assertProctorOwnsStudent = async (proctorId, usn) => {
 export const chatWithAgent = async (req, res, next) => {
     try {
         const proctorId = req.params.proctorId;
-        const { message } = req.body;
+        const { message, conversation_id } = req.body;
 
         const response = await axios.post(
             `${FASTAPI_INTERNAL_URL}/api/agent/chat`,
-            { proctor_id: proctorId, message },
+            { proctor_id: proctorId, message, conversation_id },
             { headers: fastapiHeaders() },
         );
 
@@ -55,11 +55,11 @@ export const chatWithAgent = async (req, res, next) => {
 export const confirmAgentAction = async (req, res, next) => {
     try {
         const proctorId = req.params.proctorId;
-        const { approved, subject, message } = req.body;
+        const { approved, subject, message, conversation_id } = req.body;
 
         const response = await axios.post(
             `${FASTAPI_INTERNAL_URL}/api/agent/confirm`,
-            { proctor_id: proctorId, approved, subject, message },
+            { proctor_id: proctorId, approved, subject, message, conversation_id },
             { headers: fastapiHeaders() },
         );
 

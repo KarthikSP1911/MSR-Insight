@@ -50,23 +50,23 @@ class AgentService:
         last = result["messages"][-1]
         return {"status": "ok", "reply": _extract_text(last.content)}
 
-    def chat(self, proctor_id: str, message: str) -> dict:
+    def chat(self, proctor_id: str, message: str, conversation_id: str | None = None) -> dict:
         graph = self._get_graph()
-        config = {"configurable": {"thread_id": thread_id_for(proctor_id)}}
+        config = {"configurable": {"thread_id": thread_id_for(proctor_id, conversation_id)}}
         result = graph.invoke(
-            {"messages": [HumanMessage(content=message)], "proctor_id": proctor_id},
+            {"messages": [HumanMessage(content=message)], "proctor_id": proctor_id, "conversation_id": conversation_id},
             config=config,
         )
         return self._format_result(result)
 
     def confirm(self, proctor_id: str, approved: bool, subject: str | None = None,
-                message: str | None = None) -> dict:
+                message: str | None = None, conversation_id: str | None = None) -> dict:
         """Resumes a graph paused on interrupt() inside send_email/send_whatsapp
         (see tools/communication_tools.py). Same thread_id as chat() so this
         resumes the exact paused run, not a new conversation. subject/message
         carry the proctor's edits to the drafted content, if any."""
         graph = self._get_graph()
-        config = {"configurable": {"thread_id": thread_id_for(proctor_id)}}
+        config = {"configurable": {"thread_id": thread_id_for(proctor_id, conversation_id)}}
         result = graph.invoke(
             Command(resume={"approved": approved, "subject": subject, "message": message}),
             config=config,
