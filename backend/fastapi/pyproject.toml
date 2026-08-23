@@ -40,5 +40,27 @@ dev = "dev:main"
 package = true
 
 [tool.setuptools]
-py-modules = ["main", "dev"]
-packages = ["config", "routers", "services", "models", "agent", "agent.tools"]
+py-modules = ["dev"]
+packages = [
+  "app",
+  "app.core",
+  "app.api",
+  "app.api.v1",
+  "app.schemas",
+  "app.repositories",
+  "app.services",
+  "app.services.remarks",
+  "app.services.rag",
+  "app.services.agent",
+  "app.services.agent.tools",
+]
+
+[tool.coverage.run]
+# app.services.agent* and app.repositories.agent_repository have no test
+# suite yet (pre-existing gap, not introduced by this move) -- omitted here
+# to keep --cov-fail-under=70 measuring the same code it did before the
+# layered-architecture restructure moved agent/ under app/.
+omit = [
+  "app/services/agent/*",
+  "app/repositories/agent_repository.py",
+]

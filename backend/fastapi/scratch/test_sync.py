@@ -4,7 +4,7 @@ import os
 # Add current directory to path
 sys.path.append(os.getcwd())
 
-from services.rag_service import RAGService
+from app.services.rag.service import RAGService
 import traceback
 
 def test_sync():

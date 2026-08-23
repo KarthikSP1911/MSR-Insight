@@ -1,0 +1,54 @@
+import logging
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.logging import setup_logging
+from app.core.config import settings
+
+setup_logging()
+logger = logging.getLogger(__name__)
+
+from app.api.v1.remarks import router as report_router
+from app.api.v1.rag import router as rag_router, rag_service
+from app.api.v1.agent import router as agent_router
+
+app = FastAPI(title=settings.PROJECT_NAME)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include Routers
+app.include_router(report_router)
+app.include_router(rag_router)
+app.include_router(agent_router)
+
+# @app.on_event("startup")
+# async def startup_event():
+#     """Trigger initial RAG sync on startup."""
+#     print("--- Triggering initial RAG sync on startup ---")
+#     import threading
+#     # Run in a separate thread to not block the main event loop startup
+#     threading.Thread(target=rag_service.sync_data, daemon=True).start()
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "fastapi running"}
+
+@app.get("/")
+def read_root():
+    return {"message": f"{settings.PROJECT_NAME} API is running"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="127.0.0.1",
+        port=settings.PORT,
+        reload=True,
+        log_config=None,  # keep our RichHandler instead of uvicorn's default formatter
+    )
