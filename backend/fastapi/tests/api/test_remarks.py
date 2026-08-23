@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 def test_generate_ai_remark_success(client):
-    with patch('routers.report_router.ai_service.generate_remark') as mock_generate:
+    with patch('app.api.v1.remarks.ai_service.generate_remark') as mock_generate:
         mock_generate.return_value = {"remark": "Student is doing well"}
         
         response = client.post(
@@ -13,7 +13,7 @@ def test_generate_ai_remark_success(client):
         assert response.json() == {"remark": "Student is doing well"}
 
 def test_generate_ai_remark_value_error(client):
-    with patch('routers.report_router.ai_service.generate_remark') as mock_generate:
+    with patch('app.api.v1.remarks.ai_service.generate_remark') as mock_generate:
         mock_generate.side_effect = ValueError("Invalid data")
         
         response = client.post(

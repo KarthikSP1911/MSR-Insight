@@ -1,4 +1,4 @@
-from services.chunker import build_chunks_for_student, detect_chunk_types
+from app.services.rag.chunker import build_chunks_for_student, detect_chunk_types
 
 def test_build_chunks_for_student():
     details = {

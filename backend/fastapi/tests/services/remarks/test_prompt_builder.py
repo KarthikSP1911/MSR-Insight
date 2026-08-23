@@ -1,4 +1,4 @@
-from services.prompt_builder import PromptBuilder
+from app.services.remarks.prompt_builder import PromptBuilder
 
 def test_build_remark_prompt():
     data = {
