@@ -62,6 +62,7 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const [editedMessage, setEditedMessage] = useState("");
   const [alerts, setAlerts] = useState<AgentAlert[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
+  const [digestShown, setDigestShown] = useState(false);
 
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +72,33 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
       fetchAlerts();
     }
   }, [entries, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && !digestShown) {
+      setDigestShown(true);
+      fetchDigest();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const fetchDigest = async () => {
+    try {
+      const [alertsRes, remindersRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/agent/${proctorId}/alerts`, { headers: sessionHeaders() }),
+        axios.get(`${API_BASE_URL}/api/agent/${proctorId}/reminders/due-today`, { headers: sessionHeaders() }),
+      ]);
+      const alertCount = alertsRes.data?.data?.length || 0;
+      const reminderCount = remindersRes.data?.data?.length || 0;
+      if (alertCount === 0 && reminderCount === 0) return;
+
+      const parts: string[] = [];
+      if (reminderCount > 0) parts.push(`${reminderCount} reminder${reminderCount > 1 ? "s" : ""} due today`);
+      if (alertCount > 0) parts.push(`${alertCount} flagged alert${alertCount > 1 ? "s" : ""}`);
+      setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: `Heads up -- you have ${parts.join(" and ")}.` }]);
+    } catch (err) {
+      console.error("Failed to fetch agent digest:", err);
+    }
+  };
 
   const fetchAlerts = async () => {
     try {
