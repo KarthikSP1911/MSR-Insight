@@ -38,6 +38,7 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
     based on real data you already looked up (e.g. via get_student_profile);
     never invent grades, attendance, or names in the message."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     if not is_proctor_owner_of_student(proctor_id, usn):
         return f"Not authorized: {usn} is not one of your assigned students."
 
@@ -50,7 +51,7 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
 
     if not decision.get("approved"):
         log_action(proctor_id, "send_email", "rejected", student_usn=usn,
-                    payload={"subject": subject, "message": message})
+                    payload={"subject": subject, "message": message}, conversation_id=cid)
         return "The proctor did not approve this email. It was not sent."
 
     # The proctor may have edited the draft before confirming; their edited
@@ -67,13 +68,13 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
             "proctor_id": proctor_id, "usn": usn, "subject": subject, "message": message,
         })
         log_action(proctor_id, "send_email", "completed", student_usn=usn,
-                    payload={"subject": subject, "message": message}, result=result)
+                    payload={"subject": subject, "message": message}, result=result, conversation_id=cid)
         if result.get("sent", 0) == 0:
             return f"No email was sent: {result.get('message', 'no parent email on file.')}"
         return f"Email sent to {result.get('sent')} parent(s)."
     except Exception as e:
         log_action(proctor_id, "send_email", "failed", student_usn=usn,
-                    payload={"subject": subject, "message": message}, result={"error": str(e)})
+                    payload={"subject": subject, "message": message}, result={"error": str(e)}, conversation_id=cid)
         return f"Failed to send email: {e}"
 
 
@@ -85,6 +86,7 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
     receive a tool result confirming that. Base `message` on real data you
     already looked up; never invent details."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     if not is_proctor_owner_of_student(proctor_id, usn):
         return f"Not authorized: {usn} is not one of your assigned students."
 
@@ -95,7 +97,7 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
     })
 
     if not decision.get("approved"):
-        log_action(proctor_id, "send_whatsapp", "rejected", student_usn=usn, payload={"message": message})
+        log_action(proctor_id, "send_whatsapp", "rejected", student_usn=usn, payload={"message": message}, conversation_id=cid)
         return "The proctor did not approve this WhatsApp message. It was not sent."
 
     message = decision.get("message") or message
@@ -108,11 +110,11 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
             "proctor_id": proctor_id, "usn": usn, "message": message,
         })
         log_action(proctor_id, "send_whatsapp", "completed", student_usn=usn,
-                    payload={"message": message}, result=result)
+                    payload={"message": message}, result=result, conversation_id=cid)
         if result.get("sent", 0) == 0:
             return f"No WhatsApp message was sent: {result.get('message', 'no parent phone on file or Twilio not configured.')}"
         return f"WhatsApp message sent to {result.get('sent')} parent(s)."
     except Exception as e:
         log_action(proctor_id, "send_whatsapp", "failed", student_usn=usn,
-                    payload={"message": message}, result={"error": str(e)})
+                    payload={"message": message}, result={"error": str(e)}, conversation_id=cid)
         return f"Failed to send WhatsApp message: {e}"

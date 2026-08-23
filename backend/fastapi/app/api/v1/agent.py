@@ -41,7 +41,7 @@ def verify_gateway_secret(x_agent_gateway_secret: str = Header(default="")):
 @router.post("/chat", dependencies=[Depends(verify_gateway_secret)])
 def chat_with_agent(request: ChatRequest):
     try:
-        return agent_service.chat(request.proctor_id, request.message)
+        return agent_service.chat(request.proctor_id, request.message, request.conversation_id)
     except Exception as e:
         logger.exception("Agent chat failed: %s", e)
         raise HTTPException(status_code=500, detail="Failed to process agent request")
@@ -50,7 +50,9 @@ def chat_with_agent(request: ChatRequest):
 @router.post("/confirm", dependencies=[Depends(verify_gateway_secret)])
 def confirm_agent_action(request: ConfirmRequest):
     try:
-        return agent_service.confirm(request.proctor_id, request.approved, request.subject, request.message)
+        return agent_service.confirm(
+            request.proctor_id, request.approved, request.subject, request.message, request.conversation_id
+        )
     except Exception as e:
         logger.exception("Agent confirm failed: %s", e)
         raise HTTPException(status_code=500, detail="Failed to process agent confirmation")

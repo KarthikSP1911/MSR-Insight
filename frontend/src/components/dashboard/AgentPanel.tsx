@@ -46,10 +46,15 @@ const ACTION_LABELS: Record<string, string> = {
   send_whatsapp: "Send WhatsApp Message",
 };
 
+const GREETING = "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?";
+
 export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountChange }: AgentPanelProps) {
   const [entries, setEntries] = useState<ChatEntry[]>([
-    { kind: "text", role: "assistant", text: "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?" },
+    { kind: "text", role: "assistant", text: GREETING },
   ]);
+  const [conversationId, setConversationId] = useState<string>(() =>
+    typeof window !== "undefined" ? crypto.randomUUID() : ""
+  );
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
@@ -87,7 +92,7 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/agent/${proctorId}/chat`,
-        { message: text },
+        { message: text, conversation_id: conversationId },
         { headers: sessionHeaders() },
       );
       handleAgentResponse(res.data);
@@ -124,7 +129,9 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/agent/${proctorId}/confirm`,
-        approved ? { approved, subject: editedSubject || undefined, message: editedMessage || undefined } : { approved },
+        approved
+          ? { approved, subject: editedSubject || undefined, message: editedMessage || undefined, conversation_id: conversationId }
+          : { approved, conversation_id: conversationId },
         { headers: sessionHeaders() },
       );
       handleAgentResponse(res.data);
@@ -142,6 +149,14 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
 
   const quickAction = (prompt: string) => sendMessage(prompt);
 
+  const startNewConversation = () => {
+    if (isLoading) return;
+    setConversationId(crypto.randomUUID());
+    setEntries([{ kind: "text", role: "assistant", text: GREETING }]);
+    setPendingAction(null);
+    setInputValue("");
+  };
+
   return (
     <>
       <div className={`agent-overlay ${isOpen ? "active" : ""}`} onClick={onClose}></div>
@@ -158,12 +173,20 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
             </svg>
             <span>Agentic AI</span>
           </div>
-          <button className="agent-panel-close" onClick={onClose}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <div className="agent-panel-header-actions">
+            <button className="agent-new-conversation-btn" onClick={startNewConversation} disabled={isLoading} title="Start a new conversation">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New
+            </button>
+            <button className="agent-panel-close" onClick={onClose}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {alerts.length > 0 && (

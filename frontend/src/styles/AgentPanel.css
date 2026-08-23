@@ -62,6 +62,37 @@
   letter-spacing: 0.05em;
 }
 
+.agent-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.agent-new-conversation-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.agent-new-conversation-btn:hover:not(:disabled) {
+  border-color: var(--agent-accent);
+  color: var(--agent-accent);
+}
+
+.agent-new-conversation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .agent-panel-close {
   background: transparent;
   border: none;

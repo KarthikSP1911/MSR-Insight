@@ -123,6 +123,7 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
     records new alerts. Use this when the proctor asks who is at risk, who
     needs attention, or similar."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     students = _fetch_proctor_students(proctor_id)
 
     conn = get_connection()
@@ -144,7 +145,7 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
     finally:
         conn.close()
 
-    log_action(proctor_id, "risk_analysis", "completed", result={"at_risk_count": len(at_risk)})
+    log_action(proctor_id, "risk_analysis", "completed", result={"at_risk_count": len(at_risk)}, conversation_id=cid)
 
     if not at_risk:
         return "No students currently show attendance, CGPA, or SGPA-drop risk signals."
