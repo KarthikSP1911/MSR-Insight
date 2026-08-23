@@ -103,6 +103,7 @@ class AdminController {
         data: assignment,
       });
     } catch (error) {
+      logger.error("[AdminController] assignStudent failed:", error);
       const status = error.statusCode || 500;
       return res.status(status).json({ success: false, message: error.message });
     }
@@ -124,6 +125,7 @@ class AdminController {
         data: assignments,
       });
     } catch (error) {
+      logger.error("[AdminController] assignMultipleStudents failed:", error);
       const status = error.statusCode || 500;
       return res.status(status).json({ success: false, message: error.message });
     }
@@ -194,6 +196,7 @@ class AdminController {
         data: parent,
       });
     } catch (error) {
+      logger.error("[AdminController] addParent failed:", error);
       const status = error.statusCode || 500;
       return res.status(status).json({ success: false, message: error.message });
     }
