@@ -25,15 +25,19 @@ const getGrade = (score: number) => {
 };
 
 /**
- * CIE score (out of 50) highlighting band. A score of 0 means every
+ * CIE score highlighting band, scaled to the subject's actual max (50 or
+ * 100 -- see maxMarks in fetchReportData). A score of 0 means every
  * assessment component (T1, T2, AQ1, AQ2) is itself 0 -- indistinguishable
  * from "not graded yet" in the data we're given, so it's left unhighlighted
- * rather than flagged red.
+ * rather than flagged red. Thresholds scale proportionally (21/50=42%,
+ * 30/50=60%) so red/yellow mean the same thing on either scale.
  */
-const getScoreClass = (score: number) => {
+const getScoreClass = (score: number, maxMarks: number) => {
     if (score <= 0) return '';
-    if (score < 21) return 'low-score';
-    if (score <= 30) return 'mid-score';
+    const redCeiling = maxMarks === 100 ? 42 : 21;
+    const yellowCeiling = maxMarks === 100 ? 60 : 30;
+    if (score < redCeiling) return 'low-score';
+    if (score <= yellowCeiling) return 'mid-score';
     return '';
 };
 
@@ -136,12 +140,23 @@ export default function ReportComponent() {
                     const detailsBlob = studentData.details || studentData || {};
                     const subjects = detailsBlob.subjects || detailsBlob.current_semester || [];
 
-                    setMarksData(subjects.map((s: any) => ({
-                        subject: s.name || 'Unknown',
-                        attendance: Math.round(s.attendance || 0),
-                        score: s.marks || 0,
-                        grade: getGrade(s.marks || 0),
-                    })));
+                    setMarksData(subjects.map((s: any) => {
+                        const score = s.marks || 0;
+                        // Some subjects (e.g. Physical Education, Technical
+                        // Skill Enhancement Course) use a single out-of-100
+                        // evaluation rather than the standard 2-tests + 2-AQ
+                        // /50 formula -- a genuine /50 total can never exceed
+                        // 50, so a total over 50 is itself the signal this
+                        // subject is really on a /100 scale.
+                        const maxMarks = score > 50 ? 100 : 50;
+                        return {
+                            subject: s.name || 'Unknown',
+                            attendance: Math.round(s.attendance || 0),
+                            score,
+                            maxMarks,
+                            grade: getGrade(s.marks || 0),
+                        };
+                    }));
                 }
 
             } catch (err: any) {
@@ -528,7 +543,7 @@ export default function ReportComponent() {
                                                 <td>{index + 1}</td>
                                                 <td>{item.subject}</td>
                                                 <td className={item.attendance < 75 ? 'low-attendance' : ''}>{item.attendance}%</td>
-                                                <td className={getScoreClass(item.score)}>{item.score} / 50</td>
+                                                <td className={getScoreClass(item.score, item.maxMarks)}>{item.score} / {item.maxMarks}</td>
                                             </tr>
                                         )) : (
                                             <tr>
