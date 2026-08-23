@@ -44,7 +44,7 @@ export function decryptText(encryptedHash) {
     decrypted += decipher.final('utf8');
     return decrypted;
   } catch (error) {
-    logger.error(`Decryption failed: ${error.message}`);
+    logger.error("Decryption failed:", error);
     return '';
   }
 }
