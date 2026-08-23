@@ -6,7 +6,7 @@ from app.core.config import settings
 from app.schemas.agent import ChatRequest, ConfirmRequest
 from app.services.agent.service import AgentService
 from app.services.agent.tools.student_tools import get_student_profile, list_proctor_students
-from app.services.agent.tools.risk_tools import analyze_at_risk_students, calculate_attendance_recovery
+from app.services.agent.tools.risk_tools import analyze_at_risk_students, calculate_attendance_recovery, explain_alert
 from app.services.agent.tools.insight_tools import generate_weekly_insights
 from app.services.agent.tools.reminder_tools import create_reminder, list_reminders
 from app.services.agent.tools.communication_tools import send_email, send_whatsapp
@@ -19,6 +19,7 @@ agent_service = AgentService(tools=[
     list_proctor_students,
     analyze_at_risk_students,
     calculate_attendance_recovery,
+    explain_alert,
     generate_weekly_insights,
     create_reminder,
     list_reminders,
