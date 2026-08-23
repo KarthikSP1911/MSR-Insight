@@ -1,6 +1,6 @@
 import time
 from groq import Groq
-from config.settings import settings
+from app.core.config import settings
 
 class GroqLLMProvider:
     def __init__(self):

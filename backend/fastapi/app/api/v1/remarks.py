@@ -1,9 +1,8 @@
 import logging
 
 from fastapi import APIRouter, HTTPException
-from models.request_models import RemarkRequest
-from services.ai_service import AIService
-from config.settings import settings
+from app.services.remarks.service import AIService
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
