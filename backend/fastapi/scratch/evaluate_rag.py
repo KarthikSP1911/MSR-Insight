@@ -8,8 +8,9 @@ from typing import List, Dict, Any
 # Add base folder to import services
 sys.path.append(os.getcwd())
 
-from config.settings import settings
-from services.rag_service import RAGService, build_chunks_for_student, detect_chunk_types
+from app.core.config import settings
+from app.services.rag.service import RAGService
+from app.services.rag.chunker import build_chunks_for_student, detect_chunk_types
 from langchain_core.documents import Document
 from langchain_community.retrievers import BM25Retriever
 from langchain_classic.retrievers import EnsembleRetriever

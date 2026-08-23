@@ -1,12 +1,12 @@
-from config.settings import settings
+from app.core.config import settings
 
 
 def main() -> None:
-    """Entry point for `uv run dev` — mirrors `python main.py`."""
+    """Entry point for `uv run dev` — mirrors `python -m app.main`."""
     import uvicorn
 
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="127.0.0.1",
         port=settings.PORT,
         reload=True,

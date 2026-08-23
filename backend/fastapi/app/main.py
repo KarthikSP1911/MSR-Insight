@@ -2,15 +2,15 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config.logging import setup_logging
-from config.settings import settings
+from app.core.logging import setup_logging
+from app.core.config import settings
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
-from routers.report_router import router as report_router
-from routers.rag_router import router as rag_router, rag_service
-from routers.agent_router import router as agent_router
+from app.api.v1.remarks import router as report_router
+from app.api.v1.rag import router as rag_router, rag_service
+from app.api.v1.agent import router as agent_router
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -46,7 +46,7 @@ def read_root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="127.0.0.1",
         port=settings.PORT,
         reload=True,
