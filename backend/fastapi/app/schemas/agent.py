@@ -9,3 +9,5 @@ class ChatRequest(BaseModel):
 class ConfirmRequest(BaseModel):
     proctor_id: str
     approved: bool
+    subject: str | None = None
+    message: str | None = None

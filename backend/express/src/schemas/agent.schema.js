@@ -9,6 +9,8 @@ export const agentChatSchema = z.object({
 
 export const agentConfirmSchema = z.object({
   approved: z.boolean(),
+  subject: z.string().trim().min(1).optional(),
+  message: z.string().trim().min(1).optional(),
 });
 
 export const agentInternalSendEmailSchema = z.object({

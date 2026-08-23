@@ -55,11 +55,11 @@ export const chatWithAgent = async (req, res, next) => {
 export const confirmAgentAction = async (req, res, next) => {
     try {
         const proctorId = req.params.proctorId;
-        const { approved } = req.body;
+        const { approved, subject, message } = req.body;
 
         const response = await axios.post(
             `${FASTAPI_INTERNAL_URL}/api/agent/confirm`,
-            { proctor_id: proctorId, approved },
+            { proctor_id: proctorId, approved, subject, message },
             { headers: fastapiHeaders() },
         );
 

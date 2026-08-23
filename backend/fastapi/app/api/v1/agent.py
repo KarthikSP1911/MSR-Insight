@@ -48,7 +48,7 @@ def chat_with_agent(request: ChatRequest):
 @router.post("/confirm", dependencies=[Depends(verify_gateway_secret)])
 def confirm_agent_action(request: ConfirmRequest):
     try:
-        return agent_service.confirm(request.proctor_id, request.approved)
+        return agent_service.confirm(request.proctor_id, request.approved, request.subject, request.message)
     except Exception as e:
         logger.exception("Agent confirm failed: %s", e)
         raise HTTPException(status_code=500, detail="Failed to process agent confirmation")
