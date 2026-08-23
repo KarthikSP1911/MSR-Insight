@@ -6,7 +6,7 @@ avoid the name clash, since this module is itself called `logging`).
 import json
 import logging as py_logging
 
-from ..db import get_connection
+from app.repositories.agent_repository import get_connection
 from ..ids import thread_id_for
 
 logger = py_logging.getLogger(__name__)

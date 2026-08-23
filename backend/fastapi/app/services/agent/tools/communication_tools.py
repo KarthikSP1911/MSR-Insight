@@ -13,9 +13,9 @@ from langgraph.prebuilt import InjectedState
 from langgraph.types import interrupt
 
 from ..state import AgentState
-from ..db import is_proctor_owner_of_student
+from app.repositories.agent_repository import is_proctor_owner_of_student
 from .logging import log_action
-from config.settings import settings
+from app.core.config import settings
 
 
 def _call_express_internal(path: str, payload: dict) -> dict:
