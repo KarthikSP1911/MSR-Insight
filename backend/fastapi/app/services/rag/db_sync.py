@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 from langchain_core.documents import Document
-from config.settings import settings
+from app.core.config import settings
 from .chunker import build_chunks_for_student
 
 logger = logging.getLogger(__name__)
