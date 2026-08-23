@@ -2,14 +2,16 @@
 students (no usn argument, no way for the LLM to point this at anyone else's
 students)."""
 import json
+import math
 from typing import Annotated
 
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 
 from ..state import AgentState
-from app.repositories.agent_repository import get_connection
+from app.repositories.agent_repository import get_connection, is_proctor_owner_of_student
 from .logging import log_action
+from .student_tools import _load_student_row
 
 CGPA_RISK_THRESHOLD = 6.0
 ATTENDANCE_RISK_THRESHOLD = 75
@@ -61,6 +63,17 @@ def _insert_alert(conn, usn, proctor_id, risk_type, severity, evidence, message)
     )
 
 
+def _low_attendance_subjects(subjects: list[dict]) -> list[dict]:
+    """Shared by compute_risks (per-student view) and summarize_risk_by_subject
+    (per-subject view) so the "what counts as low attendance" rule lives in
+    exactly one place."""
+    return [
+        {"subject": s.get("name"), "code": s.get("code"), "attendance": s.get("attendance")}
+        for s in subjects
+        if isinstance(s.get("attendance"), (int, float)) and 0 < s["attendance"] < ATTENDANCE_RISK_THRESHOLD
+    ]
+
+
 def compute_risks(student: dict) -> list[dict]:
     """Pure function: student dict -> list of risk findings. Kept separate from
     DB/tool wiring so it's easy to unit test and reuse from insight_tools."""
@@ -68,11 +81,7 @@ def compute_risks(student: dict) -> list[dict]:
     findings = []
 
     subjects = details.get("subjects", [])
-    low_attendance = [
-        {"subject": s.get("name"), "attendance": s.get("attendance")}
-        for s in subjects
-        if isinstance(s.get("attendance"), (int, float)) and 0 < s["attendance"] < ATTENDANCE_RISK_THRESHOLD
-    ]
+    low_attendance = _low_attendance_subjects(subjects)
     if low_attendance:
         severity = "high" if any(s["attendance"] < 65 for s in low_attendance) else "medium"
         findings.append({
@@ -121,6 +130,7 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
     records new alerts. Use this when the proctor asks who is at risk, who
     needs attention, or similar."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     students = _fetch_proctor_students(proctor_id)
 
     conn = get_connection()
@@ -142,7 +152,7 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
     finally:
         conn.close()
 
-    log_action(proctor_id, "risk_analysis", "completed", result={"at_risk_count": len(at_risk)})
+    log_action(proctor_id, "risk_analysis", "completed", result={"at_risk_count": len(at_risk)}, conversation_id=cid)
 
     if not at_risk:
         return "No students currently show attendance, CGPA, or SGPA-drop risk signals."
@@ -152,4 +162,127 @@ def analyze_at_risk_students(state: Annotated[AgentState, InjectedState]) -> str
         lines.append(f"\n{entry['name']} ({entry['usn']}):")
         for f in entry["findings"]:
             lines.append(f"  - [{f['severity'].upper()}] {f['message']}")
+    return "\n".join(lines)
+
+
+@tool
+def calculate_attendance_recovery(usn: str, subject_code: str, state: Annotated[AgentState, InjectedState]) -> str:
+    """Calculate the minimum number of additional classes a student must
+    attend, out of the classes remaining in a specific subject, to reach 75%
+    overall attendance in that subject. `usn` and `subject_code` must be real
+    values you already learned (e.g. via get_student_profile) -- never guess
+    them. If even attending every remaining class can't reach 75%, say so
+    explicitly rather than returning a number that implies otherwise."""
+    proctor_id = state["proctor_id"]
+    if not is_proctor_owner_of_student(proctor_id, usn):
+        return f"Not authorized: {usn} is not one of your assigned students."
+
+    student = _load_student_row(usn)
+    if not student:
+        return f"No student record found for {usn}."
+
+    subjects = student["details"].get("subjects", [])
+    subject = next((s for s in subjects if s.get("code") == subject_code), None)
+    if not subject:
+        return f"No subject with code {subject_code} found for {usn}."
+
+    ad = subject.get("attendance_details") or {}
+    present = ad.get("present")
+    absent = ad.get("absent")
+    remaining = ad.get("remaining")
+    if not all(isinstance(v, (int, float)) for v in (present, absent, remaining)):
+        return f"Attendance breakdown (present/absent/remaining) is not available for {subject.get('name', subject_code)}."
+
+    total = present + absent + remaining
+    if total <= 0:
+        return f"No classes recorded yet for {subject.get('name', subject_code)}."
+
+    needed = 0.75 * total - present
+    max_possible = (present + remaining) / total * 100
+
+    if needed <= 0:
+        return f"{subject.get('name', subject_code)}: already at or above 75% attendance."
+
+    if needed > remaining:
+        return (
+            f"{subject.get('name', subject_code)}: even attending all {remaining} remaining classes only "
+            f"reaches {max_possible:.1f}%, which is below the 75% requirement. 75% is not achievable this semester."
+        )
+
+    classes_needed = math.ceil(needed)
+    return (
+        f"{subject.get('name', subject_code)}: must attend at least {classes_needed} of the remaining "
+        f"{remaining} class(es) to reach 75% attendance."
+    )
+
+
+@tool
+def explain_alert(usn: str, state: Annotated[AgentState, InjectedState]) -> str:
+    """Explain the most recent unresolved risk alert(s) already recorded for a
+    student. Reads the stored risk_type/severity/evidence/message from the
+    agent_alerts table -- summarize only that stored evidence, do not
+    re-compute risk or invent new reasoning not present in it. `usn` must be a
+    real USN you already learned -- never guess it."""
+    proctor_id = state["proctor_id"]
+    if not is_proctor_owner_of_student(proctor_id, usn):
+        return f"Not authorized: {usn} is not one of your assigned students."
+
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT risk_type, severity, evidence, message, created_at
+            FROM agent_alerts
+            WHERE student_usn = %s AND proctor_id = %s AND resolved = false
+            ORDER BY created_at DESC
+            """,
+            (usn, proctor_id),
+        )
+        rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    if not rows:
+        return f"No unresolved alerts on record for {usn}."
+
+    lines = [f"Unresolved alert(s) on record for {usn}:"]
+    for risk_type, severity, evidence, message, created_at in rows:
+        if isinstance(evidence, str):
+            evidence = json.loads(evidence)
+        lines.append(
+            f"\n- [{severity.upper()}] {risk_type} (flagged {created_at}): {message}\n"
+            f"  Evidence: {json.dumps(evidence)}"
+        )
+    return "\n".join(lines)
+
+
+@tool
+def summarize_risk_by_subject(state: Annotated[AgentState, InjectedState]) -> str:
+    """Summarize attendance risk aggregated by subject across all of the
+    requesting proctor's students -- e.g. "22IS45: 4 students below 75%
+    attendance" -- rather than per student. Use this when the proctor asks
+    for a class-wide or subject-wise breakdown instead of a per-student list."""
+    proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
+    students = _fetch_proctor_students(proctor_id)
+
+    by_subject: dict[str, dict] = {}
+    for student in students:
+        subjects = student["details"].get("subjects", [])
+        for s in _low_attendance_subjects(subjects):
+            key = s.get("code") or s.get("subject") or "Unknown"
+            entry = by_subject.setdefault(key, {"name": s.get("subject"), "count": 0, "students": []})
+            entry["count"] += 1
+            entry["students"].append(f"{student['name']} ({student['usn']})")
+
+    log_action(proctor_id, "risk_by_subject", "completed", result={"subject_count": len(by_subject)}, conversation_id=cid)
+
+    if not by_subject:
+        return "No subjects currently show attendance risk among your students."
+
+    lines = [f"Attendance risk by subject ({len(by_subject)} subject(s) affected):"]
+    for code, info in sorted(by_subject.items(), key=lambda kv: -kv[1]["count"]):
+        lines.append(f"\n{info['name']} ({code}): {info['count']} student(s) below {ATTENDANCE_RISK_THRESHOLD}% attendance")
+        lines.append("  " + ", ".join(info["students"]))
     return "\n".join(lines)

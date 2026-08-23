@@ -40,23 +40,31 @@ def get_student_profile(usn: str, state: Annotated[AgentState, InjectedState]) -
     real USN you learned from list_proctor_students or the conversation -- never
     guess one."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     if not is_proctor_owner_of_student(proctor_id, usn):
         log_action(proctor_id, "get_student_profile", "failed", student_usn=usn, payload={"usn": usn},
-                    result={"error": "not_authorized"})
+                    result={"error": "not_authorized"}, conversation_id=cid)
         return f"Not authorized: {usn} is not one of your assigned students."
 
     student = _load_student_row(usn)
     if not student:
         log_action(proctor_id, "get_student_profile", "failed", student_usn=usn, payload={"usn": usn},
-                    result={"error": "not_found"})
+                    result={"error": "not_found"}, conversation_id=cid)
         return f"No student record found for {usn}."
 
     details = student["details"]
     subjects = details.get("subjects", [])
     subject_lines = []
     for s in subjects:
-        att = s.get("attendance", 0)
-        flag = " (LOW ATTENDANCE)" if isinstance(att, (int, float)) and 0 < att < 75 else ""
+        # A subject with no classes held yet (e.g. Mini Project, Physical
+        # Education early in the semester) has present=absent=0, which is
+        # stored as 0% attendance -- indistinguishable from missing every
+        # class unless we check the held-class count. Treat 0 held classes
+        # as 100% (nothing missed) rather than showing a misleading 0%.
+        ad = s.get("attendance_details") or {}
+        held = (ad.get("present") or 0) + (ad.get("absent") or 0)
+        att = s.get("attendance", 0) if held > 0 else 100
+        flag = " (LOW ATTENDANCE)" if held > 0 and isinstance(att, (int, float)) and att < 75 else ""
         subject_lines.append(f"- {s.get('name', 'Unknown')} ({s.get('code', '')}): marks={s.get('marks', 'N/A')}, attendance={att}%{flag}")
 
     exam_history = details.get("exam_history", [])
@@ -70,7 +78,7 @@ def get_student_profile(usn: str, state: Annotated[AgentState, InjectedState]) -
         f"Proctor remarks: {details.get('remarks', 'None')}"
     )
 
-    log_action(proctor_id, "get_student_profile", "completed", student_usn=usn, payload={"usn": usn})
+    log_action(proctor_id, "get_student_profile", "completed", student_usn=usn, payload={"usn": usn}, conversation_id=cid)
     return summary
 
 
@@ -81,6 +89,7 @@ def list_proctor_students(state: Annotated[AgentState, InjectedState]) -> str:
     about "my students" in general, or when you need a USN and don't have one
     yet."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     conn = get_connection()
     try:
         cur = conn.cursor()
@@ -99,7 +108,7 @@ def list_proctor_students(state: Annotated[AgentState, InjectedState]) -> str:
         conn.close()
 
     if not rows:
-        log_action(proctor_id, "list_proctor_students", "completed", result={"count": 0})
+        log_action(proctor_id, "list_proctor_students", "completed", result={"count": 0}, conversation_id=cid)
         return "You have no students currently assigned."
 
     lines = []
@@ -109,5 +118,5 @@ def list_proctor_students(state: Annotated[AgentState, InjectedState]) -> str:
         cgpa = (details or {}).get("cgpa", "N/A")
         lines.append(f"- {name} ({usn}), Year {current_year}, CGPA {cgpa}")
 
-    log_action(proctor_id, "list_proctor_students", "completed", result={"count": len(rows)})
+    log_action(proctor_id, "list_proctor_students", "completed", result={"count": len(rows)}, conversation_id=cid)
     return "Your assigned students:\n" + "\n".join(lines)

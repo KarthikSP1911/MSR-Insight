@@ -20,6 +20,7 @@ def log_action(
     payload: dict | None = None,
     result: dict | None = None,
     mark_executed: bool = True,
+    conversation_id: str | None = None,
 ) -> None:
     conn = get_connection()
     try:
@@ -32,7 +33,7 @@ def log_action(
             """,
             (
                 proctor_id,
-                thread_id_for(proctor_id),
+                thread_id_for(proctor_id, conversation_id),
                 action_type,
                 status,
                 student_usn,

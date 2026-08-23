@@ -12,6 +12,9 @@ interface PendingAction {
   usn?: string;
   subject?: string;
   message?: string;
+  pdf_base64?: string;
+  include_proctor_remarks?: boolean;
+  proctor_remarks?: string | null;
 }
 
 interface ChatEntry {
@@ -44,17 +47,45 @@ const sessionHeaders = () => ({
 const ACTION_LABELS: Record<string, string> = {
   send_email: "Send Email",
   send_whatsapp: "Send WhatsApp Message",
+  send_report_email: "Email Student Report",
+};
+
+const GREETING = "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?";
+
+// Parses one "event: name\ndata: {...}\ndata: {...}" SSE frame (already
+// split on the blank-line frame separator by the caller).
+const parseSSEEvent = (raw: string): { event: string | null; data: any } => {
+  let event: string | null = null;
+  const dataLines: string[] = [];
+  for (const line of raw.split("\n")) {
+    if (line.startsWith("event:")) event = line.slice(6).trim();
+    else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+  }
+  let data: any = {};
+  try {
+    data = dataLines.length ? JSON.parse(dataLines.join("\n")) : {};
+  } catch {
+    data = {};
+  }
+  return { event, data };
 };
 
 export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountChange }: AgentPanelProps) {
   const [entries, setEntries] = useState<ChatEntry[]>([
-    { kind: "text", role: "assistant", text: "Hi, I'm your Agentic AI assistant. I can analyze at-risk students, summarize your week, look things up, and draft or send parent communications (with your approval first). What would you like to do?" },
+    { kind: "text", role: "assistant", text: GREETING },
   ]);
+  const [conversationId, setConversationId] = useState<string>(() =>
+    typeof window !== "undefined" ? crypto.randomUUID() : ""
+  );
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [editedSubject, setEditedSubject] = useState("");
+  const [editedMessage, setEditedMessage] = useState("");
+  const [editedProctorRemarks, setEditedProctorRemarks] = useState("");
   const [alerts, setAlerts] = useState<AgentAlert[]>([]);
   const [alertsOpen, setAlertsOpen] = useState(false);
+  const [digestShown, setDigestShown] = useState(false);
 
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +95,33 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
       fetchAlerts();
     }
   }, [entries, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && !digestShown) {
+      setDigestShown(true);
+      fetchDigest();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const fetchDigest = async () => {
+    try {
+      const [alertsRes, remindersRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/agent/${proctorId}/alerts`, { headers: sessionHeaders() }),
+        axios.get(`${API_BASE_URL}/api/agent/${proctorId}/reminders/due-today`, { headers: sessionHeaders() }),
+      ]);
+      const alertCount = alertsRes.data?.data?.length || 0;
+      const reminderCount = remindersRes.data?.data?.length || 0;
+      if (alertCount === 0 && reminderCount === 0) return;
+
+      const parts: string[] = [];
+      if (reminderCount > 0) parts.push(`${reminderCount} reminder${reminderCount > 1 ? "s" : ""} due today`);
+      if (alertCount > 0) parts.push(`${alertCount} flagged alert${alertCount > 1 ? "s" : ""}`);
+      setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: `Heads up -- you have ${parts.join(" and ")}.` }]);
+    } catch (err) {
+      console.error("Failed to fetch agent digest:", err);
+    }
+  };
 
   const fetchAlerts = async () => {
     try {
@@ -78,19 +136,63 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
-    setEntries((prev) => [...prev, { kind: "text", role: "user", text }]);
+    setEntries((prev) => [...prev, { kind: "text", role: "user", text }, { kind: "text", role: "assistant", text: "" }]);
     setInputValue("");
     setIsLoading(true);
 
+    // The placeholder assistant entry we just pushed is always the last
+    // entry while a stream is in flight (isLoading blocks a second send).
+    const replaceLastEntry = (entry: ChatEntry) =>
+      setEntries((prev) => [...prev.slice(0, -1), entry]);
+
+    let streamedText = "";
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/agent/${proctorId}/chat`,
-        { message: text },
-        { headers: sessionHeaders() },
-      );
-      handleAgentResponse(res.data);
+      const res = await fetch(`${API_BASE_URL}/api/agent/${proctorId}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-session-id": sessionHeaders()["x-session-id"] || "" },
+        body: JSON.stringify({ message: text, conversation_id: conversationId }),
+      });
+      if (!res.ok || !res.body) throw new Error(`Agent stream request failed (${res.status})`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let boundary: number;
+        while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+          const rawEvent = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+          const { event, data } = parseSSEEvent(rawEvent);
+          if (!event) continue;
+
+          if (event === "token") {
+            streamedText += data.text || "";
+            replaceLastEntry({ kind: "text", role: "assistant", text: streamedText });
+          } else if (event === "status") {
+            if (data.status === "pending_confirmation" && data.action) {
+              replaceLastEntry({ kind: "pending", action: data.action });
+              setPendingAction(data.action);
+              setEditedSubject(data.action.subject || "");
+              setEditedMessage(data.action.message || "");
+              setEditedProctorRemarks(data.action.proctor_remarks || "");
+            } else if (data.status === "ok") {
+              replaceLastEntry({ kind: "text", role: "assistant", text: data.reply || streamedText });
+              fetchAlerts();
+            } else {
+              replaceLastEntry({ kind: "text", role: "assistant", text: "Sorry, I couldn't process that request." });
+            }
+          } else if (event === "error") {
+            replaceLastEntry({ kind: "text", role: "assistant", text: data.message || "Sorry, something went wrong." });
+          }
+        }
+      }
     } catch (err) {
-      setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: "Sorry, I couldn't reach the agent service. Please try again." }]);
+      replaceLastEntry({ kind: "text", role: "assistant", text: "Sorry, I couldn't reach the agent service. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +201,9 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const handleAgentResponse = (data: any) => {
     if (data?.status === "pending_confirmation" && data.action) {
       setPendingAction(data.action);
+      setEditedSubject(data.action.subject || "");
+      setEditedMessage(data.action.message || "");
+      setEditedProctorRemarks(data.action.proctor_remarks || "");
       setEntries((prev) => [...prev, { kind: "pending", action: data.action }]);
     } else if (data?.status === "ok") {
       setEntries((prev) => [...prev, { kind: "text", role: "assistant", text: data.reply || "" }]);
@@ -111,15 +216,27 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
   const resolveConfirmation = async (approved: boolean) => {
     if (!pendingAction || isLoading) return;
     setIsLoading(true);
+    const isReport = pendingAction.action_type === "send_report_email";
+    const finalAction = approved
+      ? { ...pendingAction, subject: editedSubject, message: editedMessage, proctor_remarks: isReport ? editedProctorRemarks : pendingAction.proctor_remarks }
+      : pendingAction;
     setEntries((prev) =>
-      prev.map((e) => (e.kind === "pending" && e.action === pendingAction ? { ...e, kind: "resolved-pending", resolution: approved ? "approved" : "rejected" } : e))
+      prev.map((e) => (e.kind === "pending" && e.action === pendingAction ? { ...e, action: finalAction, kind: "resolved-pending", resolution: approved ? "approved" : "rejected" } : e))
     );
     setPendingAction(null);
 
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/agent/${proctorId}/confirm`,
-        { approved },
+        approved
+          ? {
+              approved,
+              subject: editedSubject || undefined,
+              message: editedMessage || undefined,
+              proctor_remarks: isReport ? editedProctorRemarks || undefined : undefined,
+              conversation_id: conversationId,
+            }
+          : { approved, conversation_id: conversationId },
         { headers: sessionHeaders() },
       );
       handleAgentResponse(res.data);
@@ -137,6 +254,14 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
 
   const quickAction = (prompt: string) => sendMessage(prompt);
 
+  const startNewConversation = () => {
+    if (isLoading) return;
+    setConversationId(crypto.randomUUID());
+    setEntries([{ kind: "text", role: "assistant", text: GREETING }]);
+    setPendingAction(null);
+    setInputValue("");
+  };
+
   return (
     <>
       <div className={`agent-overlay ${isOpen ? "active" : ""}`} onClick={onClose}></div>
@@ -153,12 +278,20 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
             </svg>
             <span>Agentic AI</span>
           </div>
-          <button className="agent-panel-close" onClick={onClose}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <div className="agent-panel-header-actions">
+            <button className="agent-new-conversation-btn" onClick={startNewConversation} disabled={isLoading} title="Start a new conversation">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New
+            </button>
+            <button className="agent-panel-close" onClick={onClose}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {alerts.length > 0 && (
@@ -211,8 +344,57 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
                   </div>
                   <div className="agent-approval-body">
                     {action.usn && <div><strong>Student:</strong> {action.usn}</div>}
-                    {action.subject && <div><strong>Subject:</strong> {action.subject}</div>}
-                    {action.message && <div className="agent-approval-message">{action.message}</div>}
+                    {!resolved && action.subject !== undefined && (
+                      <div>
+                        <strong>Subject:</strong>
+                        <input
+                          type="text"
+                          className="agent-approval-edit-input"
+                          value={editedSubject}
+                          onChange={(e) => setEditedSubject(e.target.value)}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
+                    {!resolved && action.message !== undefined && (
+                      <div>
+                        <strong>Message:</strong>
+                        <textarea
+                          className="agent-approval-edit-textarea"
+                          value={editedMessage}
+                          onChange={(e) => setEditedMessage(e.target.value)}
+                          disabled={isLoading}
+                          rows={4}
+                        />
+                      </div>
+                    )}
+                    {resolved && action.subject && <div><strong>Subject:</strong> {action.subject}</div>}
+                    {resolved && action.message && <div className="agent-approval-message">{action.message}</div>}
+                    {action.action_type === "send_report_email" && action.pdf_base64 && (
+                      <div>
+                        <strong>Report preview:</strong>
+                        <iframe
+                          className="agent-approval-pdf-preview"
+                          src={`data:application/pdf;base64,${action.pdf_base64}`}
+                          title="Report preview"
+                        />
+                      </div>
+                    )}
+                    {action.action_type === "send_report_email" && action.include_proctor_remarks && !resolved && (
+                      <div>
+                        <strong>Proctor remarks:</strong>
+                        <textarea
+                          className="agent-approval-edit-textarea"
+                          value={editedProctorRemarks}
+                          onChange={(e) => setEditedProctorRemarks(e.target.value)}
+                          disabled={isLoading}
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                    {action.action_type === "send_report_email" && action.include_proctor_remarks && resolved && action.proctor_remarks && (
+                      <div className="agent-approval-message">{action.proctor_remarks}</div>
+                    )}
                   </div>
                   {!resolved ? (
                     <div className="agent-approval-actions">

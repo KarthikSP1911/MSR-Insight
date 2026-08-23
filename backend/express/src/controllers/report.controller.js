@@ -8,6 +8,7 @@ import {
 import userRepository from "../repositories/user.repository.js";
 import studentService from "../services/student.service.js";
 import { extractReportInputData } from "../utils/studentDataParser.js";
+import logger from "../utils/logger.js";
 
 /**
  * Generates an AI remark for a student based on their PostgreSQL JSONB data.
@@ -34,6 +35,7 @@ export const generateReport = async (req, res, next) => {
         const data = await getRemarkByUSN(usn, reportInputData);
         return res.status(200).json({ success: true, data });
     } catch (error) {
+        logger.error("[Report] generateReport failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({
             success: false,
@@ -66,6 +68,7 @@ export const getStudentDashboardReport = async (req, res, next) => {
                 return res.status(200).json({ success: true, source: "scraper", data: dashboardData });
             }
         } catch (scrapeError) {
+            logger.error("[Report] getStudentDashboardReport: scrape failed:", scrapeError);
             return res.status(502).json({
                 success: false,
                 message: "Could not retrieve academic data from the college portal. Please check your credentials.",
@@ -75,6 +78,7 @@ export const getStudentDashboardReport = async (req, res, next) => {
 
         return res.status(502).json({ success: false, message: "Data could not be retrieved from the scraper session." });
     } catch (error) {
+        logger.error("[Report] getStudentDashboardReport failed:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error occurred while fetching dashboard data.",
@@ -99,6 +103,13 @@ export const triggerReportUpdate = async (req, res, next) => {
             data: dashboardData,
         });
     } catch (error) {
+        // 429 (re-scrape requested too soon) is expected control flow, not a
+        // bug -- log it at warn so real failures aren't buried under noise.
+        if (error.statusCode === 429) {
+            logger.warn("[Report] triggerReportUpdate rate-limited:", error.message);
+        } else {
+            logger.error("[Report] triggerReportUpdate failed:", error);
+        }
         const status = error.statusCode || 400;
         return res.status(status).json({
             success: false,
@@ -145,6 +156,7 @@ export const sendReportViaWhatsApp = async (req, res, next) => {
             data: whatsappResult,
         });
     } catch (error) {
+        logger.error("[Report] sendReportViaWhatsApp failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }

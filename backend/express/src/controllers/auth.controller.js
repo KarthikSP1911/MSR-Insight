@@ -50,6 +50,11 @@ class AuthController {
         data: result,
       });
     } catch (error) {
+      // Most failures here are expected user-input errors (wrong DOB, bad
+      // USN) rather than bugs, so warn rather than error -- but still
+      // logged, unlike before, in case the cause turns out to be a real
+      // scraping/server failure disguised as a 400.
+      logger.warn("[AuthController] login failed:", error.message);
       return res.status(400).json({
         success: false,
         message: error.message || "Login failed",
@@ -95,7 +100,7 @@ class AuthController {
         data: result,
       });
     } catch (error) {
-      logger.error("[ProctorLogin Error]", error.message);
+      logger.error("[ProctorLogin Error]", error);
       const statusCode = error.statusCode || 500;
       return res.status(statusCode).json({
         success: false,

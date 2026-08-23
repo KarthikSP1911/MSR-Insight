@@ -347,6 +347,18 @@
     color: #991b1b;
 }
 
+/* Low/mid CIE score cells -- same red as low-attendance for consistency,
+   plus a new yellow tier for the mid band. */
+.marks-table td.low-score {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.marks-table td.mid-score {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
 .grade-badge {
     padding: 2px 8px;
     border-radius: 4px;
