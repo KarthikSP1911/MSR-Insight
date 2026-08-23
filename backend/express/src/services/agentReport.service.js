@@ -48,11 +48,22 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
       // survive normalization). Treat 0 as ungraded and skip coloring, same
       // call as the attendance fix above.
       const marks = typeof s.marks === "number" ? s.marks : null;
+      // Some subjects (e.g. Physical Education, Technical Skill Enhancement
+      // Course) use a single out-of-100 evaluation rather than the standard
+      // 2-tests + 2-AQ /50 formula, but dataNormalizer.js sums them the same
+      // way regardless. A genuine /50 total can never exceed 50, so a total
+      // over 50 is itself the signal that this subject is really on a /100
+      // scale -- no scraper/pipeline change or data re-sync needed to detect
+      // it. Thresholds scale proportionally (21/50=42%, 30/50=60%) so the
+      // same red/yellow bands mean the same thing on either scale.
+      const maxMarks = marks !== null && marks > 50 ? 100 : 50;
+      const redCeiling = maxMarks === 100 ? 42 : 21;
+      const yellowCeiling = maxMarks === 100 ? 60 : 30;
       let marksStyle = "text-align:center;";
       if (marks !== null && marks > 0) {
-        if (marks < 21) {
+        if (marks < redCeiling) {
           marksStyle = "text-align:center; background:#fee2e2; color:#991b1b; font-weight:600;";
-        } else if (marks <= 30) {
+        } else if (marks <= yellowCeiling) {
           marksStyle = "text-align:center; background:#fef9c3; color:#854d0e; font-weight:600;";
         }
       }
@@ -62,7 +73,7 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
           <td>${idx + 1}</td>
           <td>${s.name || "Unknown Subject"}</td>
           <td style="${attendanceStyle}">${attendance}%</td>
-          <td style="${marksStyle}">${marks ?? "N/A"} / 50</td>
+          <td style="${marksStyle}">${marks ?? "N/A"} / ${maxMarks}</td>
         </tr>`;
     })
     .join("");
