@@ -39,12 +39,30 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
       const attendanceStyle = isLow
         ? "text-align:center; background:#fee2e2; color:#991b1b; font-weight:600;"
         : "text-align:center;";
+
+      // marks === 0 whenever every assessment component (T1, T2, AQ1, AQ2)
+      // is itself 0, by construction of the total-marks formula
+      // (dataNormalizer.js: avg(T1,T2) + AQ1 + AQ2) -- indistinguishable
+      // from "not graded yet" in the data we're given (the scraper's
+      // eligibility/max_marks markers that could disambiguate this don't
+      // survive normalization). Treat 0 as ungraded and skip coloring, same
+      // call as the attendance fix above.
+      const marks = typeof s.marks === "number" ? s.marks : null;
+      let marksStyle = "text-align:center;";
+      if (marks !== null && marks > 0) {
+        if (marks < 21) {
+          marksStyle = "text-align:center; background:#fee2e2; color:#991b1b; font-weight:600;";
+        } else if (marks <= 30) {
+          marksStyle = "text-align:center; background:#fef9c3; color:#854d0e; font-weight:600;";
+        }
+      }
+
       return `
         <tr>
           <td>${idx + 1}</td>
           <td>${s.name || "Unknown Subject"}</td>
           <td style="${attendanceStyle}">${attendance}%</td>
-          <td style="text-align:center;">${s.marks ?? "N/A"} / 50</td>
+          <td style="${marksStyle}">${marks ?? "N/A"} / 50</td>
         </tr>`;
     })
     .join("");
