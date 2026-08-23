@@ -1,9 +1,9 @@
 from unittest.mock import patch, MagicMock
-from services.retriever import get_ensemble_retriever
+from app.services.rag.retriever import get_ensemble_retriever
 
-@patch("services.retriever.EnsembleRetriever")
-@patch("services.retriever.BM25Retriever")
-@patch("services.retriever.psycopg2")
+@patch("app.services.rag.retriever.EnsembleRetriever")
+@patch("app.services.rag.retriever.BM25Retriever")
+@patch("app.services.rag.retriever.psycopg2")
 def test_get_ensemble_retriever(mock_psycopg2, mock_bm25_class, mock_ensemble):
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
@@ -40,7 +40,7 @@ def test_get_ensemble_retriever(mock_psycopg2, mock_bm25_class, mock_ensemble):
         }
     )
 
-@patch("services.retriever.psycopg2")
+@patch("app.services.rag.retriever.psycopg2")
 def test_get_ensemble_retriever_no_intent(mock_psycopg2):
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
