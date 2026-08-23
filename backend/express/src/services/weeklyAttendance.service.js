@@ -151,7 +151,7 @@ const sendWeeklyReportForStudent = async (student, logoDataUri) => {
       `weekly_${student.usn}.pdf`
     );
   } catch (err) {
-    logger.error(`[WeeklyCron] PDF generation failed for ${student.usn}:`, err.message);
+    logger.error(`[WeeklyCron] PDF generation failed for ${student.usn}:`, err);
     return { usn: student.usn, error: err.message };
   }
 
@@ -174,7 +174,7 @@ const sendWeeklyReportForStudent = async (student, logoDataUri) => {
       results.push({ parentEmail: parent.email, status: "failed", error: err.message });
       logger.error(
         `[WeeklyCron] ✗ Failed for ${parent.email} (${student.usn}):`,
-        err.message
+        err
       );
     }
   }
@@ -327,7 +327,7 @@ export const runWeeklyAttendanceCron = async () => {
       },
     });
   } catch (err) {
-    logger.error("[WeeklyCron] Failed to fetch students from DB:", err.message);
+    logger.error("[WeeklyCron] Failed to fetch students from DB:", err);
     return;
   }
 
@@ -349,7 +349,7 @@ export const runWeeklyAttendanceCron = async () => {
         allSent ? successCount++ : failureCount++;
       }
     } catch (err) {
-      logger.error(`[WeeklyCron] Unhandled error for ${student.usn}:`, err.message);
+      logger.error(`[WeeklyCron] Unhandled error for ${student.usn}:`, err);
       failureCount++;
     }
   }

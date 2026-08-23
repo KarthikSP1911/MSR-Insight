@@ -81,7 +81,7 @@ class AuthService {
         throw new Error("Failed to retrieve student records from portal after scraping.");
       }
     } catch (err) {
-      logger.error(`[Student Auth] Scraping failed for ${normalizedUSN}: ${err.message}`);
+      logger.error(`[Student Auth] Scraping failed for ${normalizedUSN}:`, err);
       throw new Error(err.message || "Invalid credentials or unable to fetch records from portal.");
     }
 

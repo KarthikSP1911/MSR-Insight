@@ -1,7 +1,8 @@
 import axios from "axios";
 import prisma from "../config/db.config.js";
-import { sendCustomEmail } from "../services/email.service.js";
+import { sendCustomEmail, generatePDFFromHTML, sendReportEmailViaResend } from "../services/email.service.js";
 import { sendTwilioWhatsAppMessage } from "../services/whatsapp.service.js";
+import { buildProctorReportHTML } from "../services/agentReport.service.js";
 import logger from "../utils/logger.js";
 
 const FASTAPI_INTERNAL_URL = process.env.FASTAPI_URL || "http://localhost:8000";
@@ -26,26 +27,42 @@ const assertProctorOwnsStudent = async (proctorId, usn) => {
 };
 
 /**
- * Proxies a chat message to the FastAPI Agentic AI graph. Session auth for
- * this route is already enforced by verifyProctorAccess (see agent.routes.js);
- * FastAPI trusts the proctor_id we send because we've already verified it.
+ * Proxies a chat message to FastAPI's streaming /api/agent/chat/stream and
+ * re-emits it as Server-Sent Events to the browser, rather than buffering
+ * the whole reply before responding. Session auth for this route is already
+ * enforced by verifyProctorAccess (see agent.routes.js) *before* this stream
+ * is opened; FastAPI trusts the proctor_id we send because we've already
+ * verified it.
  */
 export const chatWithAgent = async (req, res, next) => {
+    const proctorId = req.params.proctorId;
+    const { message, conversation_id } = req.body;
+
+    let upstream;
     try {
-        const proctorId = req.params.proctorId;
-        const { message } = req.body;
-
-        const response = await axios.post(
-            `${FASTAPI_INTERNAL_URL}/api/agent/chat`,
-            { proctor_id: proctorId, message },
-            { headers: fastapiHeaders() },
+        upstream = await axios.post(
+            `${FASTAPI_INTERNAL_URL}/api/agent/chat/stream`,
+            { proctor_id: proctorId, message, conversation_id },
+            { headers: fastapiHeaders(), responseType: "stream" },
         );
-
-        return res.status(200).json({ success: true, ...response.data });
     } catch (error) {
-        logger.error(`[Agent] chat proxy failed: ${error.message}`);
+        logger.error("[Agent] chat stream proxy failed:", error);
         return res.status(502).json({ success: false, message: "Agent service unavailable" });
     }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    upstream.data.pipe(res);
+    upstream.data.on("error", (err) => {
+        logger.error("[Agent] chat stream errored mid-flight:", err);
+        res.end();
+    });
+    req.on("close", () => {
+        upstream.data.destroy();
+    });
 };
 
 /**
@@ -55,17 +72,17 @@ export const chatWithAgent = async (req, res, next) => {
 export const confirmAgentAction = async (req, res, next) => {
     try {
         const proctorId = req.params.proctorId;
-        const { approved } = req.body;
+        const { approved, subject, message, proctor_remarks, conversation_id } = req.body;
 
         const response = await axios.post(
             `${FASTAPI_INTERNAL_URL}/api/agent/confirm`,
-            { proctor_id: proctorId, approved },
+            { proctor_id: proctorId, approved, subject, message, proctor_remarks, conversation_id },
             { headers: fastapiHeaders() },
         );
 
         return res.status(200).json({ success: true, ...response.data });
     } catch (error) {
-        logger.error(`[Agent] confirm proxy failed: ${error.message}`);
+        logger.error("[Agent] confirm proxy failed:", error);
         return res.status(502).json({ success: false, message: "Agent service unavailable" });
     }
 };
@@ -99,6 +116,23 @@ export const getAgentAlerts = async (req, res, next) => {
     }
 };
 
+/** Pending reminders due today or overdue, for the panel's proactive digest on open. */
+export const getAgentRemindersDueToday = async (req, res, next) => {
+    try {
+        const proctorId = req.params.proctorId;
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const reminders = await prisma.agentReminder.findMany({
+            where: { proctor_id: proctorId, status: "pending", due_date: { lte: endOfToday } },
+            orderBy: { due_date: "asc" },
+        });
+        return res.status(200).json({ success: true, data: reminders });
+    } catch (error) {
+        next(error);
+    }
+};
+
 /**
  * Internal endpoint (shared-secret gated, no session): FastAPI calls this
  * after the proctor has confirmed a send_email action.
@@ -127,6 +161,62 @@ export const sendAgentEmailInternal = async (req, res, next) => {
 
         return res.status(200).json({ success: true, sent: results.filter(r => r.status === "success").length, results });
     } catch (error) {
+        logger.error("[Agent] sendAgentEmailInternal failed:", error);
+        const status = error.statusCode || 500;
+        return res.status(status).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Internal endpoint (shared-secret gated, no session): FastAPI's
+ * generate_report_pdf tool calls this twice -- once with mode="preview" to
+ * render the PDF for the proctor to review in AgentPanel.tsx before
+ * confirming, and again with mode="send" after confirmation to actually
+ * email it. Re-checks ownership independently of the two checks already
+ * done in the FastAPI tool (defense in depth, same pattern as the other
+ * internal routes).
+ */
+export const generateAgentReportPdfInternal = async (req, res, next) => {
+    try {
+        const { proctor_id, usn, include_proctor_remarks, proctor_remarks, ai_remark, mode } = req.body;
+        await assertProctorOwnsStudent(proctor_id, usn);
+
+        const student = await prisma.student.findUnique({ where: { usn }, include: { parents: true } });
+        if (!student) {
+            const err = new Error(`No student record found for ${usn}`);
+            err.statusCode = 404;
+            throw err;
+        }
+
+        const html = buildProctorReportHTML(
+            student,
+            ai_remark,
+            include_proctor_remarks ? proctor_remarks : null,
+        );
+        const pdfBuffer = await generatePDFFromHTML(html, `report_${usn}.pdf`);
+
+        if (mode === "preview") {
+            return res.status(200).json({ success: true, pdf_base64: pdfBuffer.toString("base64") });
+        }
+
+        const withEmail = (student.parents || []).filter((p) => p.email);
+        if (withEmail.length === 0) {
+            return res.status(200).json({ success: true, sent: 0, message: "No parent email on file for this student." });
+        }
+
+        const results = [];
+        for (const parent of withEmail) {
+            try {
+                const result = await sendReportEmailViaResend(parent.email, student.name, usn, pdfBuffer, parent.name || "Parent/Guardian");
+                results.push({ parentEmail: parent.email, status: "success", messageId: result.id });
+            } catch (error) {
+                results.push({ parentEmail: parent.email, status: "failed", error: error.message });
+            }
+        }
+
+        return res.status(200).json({ success: true, sent: results.filter((r) => r.status === "success").length, results });
+    } catch (error) {
+        logger.error("[Agent] generateAgentReportPdfInternal failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }
@@ -165,6 +255,7 @@ export const sendAgentWhatsAppInternal = async (req, res, next) => {
 
         return res.status(200).json({ success: true, sent: results.filter(r => r.status === "success").length, results });
     } catch (error) {
+        logger.error("[Agent] sendAgentWhatsAppInternal failed:", error);
         const status = error.statusCode || 500;
         return res.status(status).json({ success: false, message: error.message });
     }

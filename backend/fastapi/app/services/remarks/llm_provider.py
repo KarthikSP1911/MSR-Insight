@@ -21,11 +21,21 @@ class GroqLLMProvider:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.6,
-                max_tokens=200
+                max_tokens=1500,
+                # This is a reasoning model (unlike the previously configured
+                # llama-3.1-8b-instant) -- it spends completion tokens on hidden
+                # chain-of-thought before writing the answer. "low" keeps that
+                # budget small so a student with many subjects doesn't exhaust
+                # max_tokens on reasoning alone and return empty text.
+                reasoning_effort="low",
             )
 
             generation_time = int((time.time() - start_time) * 1000)
-            text = completion.choices[0].message.content.strip()
+            text = (completion.choices[0].message.content or "").strip()
+            if not text:
+                raise RuntimeError(
+                    f"Model returned no text (finish_reason={completion.choices[0].finish_reason})"
+                )
 
             return {
                 "text": text,

@@ -17,13 +17,16 @@ def create_reminder(title: str, due_date: str, state: Annotated[AgentState, Inje
     """Create a reminder for the proctor, e.g. 'follow up with a student's
     parent next week'. `due_date` must be an ISO date (YYYY-MM-DD). `usn` is
     optional -- include it only if the reminder is about one of your specific
-    students (it will be checked against your assigned students)."""
+    students (it will be checked against your assigned students). For a bulk
+    request ("create a reminder for each at-risk student"), call this tool
+    once per student in the same turn -- there is no separate bulk tool."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
 
     if usn and not is_proctor_owner_of_student(proctor_id, usn):
         log_action(proctor_id, "create_reminder", "failed", student_usn=usn,
                     payload={"title": title, "due_date": due_date, "usn": usn},
-                    result={"error": "not_authorized"})
+                    result={"error": "not_authorized"}, conversation_id=cid)
         return f"Not authorized: {usn} is not one of your assigned students."
 
     try:
@@ -44,7 +47,7 @@ def create_reminder(title: str, due_date: str, state: Annotated[AgentState, Inje
         conn.close()
 
     log_action(proctor_id, "create_reminder", "completed", student_usn=usn,
-                payload={"title": title, "due_date": due_date}, result={"reminder_id": reminder_id})
+                payload={"title": title, "due_date": due_date}, result={"reminder_id": reminder_id}, conversation_id=cid)
     return f"Reminder created: \"{title}\" due {due_date}."
 
 
@@ -52,6 +55,7 @@ def create_reminder(title: str, due_date: str, state: Annotated[AgentState, Inje
 def list_reminders(state: Annotated[AgentState, InjectedState]) -> str:
     """List the proctor's pending reminders."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     conn = get_connection()
     try:
         cur = conn.cursor()
@@ -63,7 +67,7 @@ def list_reminders(state: Annotated[AgentState, InjectedState]) -> str:
     finally:
         conn.close()
 
-    log_action(proctor_id, "list_reminders", "completed", result={"count": len(rows)})
+    log_action(proctor_id, "list_reminders", "completed", result={"count": len(rows)}, conversation_id=cid)
 
     if not rows:
         return "You have no pending reminders."

@@ -23,6 +23,7 @@ def generate_weekly_insights(state: Annotated[AgentState, InjectedState]) -> str
     diff. Use this when the proctor asks for a weekly summary, overview, or
     "what should I focus on"."""
     proctor_id = state["proctor_id"]
+    cid = state.get("conversation_id")
     students = _fetch_proctor_students(proctor_id)
 
     scored = []
@@ -39,7 +40,7 @@ def generate_weekly_insights(state: Annotated[AgentState, InjectedState]) -> str
     top = scored[:5]
 
     log_action(proctor_id, "weekly_insights", "completed",
-               result={"flagged_count": len(scored), "on_track_count": on_track})
+               result={"flagged_count": len(scored), "on_track_count": on_track}, conversation_id=cid)
 
     if not scored:
         return f"All {on_track} of your students currently show no risk signals. Nothing urgent this week."

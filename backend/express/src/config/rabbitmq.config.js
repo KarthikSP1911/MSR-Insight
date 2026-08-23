@@ -46,7 +46,7 @@ export const connectRabbitMQ = async () => {
 
         return { connection, channel };
     } catch (error) {
-        logger.error("[RabbitMQ] Failed to connect:", error.message);
+        logger.error("[RabbitMQ] Failed to connect:", error);
         process.exit(1);
     }
 };
@@ -71,6 +71,6 @@ export const closeRabbitMQ = async () => {
         }
         logger.info("[RabbitMQ] Connection closed gracefully.");
     } catch (error) {
-        logger.error("[RabbitMQ] Error while closing connection:", error.message);
+        logger.error("[RabbitMQ] Error while closing connection:", error);
     }
 };

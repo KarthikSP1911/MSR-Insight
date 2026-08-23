@@ -234,7 +234,7 @@ class ProctorController {
       // Always return an array — never null/empty object
       return res.status(200).json({ success: true, data: alertsData });
     } catch (error) {
-      logger.error("[NotificationScan] FATAL ERROR:", error.message);
+      logger.error("[NotificationScan] FATAL ERROR:", error);
       return res.status(200).json({ success: true, data: [] }); // safe fallback
     }
   }
@@ -349,7 +349,7 @@ YOUR REPLY:`;
       });
 
     } catch (error) {
-      logger.error("[Proctor Chat] Error:", error.message);
+      logger.error("[Proctor Chat] Error:", error);
       return res.status(500).json({ success: false, message: "Failed to generate AI response." });
     }
   }

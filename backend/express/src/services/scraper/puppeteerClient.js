@@ -209,7 +209,7 @@ export const getCompleteStudentData = async (usn, day, month, year, authType, la
         return scrapedData;
 
     } catch (error) {
-        logger.error(`[X] Automation Error: ${error.message}`);
+        logger.error("[X] Automation Error:", error);
         throw error;
     } finally {
         if (browser) await browser.close();
