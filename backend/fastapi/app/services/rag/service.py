@@ -3,7 +3,6 @@ import threading
 import logging
 from typing import List
 from langchain_core.documents import Document
-from langchain_postgres.vectorstores import PGVector
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -11,7 +10,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.runnables import RunnableLambda
 
-from config.settings import settings
+from app.core.config import settings
+from app.repositories.vector_repository import build_vector_store
 from .db_sync import fetch_and_sync_documents
 from .retriever import get_ensemble_retriever
 from .chunker import detect_chunk_types
@@ -53,17 +53,7 @@ class RAGService:
     def vector_store(self):
         if self._vector_store is None:
             logger.info("Initializing PGVector with collection: student_data_v2")
-            
-            db_url = settings.DATABASE_URL
-            if db_url and db_url.startswith("postgresql://"):
-                db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
-                
-            self._vector_store = PGVector(
-                connection=db_url,
-                embeddings=self.embeddings,
-                collection_name="student_data_v2",
-                use_jsonb=True,
-            )
+            self._vector_store = build_vector_store(self.embeddings)
         return self._vector_store
 
     def sync_data(self) -> dict:

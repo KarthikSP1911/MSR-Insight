@@ -5,7 +5,7 @@ from typing import List
 from langchain_core.documents import Document
 from langchain_classic.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
-from config.settings import settings
+from app.core.config import settings
 from .chunker import detect_chunk_types, build_chunks_for_student
 
 logger = logging.getLogger(__name__)

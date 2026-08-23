@@ -1,16 +1,12 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
-from services.rag_service import RAGService
+from app.services.rag.service import RAGService
+from app.schemas.rag import ChatRequest
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/rag", tags=["RAG"])
 rag_service = RAGService()
-
-class ChatRequest(BaseModel):
-    question: str
-    proctor_id: str
 
 @router.post("/sync")
 async def sync_rag_data(background_tasks: BackgroundTasks):
