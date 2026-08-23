@@ -5,6 +5,7 @@ via POST /api/agent/confirm, then this same function resumes and actually
 calls Express. See agent/graph.py's build_graph docstring for why this lives
 inside the tool rather than a separate graph node (LangGraph's documented
 human-in-the-loop pattern)."""
+import logging
 from typing import Annotated
 
 from langchain_core.tools import tool
@@ -15,6 +16,8 @@ from ..state import AgentState
 from app.repositories.agent_repository import is_proctor_owner_of_student
 from .logging import log_action
 from .express_client import call_express_internal
+
+logger = logging.getLogger(__name__)
 
 
 @tool
@@ -64,6 +67,7 @@ def send_email(usn: str, subject: str, message: str, state: Annotated[AgentState
             return f"No email was sent: {result.get('message', 'no parent email on file.')}"
         return f"Email sent to {result.get('sent')} parent(s)."
     except Exception as e:
+        logger.exception("send_email: Express call failed for %s", usn)
         log_action(proctor_id, "send_email", "failed", student_usn=usn,
                     payload={"subject": subject, "message": message}, result={"error": str(e)}, conversation_id=cid)
         return f"Failed to send email: {e}"
@@ -106,6 +110,7 @@ def send_whatsapp(usn: str, message: str, state: Annotated[AgentState, InjectedS
             return f"No WhatsApp message was sent: {result.get('message', 'no parent phone on file or Twilio not configured.')}"
         return f"WhatsApp message sent to {result.get('sent')} parent(s)."
     except Exception as e:
+        logger.exception("send_whatsapp: Express call failed for %s", usn)
         log_action(proctor_id, "send_whatsapp", "failed", student_usn=usn,
                     payload={"message": message}, result={"error": str(e)}, conversation_id=cid)
         return f"Failed to send WhatsApp message: {e}"
