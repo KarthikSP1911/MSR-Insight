@@ -23,8 +23,15 @@ export const buildProctorReportHTML = (student, aiRemark, proctorRemarksText) =>
 
   const rows = subjects
     .map((s, idx) => {
-      const attendance = Math.round(s.attendance || 0);
-      const isLow = attendance < 75;
+      // A subject with no classes held yet (e.g. Mini Project, Physical
+      // Education early in the semester) has present=absent=0, which the
+      // scraper stores as a 0% attendance -- indistinguishable from actually
+      // missing every class unless we check the held-class count ourselves.
+      // Treat 0 held classes as 100% (nothing missed) rather than flagging it.
+      const ad = s.attendance_details || {};
+      const held = (ad.present || 0) + (ad.absent || 0);
+      const attendance = held > 0 ? Math.round(s.attendance || 0) : 100;
+      const isLow = held > 0 && attendance < 75;
       return `
         <tr>
           <td>${idx + 1}</td>

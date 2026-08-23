@@ -56,8 +56,15 @@ def get_student_profile(usn: str, state: Annotated[AgentState, InjectedState]) -
     subjects = details.get("subjects", [])
     subject_lines = []
     for s in subjects:
-        att = s.get("attendance", 0)
-        flag = " (LOW ATTENDANCE)" if isinstance(att, (int, float)) and 0 < att < 75 else ""
+        # A subject with no classes held yet (e.g. Mini Project, Physical
+        # Education early in the semester) has present=absent=0, which is
+        # stored as 0% attendance -- indistinguishable from missing every
+        # class unless we check the held-class count. Treat 0 held classes
+        # as 100% (nothing missed) rather than showing a misleading 0%.
+        ad = s.get("attendance_details") or {}
+        held = (ad.get("present") or 0) + (ad.get("absent") or 0)
+        att = s.get("attendance", 0) if held > 0 else 100
+        flag = " (LOW ATTENDANCE)" if held > 0 and isinstance(att, (int, float)) and att < 75 else ""
         subject_lines.append(f"- {s.get('name', 'Unknown')} ({s.get('code', '')}): marks={s.get('marks', 'N/A')}, attendance={att}%{flag}")
 
     exam_history = details.get("exam_history", [])
