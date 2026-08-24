@@ -1,8 +1,10 @@
 # 🎓 MSR Insight
 
+![MSR Insight Home Page](_docs/images/image.png)
+
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, RAG-powered chatbot, browser extension for batch scraping, secure session management, and generative AI feedback loops.
 
-![MSR Insight Home Page](_docs/images/image.png)
+
 
 ## ✨ Key Features
 
