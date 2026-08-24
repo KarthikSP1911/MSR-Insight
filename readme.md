@@ -1,4 +1,5 @@
-# 🎓 MSR Insight
+# <img src="frontend/public/logo-icon.svg" width="46" height="46" alt="MSR Insight logo" valign="middle" /> &nbsp;          MSR INSIGHT
+<br/>
 
 ![MSR Insight Home Page](_docs/images/image.png)
 
