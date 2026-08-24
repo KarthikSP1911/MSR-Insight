@@ -2,14 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
-    ArrowRight, BarChart3, ShieldCheck, Zap, Layers,
-    PieChart, FileText, Database, Brain, Mail, Clock, Send,
+    ArrowRight, BarChart3, ShieldCheck, Zap,
+    FileText, Database, Brain, Mail, Clock, Send,
     Globe, Cpu, FileCheck, GraduationCap, Users, Settings
 } from 'lucide-react';
 import HomeNavbar from '@/components/navbar/HomeNavbar';
-import HeroIllustration from '@/components/home/HeroIllustration';
 import Reveal from '@/components/motion/Reveal';
 import { StaggerGroup, StaggerItem } from '@/components/motion/StaggerGroup';
 import { fadeUp, fadeIn, scaleIn } from '@/components/motion/variants';
@@ -40,7 +40,6 @@ export default function Home() {
         <div className="landing-page">
             <HomeNavbar />
             <div className="grid-overlay"></div>
-            <div className="radial-glow features-bg-glow"></div>
 
             <div className="landing-layout-wrapper">
                 <main className="landing-main">
@@ -92,35 +91,15 @@ export default function Home() {
                             >
                                 <div className="visual-wrapper">
                                     <div className="floating-card-container">
-                                        <HeroIllustration />
-                                        <motion.div
-                                            className="floating-ui-element stat-panel"
-                                            initial={{ opacity: 0, y: -12 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: 0.7 }}
-                                            whileHover={{ scale: 1.05 }}
-                                        >
-                                            <PieChart size={20} className="text-cyan" />
-                                            <div>
-                                                <div className="ui-label"></div>
-                                                <div className="ui-value"></div>
-                                            </div>
-                                        </motion.div>
-                                        <motion.div
-                                            className="floating-ui-element activity-panel"
-                                            initial={{ opacity: 0, y: 12 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: 0.85 }}
-                                            whileHover={{ scale: 1.05 }}
-                                        >
-                                            <Layers size={20} className="text-teal" />
-                                            <div>
-                                                <div className="ui-label">Sync Status</div>
-                                                <div className="ui-value text-success">Active</div>
-                                            </div>
-                                        </motion.div>
+                                        <Image
+                                            src="/himage.png"
+                                            alt="Academic analytics dashboard preview"
+                                            className="mockup-image"
+                                            width={800}
+                                            height={680}
+                                            priority
+                                        />
                                     </div>
-                                    <div className="visual-haze"></div>
                                 </div>
                             </motion.div>
                         </div>
