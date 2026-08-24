@@ -12,9 +12,9 @@ const LoadingScreen = () => {
                     animate={{ 
                         scale: [1, 1.1, 1],
                         filter: [
-                            "drop-shadow(0 0 15px rgba(0, 173, 181, 0.1))",
-                            "drop-shadow(0 0 30px rgba(0, 173, 181, 0.4))",
-                            "drop-shadow(0 0 15px rgba(0, 173, 181, 0.1))"
+                            "drop-shadow(0 0 15px rgba(249, 115, 22, 0.1))",
+                            "drop-shadow(0 0 30px rgba(249, 115, 22, 0.4))",
+                            "drop-shadow(0 0 15px rgba(249, 115, 22, 0.1))"
                         ]
                     }}
                     transition={{ 
