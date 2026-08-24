@@ -436,7 +436,7 @@
 .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid rgba(0, 173, 181, 0.1);
+    border: 3px solid rgba(249, 115, 22, 0.1);
     border-top-color: var(--accent-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -497,7 +497,7 @@
     padding: 32px;
     width: 90%;
     max-width: 520px;
-    box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 173, 181, 0.05);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(249, 115, 22, 0.05);
     color: var(--text-primary);
     animation: whatsappSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

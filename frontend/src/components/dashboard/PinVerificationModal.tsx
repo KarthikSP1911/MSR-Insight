@@ -76,7 +76,7 @@ const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
 
                 <div className="modal-header">
                     <div className="icon-wrapper">
-                        <ShieldCheck size={28} color="var(--accent-primary, #00ADB5)" />
+                        <ShieldCheck size={28} color="var(--accent-primary, #F97316)" />
                     </div>
                     <h3 className="modal-title">Portal Verification Required</h3>
                     <p className="modal-subtitle">
@@ -198,12 +198,12 @@ const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
                     width: 56px;
                     height: 56px;
                     border-radius: 50%;
-                    background: rgba(0, 173, 181, 0.12);
+                    background: rgba(249, 115, 22, 0.12);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     margin: 0 auto 16px auto;
-                    border: 1px solid rgba(0, 173, 181, 0.25);
+                    border: 1px solid rgba(249, 115, 22, 0.25);
                 }
                 .modal-title {
                     font-size: 1.25rem;
@@ -269,7 +269,7 @@ const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
                     transition: border-color 0.2s ease;
                 }
                 .pin-input-field:focus {
-                    border-color: var(--accent-primary, #00ADB5);
+                    border-color: var(--accent-primary, #F97316);
                 }
                 .error-banner {
                     background: rgba(239, 68, 68, 0.12);
@@ -306,7 +306,7 @@ const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
                 .btn-submit {
                     flex: 1.5;
                     padding: 12px;
-                    background: var(--accent-primary, #00ADB5);
+                    background: var(--accent-primary, #F97316);
                     border: none;
                     border-radius: 10px;
                     color: #fff;
@@ -324,8 +324,8 @@ const PinVerificationModal: React.FC<PinVerificationModalProps> = ({
                     cursor: not-allowed;
                 }
                 .btn-submit:not(:disabled):hover {
-                    opacity: 0.9;
-                    box-shadow: 0 4px 14px rgba(0, 173, 181, 0.4);
+                    filter: brightness(1.05);
+                    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);
                 }
             `}</style>
         </div>

@@ -178,9 +178,9 @@
 }
 
 .stat-icon.orange {
-  background: rgba(0, 173, 181, 0.1);
+  background: rgba(249, 115, 22, 0.1);
   color: var(--accent-primary);
-  border: 1px solid rgba(0, 173, 181, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.2);
 }
 
 .stat-icon.green {
@@ -283,7 +283,7 @@
 .add-proctor-form-grid {
   background: rgba(23, 23, 23, 0.8);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 173, 181, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.2);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
   margin-bottom: 2rem;
@@ -478,7 +478,7 @@
 }
 
 .student-count-badge {
-  background: rgba(0, 173, 181, 0.1);
+  background: rgba(249, 115, 22, 0.1);
   color: var(--accent-primary);
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
@@ -543,8 +543,8 @@
 }
 
 .add-student-btn {
-  background: rgba(0, 173, 181, 0.1);
-  border: 1px solid rgba(0, 173, 181, 0.2);
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
   color: var(--accent-primary);
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius-sm);
@@ -559,7 +559,7 @@
 }
 
 .add-student-btn:hover {
-  background: rgba(0, 173, 181, 0.2);
+  background: rgba(249, 115, 22, 0.2);
   border-color: var(--accent-primary);
 }
 

@@ -60,7 +60,7 @@ const getRelativeDateString = (dateStr: string | null): { text: string; color: s
         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
         
         if (diffDays === 0) {
-            return { text: "(Today)", color: "var(--accent-primary, #00ADB5)" };
+            return { text: "(Today)", color: "var(--accent-primary, #F97316)" };
         } else if (diffDays < 0) {
             const absDays = Math.abs(diffDays);
             if (absDays === 1) return { text: "(1 day ago)", color: "#10b981" };
@@ -270,7 +270,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                         left: 10%;
                         right: 10%;
                         height: 2px;
-                        background: linear-gradient(90deg, rgba(0, 173, 181, 0.2) 0%, rgba(167, 139, 250, 0.4) 50%, rgba(0, 173, 181, 0.2) 100%);
+                        background: linear-gradient(90deg, rgba(249, 115, 22, 0.2) 0%, rgba(167, 139, 250, 0.4) 50%, rgba(249, 115, 22, 0.2) 100%);
                         transform: translateY(-50%);
                         z-index: 0;
                         width: 80%;
@@ -385,7 +385,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                             display: flex;
                             justify-content: center;
                             align-items: center;
-                            color: var(--accent-primary, #00ADB5);
+                            color: var(--accent-primary, #F97316);
                             opacity: 0.7;
                             margin: 2px 0;
                         }
@@ -420,7 +420,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                     outline: "none",
                                     cursor: "pointer",
                                     appearance: "none",
-                                    backgroundImage: "url(\"data:image/svg+xml;utf8,<svg fill='%2300ADB5' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>\")",
+                                    backgroundImage: "url(\"data:image/svg+xml;utf8,<svg fill='%23F97316' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>\")",
                                     backgroundRepeat: "no-repeat",
                                     backgroundPosition: "right 12px center",
                                     paddingRight: "32px"
@@ -437,13 +437,13 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                             </select>
                         </div>
                         <div style={{
-                            background: "rgba(0, 173, 181, 0.1)",
-                            color: "var(--accent-primary, #00ADB5)",
+                            background: "rgba(249, 115, 22, 0.1)",
+                            color: "var(--accent-primary, #F97316)",
                             padding: "10px 14px",
                             borderRadius: "10px",
                             fontSize: "13px",
                             fontWeight: "700",
-                            border: "1px solid rgba(0, 173, 181, 0.2)",
+                            border: "1px solid rgba(249, 115, 22, 0.2)",
                             whiteSpace: "nowrap"
                         }}>
                             {events.length} {events.length === 1 ? "Event" : "Events"}
@@ -473,7 +473,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                 <span style={{ 
                                     fontSize: "12px", 
                                     fontWeight: "700", 
-                                    color: "var(--accent-primary, #00ADB5)", 
+                                    color: "var(--accent-primary, #F97316)", 
                                     textTransform: "uppercase",
                                     letterSpacing: "1px"
                                 }}>
@@ -493,9 +493,9 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                             flexDirection: "row",
                                             alignItems: "center",
                                             gap: "8px",
-                                            background: "rgba(0, 173, 181, 0.1)",
-                                            color: "var(--accent-primary, #00ADB5)",
-                                            border: "1px solid rgba(0, 173, 181, 0.2)",
+                                            background: "rgba(249, 115, 22, 0.1)",
+                                            color: "var(--accent-primary, #F97316)",
+                                            border: "1px solid rgba(249, 115, 22, 0.2)",
                                             borderRadius: "8px",
                                             textDecoration: "none",
                                             transition: "all 0.2s ease"
@@ -547,7 +547,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
 
                                         {/* 4. Status & CTC */}
                                         <div className="desktop-step-card">
-                                            <span style={{ fontSize: "13px", fontWeight: "800", color: "var(--accent-primary, #00ADB5)", marginBottom: "10px" }}>{parsed.ctc || "CTC: TBD"}</span>
+                                            <span style={{ fontSize: "13px", fontWeight: "800", color: "var(--accent-primary, #F97316)", marginBottom: "10px" }}>{parsed.ctc || "CTC: TBD"}</span>
                                             <span style={{ 
                                                 fontSize: "15px", 
                                                 fontWeight: "800", 
@@ -621,7 +621,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                             S
                                         </div>
                                         <div className="mobile-step-content">
-                                            <h4 className="mobile-step-title" style={{ color: "var(--accent-primary, #00ADB5)" }}>
+                                            <h4 className="mobile-step-title" style={{ color: "var(--accent-primary, #F97316)" }}>
                                                 {parsed.ctc || "CTC: TBD"}
                                             </h4>
                                             <span className="mobile-step-subtitle" style={{ 
@@ -668,8 +668,8 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                         font-weight: 600 !important;
                         border-radius: 9999px !important;
                         background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
-                        border: 1px solid rgba(0, 173, 181, 0.3) !important;
-                        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.15) !important;
+                        border: 1px solid rgba(249, 115, 22, 0.3) !important;
+                        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15) !important;
                         color: var(--text-primary) !important;
                         gap: 8px !important;
                     }
@@ -729,7 +729,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                             alignItems: "center",
                             gap: "8px",
                             padding: "10px 16px",
-                            background: isCooldownActive ? "rgba(255, 255, 255, 0.05)" : "var(--accent-primary, #00ADB5)",
+                            background: isCooldownActive ? "rgba(255, 255, 255, 0.05)" : "var(--accent-primary, #F97316)",
                             color: isCooldownActive ? "var(--text-muted)" : "#fff",
                             border: "none",
                             borderRadius: "8px",
@@ -747,7 +747,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
 
             {!hasAnyData ? (
                 <div className="chart-card" style={{ padding: "40px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: "16px" }}>
-                    <div style={{ padding: "16px", borderRadius: "50%", background: "rgba(0, 173, 181, 0.1)", color: "var(--accent-primary, #00ADB5)" }}>
+                    <div style={{ padding: "16px", borderRadius: "50%", background: "rgba(249, 115, 22, 0.1)", color: "var(--accent-primary, #F97316)" }}>
                         <Briefcase size={36} />
                     </div>
                     <div>
@@ -784,7 +784,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                                         border: "none",
                                                         borderRadius: "8px",
                                                         background: activeSubTab === tab.id ? "var(--bg-card, #1B2333)" : "transparent",
-                                                        color: activeSubTab === tab.id ? "var(--accent-primary, #00ADB5)" : "var(--text-muted)",
+                                                        color: activeSubTab === tab.id ? "var(--accent-primary, #F97316)" : "var(--text-muted)",
                                                         cursor: "pointer",
                                                         display: "flex",
                                                         alignItems: "center",
@@ -799,7 +799,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                                             fontSize: "10px", 
                                                             padding: "2px 6px", 
                                                             borderRadius: "10px", 
-                                                            background: activeSubTab === tab.id ? "var(--accent-primary, #00ADB5)" : "rgba(255,255,255,0.1)",
+                                                            background: activeSubTab === tab.id ? "var(--accent-primary, #F97316)" : "rgba(255,255,255,0.1)",
                                                             color: activeSubTab === tab.id ? "#fff" : "var(--text-primary)"
                                                         }}>
                                                             {tab.count}
@@ -833,7 +833,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                                 outline: "none",
                                                 cursor: "pointer",
                                                 appearance: "none",
-                                                backgroundImage: "url(\"data:image/svg+xml;utf8,<svg fill='%2300ADB5' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>\")",
+                                                backgroundImage: "url(\"data:image/svg+xml;utf8,<svg fill='%23F97316' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>\")",
                                                 backgroundRepeat: "no-repeat",
                                                 backgroundPosition: "right 12px center",
                                                 paddingRight: "32px"
@@ -862,7 +862,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                             fontWeight: "600",
                                             border: "none",
                                             borderRadius: "8px",
-                                            background: activeSubTab === "profile" ? "var(--accent-primary, #00ADB5)" : "var(--bg-secondary, rgba(0, 0, 0, 0.2))",
+                                            background: activeSubTab === "profile" ? "var(--accent-primary, #F97316)" : "var(--bg-secondary, rgba(0, 0, 0, 0.2))",
                                             color: activeSubTab === "profile" ? "#fff" : "var(--text-muted)",
                                             cursor: "pointer",
                                             display: "flex",
@@ -897,7 +897,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                     .profile-column-title {
                                         font-size: 15px;
                                         font-weight: 700;
-                                        color: var(--accent-primary, #00ADB5);
+                                        color: var(--accent-primary, #F97316);
                                         margin: 0 0 16px 0;
                                         text-transform: uppercase;
                                         letter-spacing: 0.5px;
@@ -991,8 +991,8 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                             fontWeight: "700",
                                             borderRadius: "20px",
                                             border: "none",
-                                            background: eligibilityFilter === "active" ? "rgba(0, 173, 181, 0.15)" : "var(--bg-secondary, rgba(255, 255, 255, 0.02))",
-                                            color: eligibilityFilter === "active" ? "var(--accent-primary, #00ADB5)" : "var(--text-muted)",
+                                            background: eligibilityFilter === "active" ? "rgba(249, 115, 22, 0.15)" : "var(--bg-secondary, rgba(255, 255, 255, 0.02))",
+                                            color: eligibilityFilter === "active" ? "var(--accent-primary, #F97316)" : "var(--text-muted)",
                                             cursor: "pointer",
                                             display: "flex",
                                             alignItems: "center",
@@ -1002,7 +1002,7 @@ const PlacementSection: React.FC<PlacementSectionProps> = ({
                                     >
                                         Active / Upcoming
                                         <span style={{
-                                            background: eligibilityFilter === "active" ? "var(--accent-primary, #00ADB5)" : "rgba(255,255,255,0.08)",
+                                            background: eligibilityFilter === "active" ? "var(--accent-primary, #F97316)" : "rgba(255,255,255,0.08)",
                                             color: eligibilityFilter === "active" ? "#fff" : "var(--text-primary)",
                                             fontSize: "10px",
                                             padding: "2px 6px",
