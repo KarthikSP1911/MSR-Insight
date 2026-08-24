@@ -188,7 +188,7 @@ const NotesSection: React.FC<NotesSectionProps> = ({
                     )}
                 </>
             ) : (
-                <div style={{ padding: '60px 20px', textAlign: 'center', background: 'rgba(239, 68, 68, 0.02)', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                <div style={{ padding: '60px 20px', textAlign: 'center', background: 'rgba(239, 68, 68, 0.02)', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <AlertCircle size={48} color="#EF4444" style={{ marginBottom: '16px', opacity: 0.5 }} />
                     <h3 style={{ color: 'var(--text-primary)' }}>Resources Coming Soon</h3>
                     <p style={{ color: 'var(--text-muted)' }}>Materials for {branch} Semester {selectedSem} are currently being prepared.</p>
