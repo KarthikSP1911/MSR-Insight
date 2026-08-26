@@ -5,138 +5,218 @@
 
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, RAG-powered chatbot, browser extension for batch scraping, secure session management, and generative AI feedback loops.
 
-
-
-## ✨ Key Features
+## Key Features
 
 - **AI-Powered Insights**: Real-time performance analysis using Groq (Llama 3.1) and AI-generated academic remarks.
-- **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, PGVector (Postgres), and Google Gemini, enabling proctors to query student data conversationally.
+- **RAG Chatbot**: Retrieval-Augmented Generation chatbot powered by LangChain, ChromaDB (Chroma Cloud), and Google Gemini, enabling proctors to query student data conversationally.
 - **Agentic AI Assistant**: A separate LangGraph-based agent (own routes, DB tables, and UI panel) that proactively flags at-risk students, summarizes weekly priorities, and drafts/sends parent communications -- side-effect actions like email/WhatsApp pause on a real human-in-the-loop confirmation before anything is sent.
-- **Interactive Dashboards**: Specialized views for Students (personal progress tracking) and Proctors (administrative management with attendance alerts).
+- **Interactive Dashboards**: Specialized views for Students (personal progress tracking, placement eligibility/status tracking) and Proctors (administrative management with attendance alerts).
 - **Professional A4 Reports**: Pixel-perfect reporting engine with Tiptap rich-text editing and high-fidelity PDF export.
 - **Automated Email Delivery**: Asynchronous, RabbitMQ-backed Producer-Consumer queue for fast PDF generation (Puppeteer) and email dispatch (Resend).
+- **Weekly Attendance Digest**: Self-scheduled cron (no external cron library) that emails every parent an attendance/CGPA summary each Monday at 08:00 AM IST.
 - **Browser Extension**: Chrome extension for one-click batch scraping of all proctee data with real-time progress tracking.
 - **Enterprise-Grade Security**: Redis-backed stateless session management with 30-day sliding TTL and case-insensitive identity mapping.
 - **Rate-Limited Scraping**: 5-minute cooldown per student to prevent portal overload, with client-side countdown timer.
 - **High-Performance Architecture**: Tiered system separation (UI, Business Logic, and Data Processing) for maximum scalability.
 
 
-## ✨ Architecture Overview
+## Architecture Overview
 
 The system operates on a **distributed monolith** architecture with four independently runnable components:
 
 1. **Frontend (Next.js)**: Modern, responsive UI built with Next.js 16 App Router, TypeScript, and Tailwind CSS v4.
-2. **Logic Gateway (Express)**: Orchestrates business logic, manages PostgreSQL through Prisma ORM, handles session caching in Redis, and runs Puppeteer-based scraping.
-3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), RAG-powered chatbot (Gemini + LangChain + PGVector), the Agentic AI chatbot (Gemini + LangGraph), and data normalization.
+2. **Logic Gateway (Express)**: Orchestrates business logic, manages PostgreSQL through Prisma ORM, handles session caching in Redis, and runs Puppeteer-based scraping with data normalization into the `details` JSONB shape.
+3. **Intelligence Service (FastAPI)**: A high-performance Python service dedicated to AI remark generation (Groq), the RAG chatbot (Gemini + LangChain + ChromaDB), and the Agentic AI chatbot (Gemini + LangGraph).
 4. **Browser Extension (Chrome)**: Manifest V3 extension that detects proctor sessions and orchestrates batch scraping of assigned students.
 
-## ✨ Component Interaction
+## Component Interaction
 
-```mermaid
-flowchart TB
-
-    UI["Next.js UI<br/>(Frontend)"]
-
-    API["Express API<br/>(Logic Gateway)"]
-    
-    RMQ["RabbitMQ<br/>(Message Queue)"]
-
-    Redis["Redis Cache<br/>(Sessions)"]
-    DB["PostgreSQL<br/>(Prisma ORM)"]
-    FastAPI["FastAPI<br/>(Intelligence)"]
-
-    LLM["Groq LLM<br/>(Llama 3.1)"]
-
-    UI <--> API
-
-    API <--> RMQ
-
-    API <--> Redis
-
-    API <--> DB
-
-    API <--> FastAPI
-
-    FastAPI <--> LLM
-
-    %% Styling
-    style UI fill:#D9EEF7,stroke:#000,stroke-width:2px,color:#000
-
-    style API fill:#F8E7A6,stroke:#000,stroke-width:2px,color:#000
-    
-    style RMQ fill:#FF9900,stroke:#000,stroke-width:2px,color:#000
-
-    style Redis fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
-    style DB fill:#F4C266,stroke:#000,stroke-width:2px,color:#000
-
-    style FastAPI fill:#DCEBC3,stroke:#000,stroke-width:2px,color:#000
-
-    style LLM fill:#DDB7ED,stroke:#000,stroke-width:2px,color:#000
-```
-## ✨ Architecture Design
-
+Top-level view of the four runnable components and the infrastructure they touch.
+**Every arrow points from caller to callee** — none are bidirectional.
 
 ```mermaid
 flowchart LR
 
-    U[Proctor / Student]
-
-    subgraph F["Next.js Frontend App"]
-        UI[UI Components & Dashboards]
-    end
-
-    C[Chrome Extension]
-
-    subgraph E["Express Logic Gateway"]
+    subgraph CLI["Clients"]
         direction TB
-        SM[Session Middleware]
-        API[API Controllers]
-        PS[Puppeteer Scraper]
-        PR[Prisma Client]
-        RMQP[RabbitMQ Producer]
-        RMQC[RabbitMQ Consumer]
-
-        SM --> API
-        API --> PS
-        API --> RMQP
-        RMQC --> PR
-        PS --> PR
+        UI["Next.js Frontend<br/>App Router · browser"]
+        EXT["Chrome Extension<br/>Manifest V3"]
     end
 
-    subgraph AI["FastAPI Intelligence Service"]
-        GR[Groq AI Remarks]
-        RAG[RAG Pipeline]
+    GW["Express — Logic Gateway<br/>Node.js · :5001"]
+    INT["FastAPI — Intelligence Service<br/>Python · :8000"]
 
-        GR --> RAG
+    subgraph STA["State & Messaging"]
+        direction TB
+        RD[("Redis<br/>session cache")]
+        PG[("PostgreSQL / Neon<br/>app tables · checkpoints")]
+        MQ[["RabbitMQ / CloudAMQP<br/>email report jobs"]]
     end
 
-    subgraph D["Data Layer"]
-        R[(Redis Session Cache)]
-        P[(PostgreSQL + PGVector)]
-        CL[(Cloudinary File Store)]
-        MQ[(RabbitMQ / CloudAMQP)]
+    subgraph TPA["Third-Party APIs"]
+        direction TB
+        LLM["Groq · Google Gemini"]
+        CHR[("ChromaDB<br/>Chroma Cloud")]
+        SND["Resend · Twilio · Cloudinary"]
+        POR["MSRIT Parents Portal"]
     end
 
-    U -->|Browser HTTP| F
-    F -->|Axios REST| E
+    UI -->|"REST · session cookie"| GW
+    EXT -->|"batch scrape triggers"| GW
+    UI -->|"RAG chat only · direct"| INT
 
-    C -->|Batch Scrape Triggers| E
+    GW -->|"remarks · RAG sync · agent chat"| INT
+    INT -->|"confirmed sends · shared secret"| GW
 
-    E -->|Internal HTTP| AI
+    GW -->|"validate & refresh session"| RD
+    GW -->|"Prisma"| PG
+    INT -->|"psycopg2"| PG
+    INT -->|"embed / retrieve"| CHR
 
-    E -->|Validate x-session-id| R
-    E -->|Read / Write JSONB| P
+    GW -->|"publish PDF email job"| MQ
+    MQ -->|"consumer picks up job"| GW
 
-    AI -->|Vector Search / Embeddings| P
+    GW -->|"scrape student data"| POR
+    GW -->|"email · WhatsApp · PDF archive"| SND
+    INT -->|"remarks · RAG · agent reasoning"| LLM
 
-    E -->|Archive PDF| CL
-    RMQP -->|Queue Job| MQ
-    MQ -->|Process Job| RMQC
+    %% Styling
+    classDef client fill:#D9EEF7,stroke:#111,stroke-width:2px,color:#000
+    classDef gateway fill:#F8E7A6,stroke:#111,stroke-width:2px,color:#000
+    classDef intel fill:#DCEBC3,stroke:#111,stroke-width:2px,color:#000
+    classDef store fill:#F4C266,stroke:#111,stroke-width:2px,color:#000
+    classDef queue fill:#FF9900,stroke:#111,stroke-width:2px,color:#000
+    classDef ext fill:#DDB7ED,stroke:#111,stroke-width:2px,color:#000
+
+    class UI,EXT client
+    class GW gateway
+    class INT intel
+    class RD,PG store
+    class MQ queue
+    class LLM,CHR,SND,POR ext
 ```
 
+Two edges are easy to miss and are deliberate:
 
+- **`Frontend → FastAPI`** exists *only* for the RAG chatbot panel, which calls `/api/rag/chat` directly with a bare `proctor_id`. Everything else — including the Agentic AI panel — goes through Express.
+- **`FastAPI → Express`** is the Agentic AI callback: FastAPI never talks to Resend/Twilio itself. After the proctor confirms an action, it calls back into Express's `/api/agent/internal/*` routes behind the shared `AGENT_GATEWAY_SECRET`.
 
-## ✨ Tech Stack
+## Architecture Design
+
+Internal breakdown of each component, and the exact path every request takes.
+
+```mermaid
+flowchart LR
+
+    U(["Proctor / Student"])
+    C["Chrome Extension<br/>content script + background worker"]
+
+    subgraph F["Next.js Frontend"]
+        direction TB
+        DASH["Dashboards & A4 Report<br/>Tiptap · Recharts"]
+        AGUI["Agentic AI Panel"]
+        RAGUI["RAG Chatbot Panel"]
+    end
+
+    subgraph E["Express — Logic Gateway"]
+        direction TB
+        SM["Session Middleware<br/>HttpOnly cookie · legacy x-session-id"]
+        CTRL["API Controllers<br/>auth · report · proctor · admin"]
+        AGW["Agent Proxy + Internal Routes<br/>shared-secret gated"]
+        PS["Puppeteer Scraper<br/>+ Data Normalizer"]
+        PRC["Prisma Client"]
+        RMQP["RabbitMQ Producer"]
+        RMQC["Email Consumer<br/>Puppeteer PDF render"]
+
+        SM --> CTRL
+        SM --> AGW
+        CTRL --> PS
+        CTRL --> RMQP
+        CTRL --> PRC
+        AGW --> PRC
+        PS --> PRC
+        RMQC --> PRC
+    end
+
+    subgraph AI["FastAPI — Intelligence Service"]
+        direction TB
+        GR["Remarks Service<br/>prompt builder + Groq"]
+        RAG["RAG Pipeline<br/>chunk · embed · BM25 + vector ensemble"]
+        AG["LangGraph Agent<br/>StateGraph · ToolNode · interrupt gate"]
+    end
+
+    subgraph D["Data & Messaging"]
+        direction TB
+        R[("Redis<br/>session cache")]
+        MQ[["RabbitMQ / CloudAMQP<br/>email_reports_queue + DLQ"]]
+        CLD[("Cloudinary<br/>PDF archive")]
+        P[("PostgreSQL / Neon<br/>Prisma tables · LangGraph checkpoints")]
+    end
+
+    subgraph X["External Services"]
+        direction TB
+        GRQ["Groq API<br/>Llama 3.1"]
+        GEM["Gemini API<br/>chat + embeddings"]
+        CHR[("ChromaDB<br/>Chroma Cloud")]
+        RSD["Resend<br/>email"]
+        TWL["Twilio<br/>WhatsApp"]
+        POR["MSRIT Parents Portal"]
+    end
+
+    U -->|"HTTPS"| F
+    DASH -->|"Axios REST"| SM
+    AGUI -->|"/api/agent/:id/chat · confirm"| SM
+    C -->|"scrape-list · report/update"| SM
+    RAGUI -->|"/api/rag/chat · direct to FastAPI"| RAG
+
+    SM -->|"look up + slide TTL"| R
+    PRC -->|"SQL · details JSONB"| P
+
+    CTRL -->|"POST /generate-remark"| GR
+    CTRL -->|"POST /api/rag/sync"| RAG
+    AGW -->|"POST /api/agent/chat · confirm"| AG
+    AG -->|"after approval: /api/agent/internal/*"| AGW
+
+    PS -->|"login & scrape"| POR
+    GR --> GRQ
+    RAG --> GEM
+    AG --> GEM
+    RAG -->|"fetch students · BM25 corpus"| P
+    RAG -->|"embed · store · retrieve"| CHR
+    AG -->|"ownership check · alerts · action log"| P
+
+    RMQP -->|"publish job · 202 Accepted"| MQ
+    MQ -->|"deliver job · failures to DLQ"| RMQC
+    RMQC -->|"archive PDF"| CLD
+    RMQC -->|"send report email"| RSD
+    AGW -->|"confirmed email"| RSD
+    AGW -->|"confirmed WhatsApp"| TWL
+
+    %% Styling
+    classDef actor fill:#FFFFFF,stroke:#111,stroke-width:2px,color:#000
+    classDef client fill:#D9EEF7,stroke:#111,stroke-width:2px,color:#000
+    classDef gateway fill:#F8E7A6,stroke:#111,stroke-width:2px,color:#000
+    classDef intel fill:#DCEBC3,stroke:#111,stroke-width:2px,color:#000
+    classDef store fill:#F4C266,stroke:#111,stroke-width:2px,color:#000
+    classDef queue fill:#FF9900,stroke:#111,stroke-width:2px,color:#000
+    classDef ext fill:#DDB7ED,stroke:#111,stroke-width:2px,color:#000
+
+    class U actor
+    class C,DASH,AGUI,RAGUI client
+    class SM,CTRL,AGW,PS,PRC,RMQP,RMQC gateway
+    class GR,RAG,AG intel
+    class R,P,CLD store
+    class MQ queue
+    class POR,GRQ,GEM,CHR,RSD,TWL ext
+```
+
+The three FastAPI units are **independent**: RAG and the Agentic AI agent both read from the shared
+Postgres instance, and all three share the Gemini/Groq credentials, but never call each other. Groq
+serves only remark generation; Gemini serves both the RAG chain and the agent's tool-calling loop, each
+through its own client. RAG's vector embeddings live in Chroma Cloud, a separate managed service from
+Postgres/Neon.
+
+## Tech Stack
 
 
 <div align="center">
@@ -282,7 +362,7 @@ flowchart LR
 
   <tr>
     <td><b>Vector Store</b></td>
-    <td>PGVector (Postgres)</td>
+    <td>ChromaDB (Chroma Cloud)</td>
     <td>Latest</td>
   </tr>
 
@@ -346,12 +426,13 @@ flowchart LR
 - RabbitMQ / CloudAMQP Instance
 - Google Gemini API Key (for RAG chatbot)
 - Groq API Key (for AI remarks)
+- Chroma Cloud API Key (for the RAG chatbot's vector store)
 
 ### 1. Intelligence Service (FastAPI)
 ```bash
 cd backend/fastapi
 uv sync
-# Create .env with GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL, AGENT_GATEWAY_SECRET
+# Create .env with GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL, CHROMA_API_KEY, CHROMA_TENANT, CHROMA_DATABASE, AGENT_GATEWAY_SECRET
 uv run dev
 ```
 
@@ -385,13 +466,13 @@ start-all.bat
 ```
 
 ### 5. Docker Deployment (Recommended)
-You can run the entire platform, including local instances of PostgreSQL (with PGVector), Redis, and RabbitMQ, using a single command.
+You can run the entire platform, including local instances of PostgreSQL, Redis, and RabbitMQ, using a single command. The RAG chatbot's vector store (Chroma Cloud) is a separate managed service and isn't started by Docker Compose — you still need `CHROMA_API_KEY`/`CHROMA_TENANT`/`CHROMA_DATABASE` in your `.env`.
 
 1. Create a root `.env` file by copying `.env.example`:
    ```bash
    cp .env.example .env
    ```
-2. Fill in your API keys for Groq, Gemini, Resend, and Cloudinary.
+2. Fill in your API keys for Groq, Gemini, Chroma Cloud, Resend, and Cloudinary.
    *(Note: The environment variables in `.env` are designed to allow you to easily swap the local container URLs with your production cloud instances like Neon, Upstash, and CloudAMQP).*
 3. Start the cluster:
    ```bash
@@ -421,7 +502,7 @@ npm run test -- --coverage  # Generate coverage report
 ```
 
 #### FastAPI (Python) Unit Tests
-The FastAPI service utilizes Pytest with `unittest.mock` to isolate database drivers (PGVector) and retrievers.
+The FastAPI service utilizes Pytest with `unittest.mock` to isolate the vector store (Chroma) and retrievers.
 ```bash
 cd backend/fastapi
 uv run python -m pytest --cov=.
@@ -433,129 +514,162 @@ uv run python -m pytest --cov=.
 
 ```text
 MSR-Insight/
-├── _extension/                     # Chrome Extension (Manifest V3)
-│   ├── manifest.json               # Extension config
-│   ├── background.js               # Batch scrape orchestrator
-│   ├── content.js                  # Session detection from localStorage
-│   ├── popup.html                  # Extension popup UI
-│   └── popup.js                    # Popup logic + state display
+├── _extension/                      # Chrome Extension (Manifest V3)
+│   ├── manifest.json                # Extension config
+│   ├── background.js                # Batch scrape orchestrator
+│   ├── content.js                   # Session detection from localStorage
+│   ├── popup.html                   # Extension popup UI
+│   ├── popup.js                     # Popup logic + state display
+│   └── icons/                       # Toolbar/store icons
 ├── backend/
-│   ├── express/                    # Node.js API Gateway
+│   ├── express/                     # Node.js API Gateway
 │   │   ├── prisma/
-│   │   │   ├── schema.prisma       # DB schema (Student, Proctor, Parent, ProctorStudentMap)
-│   │   │   ├── seed.js             # Initial data seeder
-│   │   │   └── migrations/         # Prisma migration history
+│   │   │   ├── schema.prisma        # DB schema (Student, Proctor, Parent, ProctorStudentMap, Agent* tables)
+│   │   │   ├── seed.js              # Initial data seeder
+│   │   │   └── migrations/          # Prisma migration history
 │   │   └── src/
-│   │       ├── app.js              # Express app wiring (routes, CORS, error handler)
+│   │       ├── app.js               # Express app wiring (Helmet, CORS, rate limiting, routes, error handler)
+│   │       ├── cron.js              # Weekly attendance digest scheduler (Monday 08:00 AM IST)
 │   │       ├── config/
-│   │       │   ├── db.config.js    # Prisma client setup
-│   │       │   └── redis.config.js  # Upstash Redis client (TLS)
+│   │       │   ├── db.config.js     # Prisma client setup
+│   │       │   ├── redis.config.js  # Upstash Redis client (TLS)
+│   │       │   └── rabbitmq.config.js  # CloudAMQP connection + channel setup
 │   │       ├── controllers/
-│   │       │   ├── auth.controller.js      # Student & proctor auth
-│   │       │   ├── admin.controller.js     # Proctor CRUD + student assignment
+│   │       │   ├── auth.controller.js      # Student & proctor auth (cookie sessions)
+│   │       │   ├── admin.controller.js     # Proctor/parent CRUD + student assignment
 │   │       │   ├── proctor.controller.js   # Dashboard, chat, notifications, scrape-list
-│   │       │   ├── report.controller.js    # Dashboard data, AI remarks, email dispatch
-│   │       │   └── agent.controller.js     # Agentic AI proxy + internal send-email/send-whatsapp
+│   │       │   ├── report.controller.js    # Dashboard data, AI remarks, email/WhatsApp dispatch
+│   │       │   └── agent.controller.js     # Agentic AI proxy + internal send-email/send-whatsapp/generate-report-pdf
 │   │       ├── middlewares/
 │   │       │   ├── session.middleware.js   # Redis session validation + sliding TTL
 │   │       │   ├── auth.middleware.js       # Re-exports session middleware
 │   │       │   ├── agentGatewaySecret.middleware.js  # Shared-secret gate for /api/agent/internal/*
+│   │       │   ├── validate.middleware.js   # Zod request validation
 │   │       │   └── error.middleware.js      # Global error handler
 │   │       ├── repositories/
 │   │       │   ├── user.repository.js       # Prisma queries for Student model
-│   │       │   └── proctor.repository.js   # Prisma queries for Proctor + mappings
+│   │       │   ├── proctor.repository.js    # Prisma queries for Proctor + mappings
+│   │       │   └── admin.repository.js       # Prisma queries backing the admin panel
 │   │       ├── routes/
 │   │       │   ├── auth.routes.js           # /api/auth/*
-│   │       │   ├── admin.routes.js         # /api/admin/*
+│   │       │   ├── admin.routes.js          # /api/admin/* (x-admin-key gated)
 │   │       │   ├── proctor.routes.js        # /api/proctor/*
 │   │       │   ├── report.routes.js         # /api/report/*
 │   │       │   ├── notification.routes.js   # /api/notifications/*
-│   │       │   ├── student.routes.js        # /api/students/sync
-│   │       │   ├── students.js              # Legacy sync route
+│   │       │   ├── students.js              # /api/students/sync
 │   │       │   └── agent.routes.js          # /api/agent/* (proctor-facing + internal)
+│   │       ├── schemas/                     # Zod request schemas, one per route group
+│   │       │   ├── auth.schema.js
+│   │       │   ├── admin.schema.js
+│   │       │   ├── proctor.schema.js
+│   │       │   ├── report.schema.js
+│   │       │   └── agent.schema.js
 │   │       ├── services/
-│   │       │   ├── auth.service.js          # Login, register, session lifecycle
+│   │       │   ├── auth.service.js          # Login/register, PIN-based instant re-login, session lifecycle
 │   │       │   ├── report.service.js        # FastAPI proxy (remarks + RAG sync trigger)
 │   │       │   ├── studentService.js        # Dashboard reads + JSONB sync
-│   │       │   ├── puppeteerScraper.service.js  # Puppeteer scraper + data normalizer
+│   │       │   ├── admin.service.js         # Proctor/parent/assignment business logic
+│   │       │   ├── puppeteerScraper.service.js  # Scrape orchestration + PIN caching
+│   │       │   ├── scraper/
+│   │       │   │   ├── puppeteerClient.js   # Logs into parents.msrit.edu and scrapes marks/attendance/exams/placement
+│   │       │   │   ├── htmlParser.js        # Cheerio parsing of scraped HTML into structured JSON
+│   │       │   │   └── dataNormalizer.js    # Normalizes scraped data into the `details` JSONB shape
 │   │       │   ├── email.service.js         # Puppeteer PDF + Resend + Cloudinary + sendCustomEmail
-│   │       │   └── whatsapp.service.js      # Twilio WhatsApp dispatch
+│   │       │   ├── whatsapp.service.js      # Twilio WhatsApp dispatch
+│   │       │   ├── weeklyAttendance.service.js  # Weekly attendance digest (cron + manual trigger)
+│   │       │   ├── agentReport.service.js   # Builds the HTML the Agentic AI's report-PDF tool renders
+│   │       │   └── rabbitmq/
+│   │       │       ├── email.producer.js    # Publishes report-email jobs
+│   │       │       └── email.consumer.js    # Renders PDF, archives to Cloudinary, sends via Resend
 │   │       └── utils/
-│   │           └── dateUtils.js             # DOB format normalization
-│   └── fastapi/                    # Python Intelligence Service
-│       ├── main.py                 # FastAPI entry point + router wiring
-│       ├── config/
-│       │   └── settings.py         # Pydantic settings from .env
-│       ├── models/
-│       │   └── request_models.py   # Pydantic request schemas
-│       ├── routers/
-│       │   ├── report_router.py    # /generate-remark endpoint
-│       │   ├── rag_router.py       # /api/rag/* (sync, chat, status)
-│       │   └── agent_router.py     # /api/agent/* (chat, confirm)
-│       ├── services/
-│       │   ├── ai_service.py       # Validates input + calls Groq LLM
-│       │   ├── prompt_builder.py   # Builds structured prompt for remark generation
-│       │   ├── llm_provider.py     # Groq SDK wrapper
-│       │   └── rag_service.py     # Full RAG pipeline (PGVector + Gemini + LangChain)
-│       ├── agent/                  # Agentic AI (LangGraph) -- isolated from services/rag_service.py
-│       │   ├── state.py            # AgentState (messages, proctor_id)
-│       │   ├── graph.py            # StateGraph: agent node + ToolNode + system prompt
-│       │   ├── service.py          # chat()/confirm() orchestration
-│       │   ├── llm.py              # Own ChatGoogleGenerativeAI instance
-│       │   ├── db.py               # Own psycopg2 connection + ownership check helper
-│       │   ├── checkpointer.py     # Postgres-backed persistent thread state
-│       │   ├── ids.py              # thread_id_for(proctor_id)
-│       │   └── tools/
-│       │       ├── student_tools.py       # get_student_profile, list_proctor_students
-│       │       ├── risk_tools.py          # analyze_at_risk_students
-│       │       ├── insight_tools.py       # generate_weekly_insights
-│       │       ├── reminder_tools.py      # create_reminder, list_reminders
-│       │       ├── communication_tools.py # send_email, send_whatsapp (interrupt-gated)
-│       │       └── logging.py             # Writes every tool call to agent_action_log
-│       └── data/
-│           └── *.json              # Legacy data files
-├── frontend/                       # Next.js 16 App Router SPA
+│   │           ├── crypto.js                # AES-256-GCM encrypt/decrypt for cached student PINs
+│   │           ├── dateUtils.js             # DOB format normalization
+│   │           ├── studentDataParser.js     # Extracts report input from nested JSONB
+│   │           └── logger.js                # Winston structured logger
+│   └── fastapi/                     # Python Intelligence Service
+│       └── app/
+│           ├── main.py              # FastAPI entry point + router wiring
+│           ├── core/
+│           │   ├── config.py        # Pydantic settings from .env
+│           │   └── logging.py       # Logging setup
+│           ├── api/v1/
+│           │   ├── remarks.py       # POST /generate-remark
+│           │   ├── rag.py           # /api/rag/* (sync, chat, status)
+│           │   └── agent.py         # /api/agent/* (chat, chat/stream, confirm)
+│           ├── schemas/             # Pydantic request/response models
+│           ├── repositories/
+│           │   ├── vector_repository.py  # Chroma Cloud connection for the RAG store
+│           │   └── agent_repository.py   # psycopg2 connection + proctor-student ownership check
+│           └── services/
+│               ├── remarks/         # Groq prompt builder + LLM provider
+│               ├── rag/             # chunker, db_sync, retriever (BM25 + Chroma ensemble), service
+│               └── agent/           # Agentic AI (LangGraph) -- isolated from services/rag/
+│                   ├── state.py         # AgentState (messages, proctor_id)
+│                   ├── graph.py         # StateGraph: agent node + ToolNode + system prompt
+│                   ├── service.py       # chat()/chat_stream()/confirm() orchestration
+│                   ├── llm.py           # Own ChatGoogleGenerativeAI instance
+│                   ├── checkpointer.py  # Postgres-backed persistent thread state
+│                   ├── ids.py           # thread_id_for(proctor_id)
+│                   └── tools/
+│                       ├── student_tools.py       # get_student_profile, list_proctor_students
+│                       ├── risk_tools.py          # analyze_at_risk_students, calculate_attendance_recovery, explain_alert
+│                       ├── insight_tools.py       # generate_weekly_insights
+│                       ├── reminder_tools.py      # create_reminder, list_reminders
+│                       ├── communication_tools.py # send_email, send_whatsapp (interrupt-gated)
+│                       ├── report_tools.py        # generate_report_pdf (interrupt-gated)
+│                       ├── express_client.py      # Shared helper for /api/agent/internal/* callbacks
+│                       └── logging.py             # Writes every tool call to agent_action_log
+├── frontend/                        # Next.js 16 App Router SPA
 │   └── src/
 │       ├── app/
-│       │   ├── layout.tsx          # Root layout with AppWrapper
-│       │   ├── page.tsx            # Landing page
-│       │   ├── (auth)/             # Auth route group
-│       │   │   ├── student-login/  # USN + DOB login
-│       │   │   └── proctor-login/  # Proctor ID + password login
-│       │   ├── (dashboard)/        # Dashboard route group
-│       │   │   ├── student/dashboard/   # Student dashboard + sections
-│       │   │   └── proctor/[proctorId]/  # Proctor dashboard + proctee details
-│       │   ├── admin/page.tsx      # Admin CRUD panel
-│       │   └── report/[usn]/      # A4 report with Tiptap editor
+│       │   ├── layout.tsx           # Root layout with AppWrapper
+│       │   ├── page.tsx             # Landing page
+│       │   ├── (auth)/              # Auth route group
+│       │   │   ├── student-login/   # USN + DOB login (+ optional PIN verification)
+│       │   │   ├── proctor-login/   # Proctor ID + password login
+│       │   │   └── admin-login/     # Client-side password gate for /admin
+│       │   ├── (dashboard)/         # Dashboard route group
+│       │   │   ├── student/dashboard/    # Student dashboard + sections
+│       │   │   └── proctor/[proctorId]/  # Proctor dashboard, proctee detail, proctee report
+│       │   ├── admin/page.tsx       # Admin CRUD panel
+│       │   └── report/[usn]/        # Student's own A4 report with Tiptap editor
 │       ├── components/
-│       │   ├── AppWrapper.tsx      # Global layout: Navbar + Inbox + Agent panel + session logic
+│       │   ├── AppWrapper.tsx       # Global layout: Navbar + Inbox + Agent panel + session logic
 │       │   ├── dashboard/
-│       │   │   ├── DOBSelector.tsx  # Date of birth input
-│       │   │   ├── Editor.tsx       # Tiptap rich text editor wrapper
-│       │   │   ├── InboxPanel.tsx  # Attendance alert inbox
-│       │   │   ├── ProctorChatbot.tsx  # RAG chatbot interface (floating bubble)
-│       │   │   ├── AgentPanel.tsx  # Agentic AI chatbot interface (slide-in drawer)
-│       │   │   ├── ReportComponent.tsx  # A4 report renderer + PDF export
-│       │   │   ├── UpdateButton.tsx    # Scrape trigger with cooldown
+│       │   │   ├── DOBSelector.tsx        # Date of birth input
+│       │   │   ├── Editor.tsx             # Tiptap rich text editor wrapper
+│       │   │   ├── InboxPanel.tsx         # Attendance alert inbox
+│       │   │   ├── ProctorChatbot.tsx     # RAG chatbot interface (floating bubble)
+│       │   │   ├── AgentPanel.tsx         # Agentic AI chatbot interface (slide-in drawer)
+│       │   │   ├── ReportComponent.tsx    # A4 report renderer + PDF export
+│       │   │   ├── UpdateButton.tsx       # Scrape trigger with cooldown
+│       │   │   ├── PinVerificationModal.tsx  # Secondary portal verification (mobile/ABC ID last-4)
+│       │   │   ├── BirthdayBanner.tsx     # Birthday celebration banner
 │       │   │   ├── LoadingScreen.tsx
 │       │   │   ├── ProgressToast.tsx
 │       │   │   ├── DashboardHeader.tsx
 │       │   │   ├── SidebarProfile.tsx
-│       │   │   └── sections/        # Student dashboard sections
+│       │   │   └── sections/              # Student dashboard sections
 │       │   │       ├── AnalyticsSection.tsx    # CGPA & exam charts
 │       │   │       ├── HistorySection.tsx      # Semester history
 │       │   │       ├── PerformanceSection.tsx  # Subject marks breakdown
+│       │   │       ├── PlacementSection.tsx    # Placement eligibility/status/results
+│       │   │       ├── NotesSection.tsx        # Proctor remarks
 │       │   │       └── SimulatorSection.tsx    # Grade prediction simulator
-│       │   ├── navbar/             # Navigation bar + academic year picker
-│       │   └── ui/                 # Shared UI components
+│       │   ├── home/
+│       │   │   └── PlacementAnalytics.tsx # Landing-page placement stats chart
+│       │   ├── motion/                    # Framer Motion reveal/stagger helpers
+│       │   ├── navbar/                    # Navigation bar + academic year picker
+│       │   └── ui/                        # Shared UI components (dropdowns, etc.)
 │       ├── config/
-│       │   └── api.config.ts       # API base URLs
+│       │   └── api.config.ts        # Express/FastAPI base URLs
 │       ├── hooks/
-│       │   └── useCooldown.ts      # 5-minute scrape cooldown hook
+│       │   └── useCooldown.ts       # 5-minute scrape cooldown hook
 │       ├── lib/
-│       │   └── AppContext.tsx       # Global state: academicYear, alerts, inbox, agent panel
-│       └── styles/                 # CSS modules + globals
-└── start-all.bat                  # Quick-launch script for Windows
+│       │   ├── AppContext.tsx       # Global state: academicYear, alerts, inbox, agent panel
+│       │   └── QueryProvider.tsx    # TanStack Query provider
+│       └── styles/                  # CSS modules + globals
+└── start-all.bat                    # Quick-launch script for Windows
 ```
 
 ---
@@ -566,15 +680,17 @@ MSR-Insight/
 
 ```
 students
-  usn           String  @id          -- e.g. "1MS24IS400" (always uppercase)
-  name          String
-  dob           String?              -- DD-MM-YYYY format
-  phone         String?
-  email         String?
-  current_year  Int
-  details       Json                 -- JSONB: normalized scraped academic data
-  parents       Parent[]
-  proctor_maps  ProctorStudentMap[]
+  usn            String  @id          -- e.g. "1MS24IS400" (always uppercase)
+  name           String
+  dob            String?              -- DD-MM-YYYY format
+  phone          String?
+  email          String?
+  current_year   Int
+  auth_type      String?              -- secondary portal verification method: mobile | abc_id
+  encrypted_pin  String?              -- AES-256-GCM cached PIN, enables instant re-login
+  details        Json                 -- JSONB: normalized scraped academic data
+  parents        Parent[]
+  proctor_maps   ProctorStudentMap[]
 
 parents
   usn           String               -- FK -> students.usn
@@ -599,7 +715,7 @@ proctor_student_map
   academic_year String               -- e.g. "2027"
   @@unique([student_id, academic_year])   -- one proctor per student per year
 
--- Agentic AI (LangGraph) tables -- isolated from the RAG chatbot's PGVector tables
+-- Agentic AI (LangGraph) tables -- the RAG chatbot's vector data lives in Chroma Cloud, not Postgres
 
 agent_action_log
   id            Int      @id @autoincrement
@@ -644,6 +760,7 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
   "name": "Student Name",
   "class_details": "SEM 4 SEC A ...",
   "cgpa": "8.5",
+  "current_year": 2,
   "last_updated": "2025-04-01 10:00:00",
   "subjects": [
     {
@@ -652,7 +769,9 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
       "marks": 42.5,
       "attendance": 78.0,
       "attendance_details": {
-        "present": 45, "absent": 12, "remaining": 5, "percentage": 78
+        "present": 45, "absent": 12, "remaining": 5, "percentage": 78,
+        "present_dates": ["03-02-2025", "05-02-2025"],
+        "absent_dates": ["10-02-2025"]
       },
       "assessments": [
         {"type": "T1", "obtained_marks": 22.0, "class_average": 18.5},
@@ -667,9 +786,17 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
       "credits_earned": "22",
       "courses": [{"code": "22MAT11", "name": "Mathematics", "gpa": "9", "grade": "A+"}]
     }
-  ]
+  ],
+  "placement": {
+    "profile": { "Company Name": "...", "Package Offered": "..." },
+    "eligibilityEvents": [{"title": "...", "details": ["..."], "actionLink": "..."}],
+    "inProgressEvents": [],
+    "completedEvents": []
+  }
 }
 ```
+
+`placement` is `null` until the portal's placement section is scraped; `auth_type`/`encrypted_pin` are populated only after the student completes secondary portal verification once (see "Key Data Flows" below).
 
 ### Redis Key Schema
 
@@ -683,7 +810,7 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
 
 - **PostgreSQL (Neon)**: Primary persistent store. All structured + unstructured (JSONB) data.
 - **Redis (Upstash)**: Session cache only. TLS-secured (`rediss://`).
-- **PGVector (PostgreSQL)**: Vector store for RAG chatbot. Embedded tables are hosted directly in the Neon PostgreSQL database instance (`student_data_v2`).
+- **ChromaDB (Chroma Cloud)**: Vector store for the RAG chatbot. A separate managed service from Postgres/Neon, reached via `chromadb`/`langchain-chroma` (collection `student_data_v2`).
 - **Cloudinary**: PDF archival storage for emailed reports.
 
 ---
@@ -696,38 +823,44 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
 |---|---|---|---|
 | GET | `/api/health` | None | Health check |
 | POST | `/api/auth/register` | None | Register student (USN + DOB) |
-| POST | `/api/auth/login` | None | Student login -> sessionId |
+| POST | `/api/auth/login` | None | Student login → session cookie (may return `requiresSecondaryAuth` on first login) |
 | POST | `/api/auth/proctor-register` | None | Register proctor |
-| POST | `/api/auth/proctor-login` | None | Proctor login -> sessionId |
-| POST | `/api/auth/logout` | `x-session-id` | Invalidate session |
-| GET | `/api/auth/profile` | `x-session-id` | Get session identity |
+| POST | `/api/auth/proctor-login` | None | Proctor login → session cookie |
+| POST | `/api/auth/logout` | Session | Invalidate session |
+| GET | `/api/auth/profile` | Session | Get session identity |
 | GET | `/api/report/student/:usn` | Session | Student dashboard data |
 | GET | `/api/report/:usn` | Session | Generate AI remark (Groq) |
-| POST | `/api/report/update` | Session | Trigger re-scrape (5-min cooldown) |
+| POST | `/api/report/update` | Session | Trigger re-scrape (5-min cooldown, 429 if too soon) |
 | POST | `/api/report/send-email` | Session | Queue PDF report generation & email |
+| POST | `/api/report/send-whatsapp` | Session | Send report summary via WhatsApp (Twilio) |
 | GET | `/api/proctor/:id/dashboard` | Session | Proctor's proctee list |
 | GET | `/api/proctor/:id/student/:usn` | Session | Single proctee detail |
 | GET | `/api/proctor/:id/scrape-list` | Session | List of proctee USNs + DOBs |
 | GET | `/api/proctor/:id/notifications` | Session | Attendance alert list |
 | POST | `/api/proctor/:id/chat` | Session | Proctor chatbot (Ollama) |
 | GET | `/api/notifications/:id` | Session | Attendance alerts (alt path) |
-| POST | `/api/students/sync` | None | Receive normalized data from scraper |
-| GET | `/api/admin/proctors` | None | List all proctors |
-| POST | `/api/admin/proctors` | None | Add/update proctor |
-| DELETE | `/api/admin/proctors/:id` | None | Remove proctor + assignments |
-| GET | `/api/admin/proctors/:id/students` | None | List proctor's students |
-| POST | `/api/admin/proctors/:id/students` | None | Assign student to proctor |
-| DELETE | `/api/admin/proctors/:id/students/:usn` | None | Remove student assignment |
-| GET | `/api/admin/students/unassigned` | None | Unassigned students |
-| GET | `/api/admin/stats` | None | System counts |
+| POST | `/api/students/sync` | Session (proctor) | Receive normalized data from the scraper |
+| GET | `/api/admin/proctors` | `x-admin-key` | List all proctors |
+| POST | `/api/admin/proctors` | `x-admin-key` | Add/update proctor |
+| DELETE | `/api/admin/proctors/:id` | `x-admin-key` | Remove proctor + assignments |
+| GET | `/api/admin/proctors/:id/students` | `x-admin-key` | List proctor's students |
+| POST | `/api/admin/proctors/:id/students` | `x-admin-key` | Assign student to proctor |
+| POST | `/api/admin/proctors/:id/students/bulk` | `x-admin-key` | Assign multiple students at once |
+| DELETE | `/api/admin/proctors/:id/students/:usn` | `x-admin-key` | Remove student assignment |
+| GET | `/api/admin/students/unassigned` | `x-admin-key` | Unassigned students |
+| POST | `/api/admin/parents` | `x-admin-key` | Add a parent record |
+| GET | `/api/admin/stats` | `x-admin-key` | System counts |
+| POST | `/api/admin/cron/weekly-attendance` | `x-admin-key` | Manually trigger the weekly attendance digest |
 | POST | `/api/agent/:proctorId/chat` | Session | Agentic AI chat message |
 | POST | `/api/agent/:proctorId/confirm` | Session | Approve/reject a pending agent action |
 | GET | `/api/agent/:proctorId/actions` | Session | Agent action/audit log feed |
 | GET | `/api/agent/:proctorId/alerts` | Session | Unresolved at-risk alerts |
+| GET | `/api/agent/:proctorId/reminders/due-today` | Session | Reminders due today |
 | POST | `/api/agent/internal/send-email` | Shared secret | FastAPI-only: dispatch a confirmed agent email |
 | POST | `/api/agent/internal/send-whatsapp` | Shared secret | FastAPI-only: dispatch a confirmed agent WhatsApp message |
+| POST | `/api/agent/internal/generate-report-pdf` | Shared secret | FastAPI-only: render + email a confirmed agent report PDF |
 
-**Auth mechanism**: Standard `HttpOnly`, `Secure`, `SameSite=Strict` cookies (`session_id`) validated against Redis to prevent XSS attacks. Legacy clients can fallback to the `x-session-id: <uuid>` header. No JWTs are used.
+**Auth mechanism**: Standard `HttpOnly`, `Secure`, `SameSite=Strict` cookies (`session_id`) validated against Redis to prevent XSS attacks. Legacy clients can fall back to the `x-session-id: <uuid>` header. No JWTs are used. The admin panel is a separate, simpler mechanism: routes under `/api/admin/*` are gated by a static `x-admin-key` header (`ADMIN_SECRET_KEY`), independent of the cookie/Redis session system.
 
 ### FastAPI (`http://localhost:8000`)
 
@@ -738,8 +871,9 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
 | POST | `/generate-remark` | Generate AI remark from student data (Groq) |
 | POST | `/api/rag/sync` | Trigger RAG data sync (background) |
 | GET | `/api/rag/sync/status` | Check RAG sync status |
-| POST | `/api/rag/chat` | RAG chatbot query (Gemini + PGVector) |
+| POST | `/api/rag/chat` | RAG chatbot query (Gemini + ChromaDB) |
 | POST | `/api/agent/chat` | Agentic AI chat message (shared-secret gated; called by Express, not the browser) |
+| POST | `/api/agent/chat/stream` | Same as `/api/agent/chat`, streamed as Server-Sent Events |
 | POST | `/api/agent/confirm` | Resume a paused agent action after proctor approval/rejection |
 
 ### Frontend Routes (Next.js App Router)
@@ -747,60 +881,264 @@ LangGraph's own checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoi
 | Path | Description |
 |---|---|
 | `/` | Landing page |
-| `/student-login` | USN + DOB login form |
+| `/student-login` | USN + DOB login form (+ PIN verification modal on first login) |
 | `/student/dashboard` | Student dashboard with sections |
-| `/report/:usn` | A4 report with Tiptap editor + PDF export |
+| `/report/:usn` | Student's own A4 report with Tiptap editor + PDF export |
 | `/proctor-login` | Proctor ID + password login |
 | `/proctor/:id/dashboard` | Proctor dashboard with proctee cards |
 | `/proctor/:id/student/:usn` | Individual proctee detail view |
+| `/proctor/:id/report/:usn` | A4 report for a specific proctee, viewed by the proctor |
+| `/admin-login` | Client-side password gate for the admin panel (not session-backed) |
 | `/admin` | Admin CRUD panel |
 
 ---
 
 ## Key Data Flows
 
-### Student Login -> Dashboard
-1. Student submits USN + DOB on `/student-login`
-2. `POST /api/auth/login` -> Prisma validates credentials -> Redis creates session
-3. Frontend navigates to `/student/dashboard` with `x-session-id` header
-4. `GET /api/report/student/:usn` -> checks PostgreSQL JSONB
-5. If empty: triggers Puppeteer scraper -> normalizes data -> upserts into PostgreSQL
-6. Dashboard renders subjects, attendance, CGPA, exam history via interactive sections
+Each flow below is paired with a sequence diagram showing the same behavior across process boundaries.
+
+### Student Login → Dashboard
+1. Student submits USN + DOB on `/student-login`.
+2. `POST /api/auth/login` → Prisma validates credentials. First-time login (no cached PIN yet) returns `requiresSecondaryAuth`, prompting the `PinVerificationModal` for the portal's Father/Mother mobile number or ABC ID last-4 digits.
+3. On success, Redis creates a session and Express sets an `HttpOnly` `session_id` cookie; the verified PIN is AES-256-GCM encrypted and cached on the student row for instant re-login next time.
+4. Frontend navigates to `/student/dashboard`; the cookie is sent automatically on subsequent requests.
+5. `GET /api/report/student/:usn` checks PostgreSQL's `details` JSONB; if empty, Express triggers the Puppeteer scraper (using the cached PIN), normalizes the scraped HTML, and upserts into PostgreSQL.
+6. Dashboard renders subjects, attendance, CGPA, exam history, and placement data via interactive sections.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor S as Student
+    participant FE as Frontend
+    participant EX as Express
+    participant RD as Redis
+    participant PG as PostgreSQL
+    participant PC as Puppeteer Scraper
+    participant MP as MSRIT Portal
+
+    S->>FE: Submit USN + DOB
+    FE->>EX: POST /api/auth/login
+    EX->>PG: Validate credentials (Prisma)
+    alt No cached PIN yet
+        EX-->>FE: 200 requiresSecondaryAuth
+        FE->>S: Show PinVerificationModal
+        S->>FE: Mobile / ABC ID last-4 digits
+        FE->>EX: POST /api/auth/login (with secondary auth)
+    end
+    EX->>RD: Create session
+    EX->>PG: Cache AES-256-GCM encrypted PIN
+    EX-->>FE: Set-Cookie session_id
+    FE->>EX: GET /api/report/student/:usn
+    EX->>PG: Read details JSONB
+    alt details empty or stale
+        EX->>PC: Trigger scrape (cached PIN)
+        PC->>MP: Login and scrape marks/attendance/exams
+        MP-->>PC: Scraped HTML
+        PC-->>EX: Normalized data
+        EX->>PG: Upsert details JSONB
+    end
+    EX-->>FE: Dashboard data
+    FE-->>S: Render subjects, attendance, CGPA, placement
+```
 
 ### AI Remark Generation
-1. User clicks "Generate AI Report" on dashboard
-2. `GET /api/report/:usn` -> extracts subjects from JSONB -> `POST /generate-remark` to FastAPI
-3. Groq `llama-3.1-8b-instant` generates a 2-line academic performance summary
-4. Remark is displayed and can be edited in the Tiptap rich text editor
+1. User clicks "Generate AI Report" on dashboard.
+2. `GET /api/report/:usn` extracts subjects from the `details` JSONB and calls `POST /generate-remark` on FastAPI.
+3. Groq `llama-3.1-8b-instant` generates a 2-line academic performance summary.
+4. Remark is displayed and can be edited in the Tiptap rich text editor.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant FE as Frontend
+    participant EX as Express
+    participant PG as PostgreSQL
+    participant FA as FastAPI
+    participant GQ as Groq
+
+    U->>FE: Click "Generate AI Report"
+    FE->>EX: GET /api/report/:usn
+    EX->>PG: Read details JSONB
+    EX->>FA: POST /generate-remark (subjects)
+    FA->>GQ: Chat completion (llama-3.1-8b-instant)
+    GQ-->>FA: Remark text
+    FA-->>EX: Remark
+    EX-->>FE: Remark
+    FE-->>U: Editable remark in Tiptap
+```
 
 ### Proctor RAG Chatbot
-1. Proctor login triggers `notifyRagSync()` -> `POST /api/rag/sync` to FastAPI
-2. RAG service fetches all student records from PostgreSQL -> chunks into semantic categories
-3. Chunks embedded with Gemini embeddings -> stored in PGVector (Postgres) with metadata filters
-4. On chat query: query rewriting -> intent detection -> ensemble retrieval (BM25 + semantic)
-5. Retrieved context + question sent to Gemini for grounded response generation
+1. Proctor login triggers `notifyRagSync()`, which calls `POST /api/rag/sync` on FastAPI.
+2. RAG service fetches all student records from PostgreSQL and chunks them into semantic categories.
+3. Chunks are embedded with Gemini embeddings and upserted into ChromaDB (Chroma Cloud) with metadata filters.
+4. On chat query: query rewriting, intent detection, then ensemble retrieval — BM25 over student records fetched fresh from PostgreSQL, plus semantic search against ChromaDB.
+5. Retrieved context + question are sent to Gemini for grounded response generation.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Proctor
+    participant FE as Frontend
+    participant EX as Express
+    participant FA as FastAPI
+    participant PG as PostgreSQL
+    participant CH as ChromaDB (Chroma Cloud)
+    participant GM as Gemini
+
+    P->>FE: Proctor login
+    FE->>EX: POST /api/auth/proctor-login
+    EX->>FA: POST /api/rag/sync (fire-and-forget)
+    FA->>PG: Fetch all student records
+    FA->>FA: Chunk into semantic categories
+    FA->>GM: Embed chunks
+    FA->>CH: Reset collection, upsert embeddings + metadata
+
+    P->>FE: Ask chatbot a question
+    FE->>FA: POST /api/rag/chat (direct, bare proctor_id)
+    FA->>PG: Fetch proctor's students for BM25
+    FA->>CH: Semantic similarity search (metadata filter)
+    FA->>GM: Generate grounded response
+    GM-->>FA: Answer
+    FA-->>FE: Answer
+    FE-->>P: Render response
+```
 
 ### Email Report Delivery (Asynchronous RabbitMQ Flow)
-1. Frontend sends HTML content to `POST /api/report/send-email`
-2. Express validates payload and instantly publishes to `email_reports_queue` on CloudAMQP (returns 202 Accepted).
-3. Background Consumer picks up the job, fetches student/parent data via Prisma.
-4. Puppeteer renders HTML to A4 PDF with 2x scale.
-5. PDF uploaded to Cloudinary for archival and Resend API delivers the email.
+1. Frontend sends HTML content to `POST /api/report/send-email`.
+2. Express validates the payload and instantly publishes to `email_reports_queue` on CloudAMQP (returns 202 Accepted).
+3. The background email consumer picks up the job and fetches student/parent data via Prisma.
+4. Puppeteer renders the HTML to an A4 PDF at 2x scale.
+5. The PDF is uploaded to Cloudinary for archival and delivered as an email via Resend.
 6. Failed jobs are automatically routed to a Dead Letter Queue (DLQ).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Proctor / Student
+    participant FE as Frontend
+    participant EX as Express
+    participant MQ as RabbitMQ
+    participant CO as Email Consumer
+    participant PG as PostgreSQL
+    participant PT as Puppeteer
+    participant CL as Cloudinary
+    participant RS as Resend
+
+    P->>FE: Send report via email
+    FE->>EX: POST /api/report/send-email (htmlContent)
+    EX->>MQ: Publish job to email_reports_queue
+    EX-->>FE: 202 Accepted
+    MQ->>CO: Deliver job
+    CO->>PG: Fetch student + parent data
+    CO->>PT: Render A4 PDF (2x scale)
+    CO->>CL: Upload PDF for archival
+    CO->>RS: Send email
+    alt processing fails
+        CO->>MQ: Nack, routed to Dead Letter Queue
+    end
+```
+
+### Weekly Attendance Digest (Cron)
+1. A self-scheduled timer (no external cron library) fires every Monday at 08:00 AM IST, or an admin manually triggers `POST /api/admin/cron/weekly-attendance`.
+2. Every student is fetched from PostgreSQL along with their parents' contact details.
+3. Puppeteer renders an attendance/CGPA summary PDF per student and Resend emails it to each parent.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CR as Cron Scheduler
+    actor A as Admin
+    participant EX as Express
+    participant PG as PostgreSQL
+    participant PT as Puppeteer
+    participant RS as Resend
+
+    alt Scheduled
+        CR->>EX: Timer fires, Monday 08:00 AM IST
+    else Manual
+        A->>EX: POST /api/admin/cron/weekly-attendance
+    end
+    EX->>PG: Fetch all students + parents
+    loop each student
+        EX->>PT: Render attendance/CGPA summary PDF
+        EX->>RS: Email digest to parents
+    end
+```
+
 ### Agentic AI: Confirmed Parent Communication
-1. Proctor opens the Agentic AI panel and asks it to email/WhatsApp a parent -> Express verifies the session, forwards to FastAPI's LangGraph agent.
+1. Proctor opens the Agentic AI panel and asks it to email/WhatsApp a parent; Express verifies the session and forwards the request to FastAPI's LangGraph agent.
 2. Agent calls `get_student_profile` to ground a draft in real data, replies with the draft, and waits for the proctor to agree to the content.
-3. Proctor asks the agent to send it -> the agent calls `send_email`/`send_whatsapp`, which calls LangGraph's `interrupt()` before doing anything.
+3. Proctor asks the agent to send it; the agent calls `send_email`/`send_whatsapp`, which calls LangGraph's `interrupt()` before doing anything.
 4. FastAPI returns `pending_confirmation` with the full proposed action; the panel renders an approval card.
-5. Proctor clicks Confirm -> `POST /api/agent/:proctorId/confirm` -> FastAPI resumes the paused graph with `Command(resume=...)`, re-checks `proctor_student_map` ownership, then calls Express's `/api/agent/internal/*` (shared-secret gated) to actually send via Resend/Twilio.
-6. Outcome (sent, rejected, or failed) is written to `agent_action_log`; Reject short-circuits before step 5 ever reaches Express.
+5. Proctor clicks Confirm; `POST /api/agent/:proctorId/confirm` resumes the paused graph with `Command(resume=...)`, re-checks `proctor_student_map` ownership, then calls Express's `/api/agent/internal/*` (shared-secret gated) to actually send via Resend/Twilio.
+6. The outcome (sent, rejected, or failed) is written to `agent_action_log`; rejecting short-circuits before step 5 ever reaches Express.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Proctor
+    participant FE as Agentic AI Panel
+    participant EX as Express
+    participant AG as LangGraph Agent
+    participant PG as PostgreSQL
+    participant SND as Resend / Twilio
+
+    P->>FE: "Email the father about attendance"
+    FE->>EX: POST /api/agent/:proctorId/chat
+    EX->>AG: POST /api/agent/chat (shared secret)
+    AG->>AG: get_student_profile tool call
+    AG-->>EX: Draft reply
+    EX-->>FE: Draft reply
+    FE-->>P: Show draft
+
+    P->>FE: "Send it"
+    FE->>EX: POST /api/agent/:proctorId/chat
+    EX->>AG: POST /api/agent/chat
+    AG->>AG: send_email tool calls interrupt()
+    AG-->>EX: pending_confirmation (proposed action)
+    EX-->>FE: Approval card
+    FE-->>P: Review proposed action
+
+    P->>FE: Confirm
+    FE->>EX: POST /api/agent/:proctorId/confirm
+    EX->>AG: POST /api/agent/confirm, Command resume
+    AG->>PG: Re-check proctor_student_map ownership
+    AG->>EX: POST /api/agent/internal/send-email (shared secret)
+    EX->>SND: Send email
+    EX-->>AG: Result
+    AG->>PG: Write agent_action_log
+    AG-->>EX: Outcome
+    EX-->>FE: Sent confirmation
+    FE-->>P: Show delivery result
+```
 
 ### Browser Extension Batch Scrape
-1. Content script detects proctor session in localStorage
-2. Background service fetches proctee list from `/api/proctor/:id/scrape-list`
-3. Sequentially triggers `POST /api/report/update` for each student
-4. Popup displays real-time progress with success/failure counts
+1. Content script detects a proctor session in `localStorage`.
+2. Background service fetches the proctee list from `/api/proctor/:id/scrape-list`.
+3. It sequentially triggers `POST /api/report/update` for each student.
+4. The popup displays real-time progress with success/failure counts.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Proctor
+    participant CS as Content Script
+    participant BG as Background Worker
+    participant PU as Popup
+    participant EX as Express
+
+    P->>CS: Logs into localhost:3000
+    CS->>BG: chrome.runtime.sendMessage(session)
+    BG->>EX: GET /api/proctor/:id/scrape-list
+    EX-->>BG: USNs + DOBs
+    loop each proctee
+        BG->>EX: POST /api/report/update (usn)
+        EX-->>BG: Success / failure
+        BG->>PU: Update progress
+    end
+    PU-->>P: Final success/failure counts
+```
 
 ---
 
@@ -812,7 +1150,9 @@ The project implements a **Stateless-Session Hybrid**:
 - Middleware automatically extracts the session from cookies, with a legacy fallback to the `x-session-id` header for mobile or external API clients.
 - Session TTL is refreshed on every authenticated request (sliding window).
 - The Express gateway is hardened with **Helmet Content Security Policy (CSP)** to block inline scripts and unauthorized external resources.
-- Rate limiting prevents brute force scraping.
+- Rate limiting (`RATE_LIMIT_MAX` requests per `RATE_LIMIT_WINDOW_MS`, default 200/15min per IP) prevents brute-force scraping.
+- Student portal PINs (Father/Mother mobile last-4 or ABC ID last-4) are never stored in plaintext — they're AES-256-GCM encrypted (`ENCRYPTION_SECRET`) before being cached for instant re-login.
+- The Admin panel is gated separately: `/api/admin/*` routes require a static `x-admin-key` header (`ADMIN_SECRET_KEY`), independent of the cookie/Redis session system used everywhere else.
 
 ---
 
@@ -835,6 +1175,13 @@ The project implements a **Stateless-Session Hybrid**:
 | `OLLAMA_API_URL` | Ollama API endpoint |
 | `RABBITMQ_URL` | CloudAMQP connection string (`amqps://`) |
 | `AGENT_GATEWAY_SECRET` | Shared secret between Express and FastAPI for Agentic AI internal calls (must match FastAPI's) |
+| `ADMIN_SECRET_KEY` | Static `x-admin-key` value gating `/api/admin/*` (default `admin123` if unset) |
+| `ENCRYPTION_SECRET` | Key material for AES-256-GCM encryption of cached student PINs |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID (WhatsApp report/agent delivery) |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_WHATSAPP_FROM` | Twilio WhatsApp sender number |
+| `RATE_LIMIT_MAX` | Max requests per IP per window on `/api/*` (default 200) |
+| `RATE_LIMIT_WINDOW_MS` | Rate limit window in ms (default 900000 = 15 min) |
 
 ### FastAPI (`backend/fastapi/.env`)
 
@@ -859,7 +1206,7 @@ The project implements a **Stateless-Session Hybrid**:
 
 ---
 
-## 📊 Performance & Load Test Results
+## Performance & Load Test Results
 
 > Load tested with [k6](https://k6.io/) against the Express API gateway running via `docker compose`.
 > Full scripts and orchestration: [`load-tests/`](./load-tests/). Every number below comes from an
