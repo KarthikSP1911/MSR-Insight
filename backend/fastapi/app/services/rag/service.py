@@ -1,4 +1,3 @@
-import os
 import threading
 import logging
 from typing import List
@@ -20,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 class RAGService:
     def __init__(self):
-        os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
-
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-001",
             google_api_key=settings.GEMINI_API_KEY,
@@ -52,12 +49,12 @@ class RAGService:
     @property
     def vector_store(self):
         if self._vector_store is None:
-            logger.info("Initializing PGVector with collection: student_data_v2")
+            logger.info("Initializing Chroma Cloud vector store with collection: student_data_v2")
             self._vector_store = build_vector_store(self.embeddings)
         return self._vector_store
 
     def sync_data(self) -> dict:
-        """Fetch all student records from Postgres and upsert chunked docs into VectorStore."""
+        """Fetch all student records from Postgres and upsert chunked docs into Chroma."""
         if self._is_syncing:
             return {"status": "already_syncing"}
 

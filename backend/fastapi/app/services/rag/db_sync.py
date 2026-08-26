@@ -44,21 +44,17 @@ def fetch_and_sync_documents(vector_store) -> Dict[str, Any]:
         logger.info(f"Generated {len(all_documents)} total chunks")
 
         if all_documents:
-            logger.info("Updating vector store (PGVector in Neon)")
+            logger.info("Updating vector store (Chroma Cloud)")
             try:
-                logger.debug("Dropping existing PGVector tables for a clean sync")
-                vector_store.drop_tables()
+                logger.debug("Resetting Chroma collection for a clean sync")
+                vector_store.reset_collection()
             except Exception as e:
-                logger.warning(f"Could not drop tables (might not exist yet): {e}")
+                logger.warning(f"Could not reset collection (might not exist yet): {e}")
 
             try:
-                logger.debug("Re-creating PGVector tables")
-                vector_store.create_tables_if_not_exists()
-                logger.debug("Creating collection")
-                vector_store.create_collection()
                 vector_store.add_documents(all_documents)
             except Exception as e:
-                logger.error(f"Error adding documents to PGVector: {e}")
+                logger.error(f"Error adding documents to Chroma: {e}")
                 raise e
 
         sync_time = datetime.now().isoformat()

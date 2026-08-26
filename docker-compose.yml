@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    image: postgres:16
     container_name: msr_insight_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -63,6 +63,9 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-msr_insight}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CHROMA_API_KEY=${CHROMA_API_KEY}
+      - CHROMA_TENANT=${CHROMA_TENANT}
+      - CHROMA_DATABASE=${CHROMA_DATABASE}
       - OLLAMA_API_URL=${OLLAMA_API_URL:-http://host.docker.internal:11434}
       - PORT=8000
       - AGENT_LLM_MODEL=${AGENT_LLM_MODEL:-gemini-3.1-flash-lite}

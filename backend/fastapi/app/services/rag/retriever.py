@@ -11,7 +11,7 @@ from .chunker import detect_chunk_types, build_chunks_for_student
 logger = logging.getLogger(__name__)
 
 def get_ensemble_retriever(query: str, proctor_id: str, vector_store) -> EnsembleRetriever:
-    """Gets an ensemble retriever combining PGVector (Semantic) and BM25 (Keyword)."""
+    """Gets an ensemble retriever combining Chroma (Semantic) and BM25 (Keyword)."""
     logger.debug(f"Retrieving documents for query: {query!r}")
     
     chunk_types = detect_chunk_types(query)

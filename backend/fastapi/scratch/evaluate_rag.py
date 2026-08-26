@@ -119,7 +119,7 @@ Answer:"""
     # ──────────────────────────────────────────────────────────
     def run_setup_c(self, question: str, proctor_id: str) -> tuple:
         # Runs the actual query_chatbot logic inside your rag_service.py
-        # Which does: Intent detection -> Dynamic BM25 index on-the-fly -> PGVector filter -> Weighted Ensemble
+        # Which does: Intent detection -> Dynamic BM25 index on-the-fly -> Chroma filter -> Weighted Ensemble
         # We fetch the actual documents retrieved for this to inspect them
         
         # We mimic the retriever parts of query_chatbot here to capture retrieved docs
@@ -158,7 +158,7 @@ Answer:"""
         except Exception as e:
             print("BM25 setup err:", e)
 
-        # PGVector retriever
+        # Chroma retriever
         if chunk_types:
             for ctype in chunk_types:
                 semantic_retriever = self.service.vector_store.as_retriever(

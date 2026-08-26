@@ -14,10 +14,11 @@ dependencies = [
   "langchain-classic==1.0.8",
   "langchain-community==0.4.2",
   "langchain-google-genai==4.2.7",
-  "langchain-postgres==0.0.17",
+  "langchain-chroma==1.1.0",
+  "chromadb==1.5.9",
+  "onnxruntime==1.23.2",  # pinned below chromadb's transitive default (1.24+ drops cp310 wheels; requires-python is >=3.10)
   "psycopg[binary]==3.3.4",
   "psycopg2-binary==2.9.12",
-  "pgvector==0.3.6",
   "langgraph>=1.2.11",
   "langgraph-checkpoint-postgres>=3.1.2",
 ]

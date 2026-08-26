@@ -8,10 +8,10 @@ MSR-Insight is a **distributed monolith** with four independently runnable compo
 
 1. **Frontend** (`frontend/`) — Next.js 16 App Router, TypeScript, Tailwind v4. Talks only to Express (never directly to FastAPI, except the RAG/Agentic chat panels which hit Express which proxies to FastAPI).
 2. **Express — "Logic Gateway"** (`backend/express/`) — orchestrates business logic, Prisma/PostgreSQL, Redis sessions, Puppeteer scraping/PDF rendering, RabbitMQ producer/consumer, and is the *only* component allowed to call third-party send APIs (Resend, Twilio).
-3. **FastAPI — "Intelligence Service"** (`backend/fastapi/`) — Python service for AI remark generation (Groq), the RAG chatbot (Gemini + LangChain + PGVector), and the Agentic AI chatbot (Gemini + LangGraph). Never calls Resend/Twilio directly — it calls back into Express's internal routes to do that.
+3. **FastAPI — "Intelligence Service"** (`backend/fastapi/`) — Python service for AI remark generation (Groq), the RAG chatbot (Gemini + LangChain + ChromaDB), and the Agentic AI chatbot (Gemini + LangGraph). Never calls Resend/Twilio directly — it calls back into Express's internal routes to do that.
 4. **Chrome Extension** (`_extension/`, Manifest V3) — detects a proctor session in `localStorage` on `localhost:3000` and drives batch re-scrapes via Express.
 
-Data flows through PostgreSQL (Neon, via Prisma in Express; raw `psycopg2`/`psycopg` in FastAPI — **two ORMs, one schema**, see below), Redis (session cache only), RabbitMQ/CloudAMQP (async email PDF jobs), and Cloudinary (PDF archival).
+Data flows through PostgreSQL (Neon, via Prisma in Express; raw `psycopg2`/`psycopg` in FastAPI — **two ORMs, one schema**, see below), Redis (session cache only), RabbitMQ/CloudAMQP (async email PDF jobs), Cloudinary (PDF archival), and ChromaDB/Chroma Cloud (RAG vector store — a separate managed service, not part of the Postgres schema).
 
 ### Two independent chatbots — do not conflate them
 
@@ -55,7 +55,7 @@ One LangGraph agent dynamically decides which tools a request needs (never four 
 ```bash
 # FastAPI (Intelligence Service) — backend/fastapi/
 uv sync
-uv run dev                          # requires .env: GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL, AGENT_GATEWAY_SECRET
+uv run dev                          # requires .env: GROQ_API_KEY, GEMINI_API_KEY, DATABASE_URL, CHROMA_API_KEY, CHROMA_TENANT, CHROMA_DATABASE, AGENT_GATEWAY_SECRET
 
 # Express (Logic Gateway) — backend/express/
 npm install
@@ -70,13 +70,17 @@ npm run dev                         # requires .env: NEXT_PUBLIC_API_URL, NEXT_P
 
 Windows quick-launch for all three: `start-all.bat`.
 
-### Docker (full stack incl. Postgres/PGVector, Redis, RabbitMQ)
+### Docker (full stack incl. Postgres, Redis, RabbitMQ)
 
 ```bash
-cp .env.example .env                # fill in Groq/Gemini/Resend/Cloudinary keys
+cp .env.example .env                # fill in Groq/Gemini/Chroma Cloud/Resend/Cloudinary keys
 docker compose up --build
 docker compose down -v              # tear down + volumes
 ```
+
+Chroma Cloud (the RAG chatbot's vector store) is an external managed service, not a container in
+`docker-compose.yml` — `CHROMA_API_KEY`/`CHROMA_TENANT`/`CHROMA_DATABASE` must point at a real Chroma
+Cloud tenant/database even when running the rest of the stack locally.
 
 ### Tests
 
@@ -95,7 +99,7 @@ uv run python -m pytest tests/test_report_router.py   # single file
 uv run python -m pytest tests/test_report_router.py::test_name -v   # single test
 ```
 
-Both suites mock DB drivers and external APIs (PGVector, Groq, Resend, Twilio) — no test hits a real external service or production database.
+Both suites mock DB drivers and external APIs (ChromaDB, Groq, Resend, Twilio) — no test hits a real external service or production database.
 
 ### Frontend lint/build
 

@@ -24,7 +24,7 @@ def mock_embeddings():
 
 @pytest.fixture(autouse=True)
 def mock_vectorstore():
-    with patch('app.repositories.vector_repository.PGVector') as MockVectorStore:
+    with patch('app.repositories.vector_repository.Chroma') as MockVectorStore:
         mock_instance = MockVectorStore.return_value
         mock_instance.as_retriever.return_value = MagicMock(
             invoke=MagicMock(return_value=[MagicMock(page_content="Mock Document")])

@@ -2,7 +2,8 @@
 
 Uses its own connection pool + tables (checkpoints, checkpoint_writes,
 checkpoint_blobs) managed entirely by langgraph-checkpoint-postgres — separate
-from both Prisma's tables and the RAG chatbot's PGVector tables, same Postgres.
+from Prisma's tables, but the same Postgres/Neon instance. The RAG chatbot's
+vector store lives in Chroma Cloud, a different service entirely.
 """
 import logging
 from psycopg_pool import ConnectionPool

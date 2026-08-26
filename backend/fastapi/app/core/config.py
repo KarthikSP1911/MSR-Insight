@@ -31,7 +31,12 @@ class Settings:
     OLLAMA_API_URL: str = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
     DATABASE_URL: str = os.getenv("DATABASE_URL")
-    CHROMA_PERSIST_DIR: str = os.path.join(DATA_DIR, "chroma_db")
+
+    # Chroma Cloud (RAG vector store) -- a separate managed service from
+    # Postgres/Neon; get these from the Chroma Cloud dashboard.
+    CHROMA_API_KEY: str = os.getenv("CHROMA_API_KEY", "")
+    CHROMA_TENANT: str = os.getenv("CHROMA_TENANT", "")
+    CHROMA_DATABASE: str = os.getenv("CHROMA_DATABASE", "")
 
     # Agentic AI (LangGraph) configuration — independent of the RAG chatbot above
     AGENT_LLM_MODEL: str = os.getenv("AGENT_LLM_MODEL", "gemini-3.1-flash-lite")
