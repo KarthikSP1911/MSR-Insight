@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ADMIN_KEY } from "@/config/api.config";
 
 export default function AdminLogin() {
     const router = useRouter();
@@ -26,7 +27,7 @@ export default function AdminLogin() {
 
         // Client-side authentication simulation for Admin Panel
         setTimeout(() => {
-            if (password === "admin123") {
+            if (password === ADMIN_KEY) {
                 localStorage.setItem("adminAuthenticated", "true");
                 router.push("/admin");
             } else {
