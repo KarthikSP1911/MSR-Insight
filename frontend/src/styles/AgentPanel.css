@@ -1,9 +1,10 @@
-/* Agentic AI panel. Deliberately styled with a distinct accent (violet) from
-   ProctorChatbot.css's teal, so it reads as a different system at a glance. */
+/* Agentic AI panel. Deliberately styled with a distinct accent (blue, matching
+   AdminPanel.css's existing .stat-icon.blue) from ProctorChatbot.css's orange,
+   so it reads as a different system at a glance while staying on-palette. */
 :root {
-  --agent-accent: #8b5cf6;
-  --agent-accent-hover: #7c3aed;
-  --agent-glow: rgba(139, 92, 246, 0.18);
+  --agent-accent: #3b82f6;
+  --agent-accent-hover: #2563eb;
+  --agent-glow: rgba(59, 130, 246, 0.18);
 }
 
 .agent-overlay {
@@ -60,6 +61,25 @@
   color: var(--agent-accent);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.agent-badge {
+  background: var(--agent-glow);
+  color: var(--agent-accent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Navbar's "AI Agent" toggle button glows the agent accent (blue) while the
+   panel is open, instead of falling back to globals.css's generic orange
+   .icon-btn.active -- keeps the color language consistent from trigger to panel. */
+.agent-panel-toggle.active {
+  color: var(--agent-accent);
 }
 
 .agent-panel-header-actions {

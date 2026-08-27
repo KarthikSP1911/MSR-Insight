@@ -277,6 +277,7 @@ export default function AgentPanel({ proctorId, isOpen, onClose, onAlertCountCha
               <path d="M9 13v2" />
             </svg>
             <span>Agentic AI</span>
+            <span className="agent-badge">Agentic &middot; Can Take Action</span>
           </div>
           <div className="agent-panel-header-actions">
             <button className="agent-new-conversation-btn" onClick={startNewConversation} disabled={isLoading} title="Start a new conversation">
