@@ -16,12 +16,6 @@
 }
 
 /* ── Toolbar (Compare Students entry point) ─────────────────── */
-.dashboard-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 14px;
-}
-
 .compare-students-btn {
   display: flex;
   align-items: center;
@@ -44,15 +38,6 @@
 }
 
 /* ── Batch report selection checkbox ────────────────────────── */
-.report-select-checkbox {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  display: flex;
-  cursor: pointer;
-}
-
 .report-select-checkbox input {
   width: 18px;
   height: 18px;
@@ -88,12 +73,6 @@
   font-weight: 600;
   font-size: 0.85rem;
   white-space: nowrap;
-}
-
-.batch-zip-error {
-  color: #ef4444;
-  font-weight: 600;
-  font-size: 0.8rem;
 }
 
 .batch-zip-clear-btn {

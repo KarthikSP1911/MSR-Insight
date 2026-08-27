@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
 import { useAppContext } from "@/lib/AppContext";
+import { useToast } from "@/lib/ToastContext";
 import "@/styles/Comparison.css";
 
 interface StudentSummary {
@@ -96,6 +97,7 @@ export default function ComparisonView() {
     const router = useRouter();
     const proctorId = params.proctorId as string;
     const { academicYear } = useAppContext();
+    const toast = useToast();
 
     const [students, setStudents] = useState<StudentSummary[]>([]);
     const [loadingList, setLoadingList] = useState(true);
@@ -106,7 +108,6 @@ export default function ComparisonView() {
     const [detailA, setDetailA] = useState<any>(null);
     const [detailB, setDetailB] = useState<any>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
-    const [detailError, setDetailError] = useState("");
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -145,7 +146,6 @@ export default function ComparisonView() {
             }
             try {
                 setLoadingDetails(true);
-                setDetailError("");
                 const sessionId = localStorage.getItem("proctorSessionId");
                 if (!sessionId) {
                     router.push("/proctor-login");
@@ -159,12 +159,13 @@ export default function ComparisonView() {
                 setDetailA(resA.data.success ? resA.data.data : null);
                 setDetailB(resB.data.success ? resB.data.data : null);
             } catch (err: any) {
-                setDetailError(err.response?.data?.message || "Failed to fetch student details for comparison");
+                toast.error(err.response?.data?.message || "Failed to fetch student details for comparison");
             } finally {
                 setLoadingDetails(false);
             }
         };
         fetchDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [usnA, usnB, proctorId, router]);
 
     const { rows, metaA, metaB } = useMemo(() => {
@@ -232,8 +233,6 @@ export default function ComparisonView() {
                         <div className="comparison-vs">VS</div>
                         <StudentPicker label="Student B" students={students} excludeUsn={usnA} value={usnB} onChange={setUsnB} />
                     </div>
-
-                    {detailError && <p className="comparison-error">⚠️ {detailError}</p>}
 
                     {loadingDetails && (
                         <div className="loading-container">

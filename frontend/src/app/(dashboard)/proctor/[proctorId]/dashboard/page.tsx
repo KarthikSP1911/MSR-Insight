@@ -6,6 +6,7 @@ import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import { useAppContext } from "@/lib/AppContext";
+import { useToast } from "@/lib/ToastContext";
 import "@/styles/ProctorDashboard.css";
 import ProctorChatbot from "@/components/dashboard/ProctorChatbot";
 
@@ -18,6 +19,7 @@ export default function ProctorDashboard() {
     const proctorId = params.proctorId as string;
     const router = useRouter();
     const { academicYear } = useAppContext();
+    const toast = useToast();
 
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -26,7 +28,6 @@ export default function ProctorDashboard() {
     // Batch report ZIP download selection
     const [selectedUsns, setSelectedUsns] = useState<Set<string>>(new Set());
     const [downloadingZip, setDownloadingZip] = useState(false);
-    const [zipError, setZipError] = useState<string | null>(null);
 
     // Filtering states
     const [searchTerm, setSearchTerm] = useState("");
@@ -89,7 +90,6 @@ export default function ProctorDashboard() {
         if (selectedUsns.size === 0) return;
         try {
             setDownloadingZip(true);
-            setZipError(null);
             const sessionId = localStorage.getItem("proctorSessionId");
             if (!sessionId) {
                 router.push("/proctor-login");
@@ -125,8 +125,7 @@ export default function ProctorDashboard() {
             } else if (err.response?.data?.message) {
                 message = err.response.data.message;
             }
-            setZipError(message);
-            setTimeout(() => setZipError(null), 5000);
+            toast.error(message);
         } finally {
             setDownloadingZip(false);
         }
@@ -212,7 +211,7 @@ export default function ProctorDashboard() {
     return (
         <>
             <div className="proctor-dashboard fade-in">
-                <div className="dashboard-toolbar">
+                <div className="flex justify-end mb-3.5">
                     <button
                         className="compare-students-btn"
                         onClick={() => router.push(`/proctor/${proctorId}/compare`)}
@@ -270,7 +269,7 @@ export default function ProctorDashboard() {
                                 className={`student-card ${status.class} ${selectedUsns.has(student.usn) ? 'is-selected' : ''}`}
                                 onClick={() => handleStudentClick(student.usn)}
                             >
-                                <label className="report-select-checkbox" onClick={(e) => toggleSelect(student.usn, e)} title="Select for batch report ZIP">
+                                <label className="report-select-checkbox absolute top-3 right-3 z-[2] flex cursor-pointer" onClick={(e) => toggleSelect(student.usn, e)} title="Select for batch report ZIP">
                                     <input
                                         type="checkbox"
                                         checked={selectedUsns.has(student.usn)}
@@ -330,7 +329,6 @@ export default function ProctorDashboard() {
 
                 {selectedUsns.size > 0 && (
                     <div className="batch-zip-bar fade-in">
-                        {zipError && <span className="batch-zip-error">⚠️ {zipError}</span>}
                         <span className="batch-zip-count">{selectedUsns.size} student{selectedUsns.size > 1 ? 's' : ''} selected</span>
                         <button className="batch-zip-clear-btn" onClick={clearSelection} disabled={downloadingZip}>
                             Clear
