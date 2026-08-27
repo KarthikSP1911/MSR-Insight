@@ -53,10 +53,16 @@
   color-scheme: dark;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Wrapped in Tailwind's own `base` layer -- an un-layered `* {}` rule here
+   would beat every Tailwind utility (which Tailwind emits inside named
+   layers) regardless of specificity, per the CSS cascade-layers spec,
+   silently breaking every margin/padding/etc. utility class site-wide. */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 html,

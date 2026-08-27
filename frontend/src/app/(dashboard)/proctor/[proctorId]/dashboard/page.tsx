@@ -6,6 +6,7 @@ import axios from "axios";
 import { API_BASE_URL } from "@/config/api.config";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import { useAppContext } from "@/lib/AppContext";
+import { useToast } from "@/lib/ToastContext";
 import "@/styles/ProctorDashboard.css";
 import ProctorChatbot from "@/components/dashboard/ProctorChatbot";
 
@@ -18,10 +19,15 @@ export default function ProctorDashboard() {
     const proctorId = params.proctorId as string;
     const router = useRouter();
     const { academicYear } = useAppContext();
+    const toast = useToast();
 
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Batch report ZIP download selection
+    const [selectedUsns, setSelectedUsns] = useState<Set<string>>(new Set());
+    const [downloadingZip, setDownloadingZip] = useState(false);
 
     // Filtering states
     const [searchTerm, setSearchTerm] = useState("");
@@ -66,6 +72,63 @@ export default function ProctorDashboard() {
 
     const handleStudentClick = (usn: string) => {
         router.push(`/proctor/${proctorId}/student/${usn.toUpperCase()}`);
+    };
+
+    const toggleSelect = (usn: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSelectedUsns((prev) => {
+            const next = new Set(prev);
+            if (next.has(usn)) next.delete(usn);
+            else next.add(usn);
+            return next;
+        });
+    };
+
+    const clearSelection = () => setSelectedUsns(new Set());
+
+    const handleDownloadZip = async () => {
+        if (selectedUsns.size === 0) return;
+        try {
+            setDownloadingZip(true);
+            const sessionId = localStorage.getItem("proctorSessionId");
+            if (!sessionId) {
+                router.push("/proctor-login");
+                return;
+            }
+
+            const response = await axios.post(
+                `${API_BASE_URL}/api/proctor/${proctorId}/reports/batch-zip`,
+                { usns: Array.from(selectedUsns) },
+                { headers: { "x-session-id": sessionId }, responseType: "blob" }
+            );
+
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: "application/zip" }));
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = `Reports_${proctorId}_${Date.now()}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(blobUrl);
+            clearSelection();
+        } catch (err: any) {
+            // responseType "blob" means an error JSON body also arrives as a Blob -- parse it back out.
+            let message = "Failed to download reports. Please try again.";
+            const errData = err.response?.data;
+            if (errData instanceof Blob && errData.type.includes("json")) {
+                try {
+                    const parsed = JSON.parse(await errData.text());
+                    message = parsed.message || message;
+                } catch {
+                    // fall through to default message
+                }
+            } else if (err.response?.data?.message) {
+                message = err.response.data.message;
+            }
+            toast.error(message);
+        } finally {
+            setDownloadingZip(false);
+        }
     };
 
     const filteredStudents = useMemo(() => {
@@ -148,6 +211,18 @@ export default function ProctorDashboard() {
     return (
         <>
             <div className="proctor-dashboard fade-in">
+                <div className="flex justify-end mb-3.5">
+                    <button
+                        className="compare-students-btn"
+                        onClick={() => router.push(`/proctor/${proctorId}/compare`)}
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
+                            <path d="M8 3v18M16 3v18" />
+                        </svg>
+                        <span>Compare Students</span>
+                    </button>
+                </div>
+
                 <section className="filter-bar">
                     <div className="filter-item search-box">
                         <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -191,9 +266,17 @@ export default function ProctorDashboard() {
                         return (
                             <div
                                 key={student.usn}
-                                className={`student-card ${status.class}`}
+                                className={`student-card ${status.class} ${selectedUsns.has(student.usn) ? 'is-selected' : ''}`}
                                 onClick={() => handleStudentClick(student.usn)}
                             >
+                                <label className="report-select-checkbox absolute top-3 right-3 z-[2] flex cursor-pointer" onClick={(e) => toggleSelect(student.usn, e)} title="Select for batch report ZIP">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedUsns.has(student.usn)}
+                                        onChange={() => {}}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </label>
                                 <div className="card-header">
                                     <h2 className="student-name">{student.name}</h2>
                                     <span className={`status-badge ${status.class}`}>
@@ -243,6 +326,18 @@ export default function ProctorDashboard() {
                         </div>
                     )}
                 </div>
+
+                {selectedUsns.size > 0 && (
+                    <div className="batch-zip-bar fade-in">
+                        <span className="batch-zip-count">{selectedUsns.size} student{selectedUsns.size > 1 ? 's' : ''} selected</span>
+                        <button className="batch-zip-clear-btn" onClick={clearSelection} disabled={downloadingZip}>
+                            Clear
+                        </button>
+                        <button className="batch-zip-download-btn" onClick={handleDownloadZip} disabled={downloadingZip}>
+                            {downloadingZip ? "Preparing ZIP..." : "Download Selected as ZIP"}
+                        </button>
+                    </div>
+                )}
             </div>
             <ProctorChatbot proctorId={proctorId} />
         </>

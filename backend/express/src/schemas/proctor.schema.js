@@ -13,3 +13,10 @@ export const chatSchema = z.object({
   message: z.string().trim().min(1, "Message is required"),
   academicYear: z.string().trim().optional(),
 });
+
+export const batchZipSchema = z.object({
+  usns: z
+    .array(z.string().trim().min(1))
+    .min(1, "Select at least one student")
+    .max(50, "Select at most 50 students per batch"),
+});
