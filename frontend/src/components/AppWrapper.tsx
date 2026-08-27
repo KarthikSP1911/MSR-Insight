@@ -9,6 +9,7 @@ import AgentPanel from "@/components/dashboard/AgentPanel";
 import { API_BASE_URL } from "@/config/api.config";
 import { AppProvider, useAppContext, Alert } from "@/lib/AppContext";
 import QueryProvider from "@/lib/QueryProvider";
+import { ToastProvider } from "@/lib/ToastContext";
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -178,9 +179,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
-      <AppProvider>
-        <AppContent>{children}</AppContent>
-      </AppProvider>
+      <ToastProvider>
+        <AppProvider>
+          <AppContent>{children}</AppContent>
+        </AppProvider>
+      </ToastProvider>
     </QueryProvider>
   );
 }
