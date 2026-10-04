@@ -5,6 +5,12 @@
 
 An industry-grade, AI-powered academic reporting platform designed to transform raw student data into professional, insight-driven performance reports. Featuring a multi-tier architecture, RAG-powered chatbot, browser extension for batch scraping, secure session management, and generative AI feedback loops.
 
+## System Architecture
+
+<p align="center"><img src="_docs/images/hld.svg" alt="MSR Insight architecture: the Next.js web app and Chrome extension call an Express API gateway, which fans out to a FastAPI AI service (Chroma, Groq, Gemini), Neon Postgres, a Puppeteer portal scraper, Redis-backed auth, and a RabbitMQ email queue whose worker archives PDFs to Cloudinary and sends via Resend and Twilio." width="900"></p>
+
+<p align="center"><sub>Simplified view. Student Data, Scraper, Auth and Email Worker are modules inside the Express process; only the AI Service (FastAPI) runs separately. The AI Service also reads and writes Postgres, and Express calls Resend/Twilio directly for agent-confirmed messages and the weekly attendance digest (an in-process timer). Chroma Cloud, Groq, Gemini, Resend, Twilio and Cloudinary are managed third-party services.</sub></p>
+
 ## Key Features
 
 - **AI-Powered Insights**: Real-time performance analysis using Groq (Llama 3.1) and AI-generated academic remarks.
