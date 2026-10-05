@@ -1,6 +1,9 @@
+import archiver from "archiver";
 import proctorRepository from "../repositories/proctor.repository.js";
 import prisma from "../config/db.config.js";
 import logger from '../utils/logger.js';
+import { generatePDFFromHTML } from "../services/email.service.js";
+import { buildStudentReportHtml } from "../utils/batchReportHtml.js";
 
 class ProctorController {
   async getDashboard(req, res, next) {
@@ -236,6 +239,61 @@ class ProctorController {
     } catch (error) {
       logger.error("[NotificationScan] FATAL ERROR:", error);
       return res.status(200).json({ success: true, data: [] }); // safe fallback
+    }
+  }
+
+  /**
+   * Streams a ZIP of individually-generated PDF reports for a proctor-selected
+   * subset of their own students. Ownership is re-checked per USN (rather than
+   * trusting the client-supplied list) via the same getProcteeByUsn lookup
+   * getProctee() uses -- USNs that don't resolve to this proctor are silently
+   * skipped rather than failing the whole batch.
+   */
+  async downloadReportsZip(req, res, next) {
+    try {
+      const { proctorId } = req.params;
+      const { usns } = req.body;
+
+      const students = [];
+      for (const usn of usns) {
+        const mapEntry = await proctorRepository.getProcteeByUsn(proctorId, usn);
+        if (mapEntry?.student) students.push(mapEntry.student);
+      }
+
+      if (students.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "None of the selected students were found under this proctor.",
+        });
+      }
+
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="Reports_${proctorId.toUpperCase()}_${Date.now()}.zip"`,
+      );
+
+      const archive = archiver("zip", { zlib: { level: 9 } });
+      archive.on("error", (err) => {
+        logger.error("[BatchZip] archiver error:", err);
+        if (!res.headersSent) res.status(500);
+        res.end();
+      });
+      archive.pipe(res);
+
+      for (const student of students) {
+        try {
+          const html = buildStudentReportHtml(student);
+          const pdfBuffer = await generatePDFFromHTML(html);
+          archive.append(pdfBuffer, { name: `Report_${student.usn}.pdf` });
+        } catch (err) {
+          logger.error(`[BatchZip] Failed to generate report for ${student.usn}:`, err);
+        }
+      }
+
+      await archive.finalize();
+    } catch (error) {
+      next(error);
     }
   }
 

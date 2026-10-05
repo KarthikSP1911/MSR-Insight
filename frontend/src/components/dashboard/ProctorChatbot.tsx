@@ -95,7 +95,10 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
           <div className="chatbot-header-title">
             <div className="pulse-dot"></div>
             <div className="header-text-group">
-              <span>Insight AI</span>
+              <div className="header-title-row">
+                <span>Insight AI</span>
+                <span className="chatbot-badge">RAG &middot; Read-only</span>
+              </div>
               {syncInfo?.last_sync && (
                 <span className="sync-status-text">
                   Updated: {new Date(syncInfo.last_sync).toLocaleString([], { 
@@ -161,13 +164,8 @@ export default function ProctorChatbot({ proctorId }: ProctorChatbotProps) {
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
         ) : (
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         )}
       </button>

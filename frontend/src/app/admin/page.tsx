@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { API_BASE_URL } from "@/config/api.config";
+import { API_BASE_URL, ADMIN_KEY } from "@/config/api.config";
 import { useRouter } from "next/navigation";
 
 const adminAxios = axios.create({
-  headers: { "x-admin-key": "admin123" }
+  headers: { "x-admin-key": ADMIN_KEY }
 });
 import DOBSelector from "@/components/dashboard/DOBSelector";
+import CustomDropdown from "@/components/ui/CustomDropdown";
+import { useToast } from "@/lib/ToastContext";
 import "@/styles/AdminPanel.css";
 
 /* ─── Helper Functions ─── */
@@ -19,16 +21,6 @@ const formatName = (name: string) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
-
-/* ─── Toast Component ─── */
-function Toast({ message, type, onClose }: { message: string; type: string; onClose: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return <div className={`admin-toast ${type}`}>{message}</div>;
-}
 
 /* ─── Confirm Dialog ─── */
 function ConfirmDialog({
@@ -268,11 +260,10 @@ function ProctorCard({
                 <label className="field-label">Date of Birth *</label>
                 <DOBSelector value={newStudentDob} onChange={setNewStudentDob} />
               </div>
-              <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <div className="form-group flex items-end">
                 <button
                   type="submit"
-                  className="btn btn-primary btn-sm assign-btn"
-                  style={{ width: '100%', height: '38px' }}
+                  className="btn btn-primary btn-sm assign-btn w-full"
                   disabled={assigning}
                 >
                   {assigning ? "..." : "Assign Student"}
@@ -368,7 +359,7 @@ export default function AdminPanel() {
   const [newParentEmail, setNewParentEmail] = useState("");
   const [addingParent, setAddingParent] = useState(false);
 
-  const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const toastApi = useToast();
 
   const handleAddParent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -409,8 +400,10 @@ export default function AdminPanel() {
   });
 
   const showToast = useCallback((message: string, type: string) => {
-    setToast({ message, type });
-  }, []);
+    if (type === "success") toastApi.success(message);
+    else if (type === "warning") toastApi.warning(message);
+    else toastApi.error(message);
+  }, [toastApi]);
 
   const fetchProctors = useCallback(async () => {
     setLoading(true);
@@ -624,23 +617,26 @@ export default function AdminPanel() {
               {activeTab === "parents" && "Parent Registration"}
             </h2>
           </div>
-          <div className="pane-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <select
-              className="year-selector"
-              value={academicYear}
-              onChange={(e) => setAcademicYear(e.target.value)}
-            >
-              <option value="2027">Year 2027</option>
-              <option value="2028">Year 2028</option>
-              <option value="2029">Year 2029</option>
-            </select>
+          <div className="flex items-center gap-4">
+            <div className="w-[120px] flex-none">
+              <CustomDropdown
+                options={[
+                  { value: "2027", label: "Year 2027" },
+                  { value: "2028", label: "Year 2028" },
+                  { value: "2029", label: "Year 2029" },
+                ]}
+                value={academicYear}
+                onChange={setAcademicYear}
+                placeholder="Year"
+              />
+            </div>
           </div>
         </header>
 
         <div className="pane-body">
           {/* OVERVIEW TAB */}
           {activeTab === "overview" && (
-            <div className="overview-tab" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="overview-tab tab-panel">
               <div className="admin-stats">
                 <div className="stat-card">
                   <div className="stat-icon orange">
@@ -675,10 +671,10 @@ export default function AdminPanel() {
 
           {/* PROCTORS TAB */}
           {activeTab === "proctors" && (
-            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="admin-section tab-panel">
               <div className="admin-section-header">
                 <h2>Proctor Management</h2>
-                <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                <div className="flex gap-3 items-center flex-wrap">
                   <div className="admin-search">
                     <span className="search-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
@@ -702,9 +698,9 @@ export default function AdminPanel() {
 
               {showAddForm && (
                 <form className="add-proctor-form-grid" onSubmit={handleAddProctor}>
-                  <div className="form-header-row" style={{ gridColumn: '1 / -1', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Add New Proctor</h3>
-                    <button type="button" className="close-btn" onClick={() => setShowAddForm(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <div className="form-header-row col-span-full mb-2 flex justify-between items-center">
+                    <h3>Add New Proctor</h3>
+                    <button type="button" className="close-btn" onClick={() => setShowAddForm(false)}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                   </div>
@@ -763,8 +759,8 @@ export default function AdminPanel() {
                       onChange={(e) => setNewProctorEmail(e.target.value)}
                     />
                   </div>
-                  <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '38px' }} disabled={addingProctor}>
+                  <div className="form-group flex items-end">
+                    <button type="submit" className="btn btn-primary w-full h-[38px]" disabled={addingProctor}>
                       {addingProctor ? "Adding..." : "Add Proctor"}
                     </button>
                   </div>
@@ -802,7 +798,7 @@ export default function AdminPanel() {
 
           {/* UNASSIGNED STUDENTS TAB */}
           {activeTab === "unassigned" && (
-            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="admin-section tab-panel">
               <div className="admin-section-header">
                 <h2>Unassigned Students</h2>
               </div>
@@ -810,20 +806,17 @@ export default function AdminPanel() {
               {unassignedStudents.length === 0 ? (
                 <div className="empty-students">No unassigned students found.</div>
               ) : (
-                <div className="unassigned-students-container" style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-subtle)' }}>
-                  <div className="bulk-assign-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <select 
-                      value={selectedProctorForBulk} 
-                      onChange={(e) => setSelectedProctorForBulk(e.target.value)}
-                      className="input-field"
-                      style={{ maxWidth: '300px' }}
-                    >
-                      <option value="">-- Select Proctor --</option>
-                      {proctors.map(p => (
-                        <option key={p.proctorId} value={p.proctorId}>{p.name || p.proctorId} ({p.studentCount})</option>
-                      ))}
-                    </select>
-                    <button 
+                <div className="unassigned-panel">
+                  <div className="flex gap-4 mb-5 items-center flex-wrap">
+                    <div className="min-w-[260px] max-w-[320px]">
+                      <CustomDropdown
+                        options={proctors.map(p => ({ value: p.proctorId, label: `${p.name || p.proctorId} (${p.studentCount})` }))}
+                        value={selectedProctorForBulk}
+                        onChange={setSelectedProctorForBulk}
+                        placeholder="-- Select Proctor --"
+                      />
+                    </div>
+                    <button
                       className="btn btn-primary btn-sm"
                       onClick={handleBulkAssign}
                       disabled={bulkAssigning || selectedUnassignedUsns.length === 0 || !selectedProctorForBulk}
@@ -831,36 +824,36 @@ export default function AdminPanel() {
                       {bulkAssigning ? "Assigning..." : `Assign Selected (${selectedUnassignedUsns.length})`}
                     </button>
                   </div>
-                  
-                  <div className="unassigned-list" style={{ maxHeight: '500px', overflowY: 'auto', overflowX: 'auto' }}>
-                    <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left' }}>
+
+                  <div className="unassigned-list">
+                    <table className="admin-table">
                       <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                          <th style={{ padding: '0.75rem 0.5rem', width: '40px' }}>
-                            <input 
-                              type="checkbox" 
+                        <tr>
+                          <th className="checkbox-col">
+                            <input
+                              type="checkbox"
                               checked={selectedUnassignedUsns.length === unassignedStudents.length && unassignedStudents.length > 0}
                               onChange={handleSelectAllUnassigned}
                             />
                           </th>
-                          <th style={{ padding: '0.75rem 0.5rem' }}>USN</th>
-                          <th style={{ padding: '0.75rem 0.5rem' }}>Name</th>
-                          <th style={{ padding: '0.75rem 0.5rem' }}>DOB</th>
+                          <th>USN</th>
+                          <th>Name</th>
+                          <th>DOB</th>
                         </tr>
                       </thead>
                       <tbody>
                         {unassignedStudents.map(student => (
-                          <tr key={student.usn} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            <td style={{ padding: '0.75rem 0.5rem' }}>
-                              <input 
-                                type="checkbox" 
+                          <tr key={student.usn}>
+                            <td className="checkbox-col">
+                              <input
+                                type="checkbox"
                                 checked={selectedUnassignedUsns.includes(student.usn)}
                                 onChange={() => handleSelectUnassigned(student.usn)}
                               />
                             </td>
-                            <td style={{ padding: '0.75rem 0.5rem' }}><strong>{student.usn}</strong></td>
-                            <td style={{ padding: '0.75rem 0.5rem' }}>{student.name}</td>
-                            <td style={{ padding: '0.75rem 0.5rem' }}>{student.dob}</td>
+                            <td className="admin-table-usn">{student.usn}</td>
+                            <td>{student.name}</td>
+                            <td>{student.dob}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -873,12 +866,12 @@ export default function AdminPanel() {
 
           {/* PARENTS TAB */}
           {activeTab === "parents" && (
-            <div className="admin-section" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <div className="admin-section tab-panel">
               <div className="admin-section-header">
                 <h2>Parent Registration</h2>
               </div>
 
-              <form className="add-student-form-grid" onSubmit={handleAddParent} style={{ background: 'var(--bg-secondary)', padding: '2rem', border: '1px solid var(--border-subtle)' }}>
+              <form className="add-student-form-grid parent-form" onSubmit={handleAddParent}>
                 <div className="form-group">
                   <label className="field-label">Student USN *</label>
                   <input
@@ -904,17 +897,16 @@ export default function AdminPanel() {
                 </div>
                 <div className="form-group">
                   <label className="field-label">Relation *</label>
-                  <select
-                    className="input-field"
+                  <CustomDropdown
+                    options={[
+                      { value: "Father", label: "Father" },
+                      { value: "Mother", label: "Mother" },
+                      { value: "Guardian", label: "Guardian" },
+                    ]}
                     value={newParentRelation}
-                    onChange={(e) => setNewParentRelation(e.target.value)}
-                    required
-                    style={{ height: '38px' }}
-                  >
-                    <option value="Father">Father</option>
-                    <option value="Mother">Mother</option>
-                    <option value="Guardian">Guardian</option>
-                  </select>
+                    onChange={setNewParentRelation}
+                    placeholder="Select Relation"
+                  />
                 </div>
                 <div className="form-group">
                   <label className="field-label">Phone *</label>
@@ -938,11 +930,10 @@ export default function AdminPanel() {
                     required
                   />
                 </div>
-                <div className="form-group submit-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div className="form-group flex items-end">
                   <button
                     type="submit"
-                    className="btn btn-primary"
-                    style={{ width: '100%', height: '38px' }}
+                    className="btn btn-primary w-full h-[38px]"
                     disabled={addingParent}
                   >
                     {addingParent ? "Adding..." : "Add Parent Details"}
@@ -954,7 +945,6 @@ export default function AdminPanel() {
         </div>
       </main>
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {confirmDialog && <ConfirmDialog title={confirmDialog.title} message={confirmDialog.message} onConfirm={confirmDialog.onConfirm} onCancel={confirmDialog.onCancel} />}
     </div>
   );

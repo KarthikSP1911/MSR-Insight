@@ -7,6 +7,7 @@ import TiptapEditor from '@/components/dashboard/Editor';
 import LoadingScreen from '@/components/dashboard/LoadingScreen';
 import { API_BASE_URL } from '@/config/api.config';
 import { Mail, MessageCircle } from 'lucide-react';
+import { useToast } from '@/lib/ToastContext';
 import "@/styles/Report.css";
 
 // Dynamic import for html2pdf
@@ -62,13 +63,9 @@ export default function ReportComponent() {
     const [userZoomed, setUserZoomed] = useState(false); // track manual zoom
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const toast = useToast();
     const [sendingEmail, setSendingEmail] = useState(false);
-    const [emailSent, setEmailSent] = useState(false);
-    const [emailError, setEmailError] = useState<string | null>(null);
-
     const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
-    const [whatsAppSent, setWhatsAppSent] = useState(false);
-    const [whatsAppError, setWhatsAppError] = useState<string | null>(null);
     const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
     const [whatsAppResult, setWhatsAppResult] = useState<any>(null);
 
@@ -178,7 +175,7 @@ export default function ReportComponent() {
 
     const handleDownload = () => {
         if (!html2pdf) {
-            alert("PDF generation library is not loaded. Please try again or refresh the page.");
+            toast.error("PDF generation library is not loaded. Please try again or refresh the page.");
             return;
         }
         const element = document.getElementById('report-sheet');
@@ -212,7 +209,7 @@ export default function ReportComponent() {
                 console.error("PDF generation error:", e);
                 element.classList.remove('is-pdf-export');
                 setZoom(currentZoom);
-                alert("Failed to generate PDF. Please try again.");
+                toast.error("Failed to generate PDF. Please try again.");
             });
         }, 300);
     };
@@ -220,7 +217,6 @@ export default function ReportComponent() {
     const handleSendEmail = async () => {
         try {
             setSendingEmail(true);
-            setEmailError(null);
 
             const element = document.getElementById('report-sheet');
             if (!element) return;
@@ -240,17 +236,14 @@ export default function ReportComponent() {
             );
 
             if (response.data.success) {
-                setEmailSent(true);
-                setTimeout(() => setEmailSent(false), 5000);
+                toast.success("Email sent successfully to all parents!");
             } else {
-                setEmailError(response.data.message || "Failed to send email");
-                setTimeout(() => setEmailError(null), 5000);
+                toast.error(response.data.message || "Failed to send email");
             }
         } catch (err: any) {
             console.error("Email sending error:", err);
             const errorMsg = err.response?.data?.message || err.message || "Failed to send email to parents";
-            setEmailError(errorMsg);
-            setTimeout(() => setEmailError(null), 5000);
+            toast.error(errorMsg);
         } finally {
             setSendingEmail(false);
         }
@@ -259,7 +252,6 @@ export default function ReportComponent() {
     const handleSendWhatsApp = async () => {
         try {
             setSendingWhatsApp(true);
-            setWhatsAppError(null);
             setWhatsAppResult(null);
 
             const element = document.getElementById('report-sheet');
@@ -282,20 +274,17 @@ export default function ReportComponent() {
             if (response.data.success) {
                 setWhatsAppResult(response.data.data);
                 if (response.data.data.isTwilioConfigured) {
-                    setWhatsAppSent(true);
-                    setTimeout(() => setWhatsAppSent(false), 5000);
+                    toast.success("WhatsApp sent successfully to all parents!");
                 } else {
                     setWhatsAppModalOpen(true);
                 }
             } else {
-                setWhatsAppError(response.data.message || "Failed to process WhatsApp dispatch");
-                setTimeout(() => setWhatsAppError(null), 5000);
+                toast.error(response.data.message || "Failed to process WhatsApp dispatch");
             }
         } catch (err: any) {
             console.error("WhatsApp dispatch error:", err);
             const errorMsg = err.response?.data?.message || err.message || "Failed to process WhatsApp report";
-            setWhatsAppError(errorMsg);
-            setTimeout(() => setWhatsAppError(null), 5000);
+            toast.error(errorMsg);
         } finally {
             setSendingWhatsApp(false);
         }
@@ -386,62 +375,6 @@ export default function ReportComponent() {
                 </div>
 
                 <div className="toolbar-right" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {emailError && (
-                        <div style={{
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
-                            <span>⚠️ {emailError}</span>
-                        </div>
-                    )}
-                    {emailSent && (
-                        <div style={{
-                            backgroundColor: '#10b981',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
-                            <span>✓ Email sent successfully to all parents!</span>
-                        </div>
-                    )}
-                    {whatsAppError && (
-                        <div style={{
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
-                            <span>⚠️ {whatsAppError}</span>
-                        </div>
-                    )}
-                    {whatsAppSent && (
-                        <div style={{
-                            backgroundColor: '#10b981',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.375rem',
-                            fontSize: '0.875rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                        }}>
-                            <span>✓ WhatsApp sent successfully to all parents!</span>
-                        </div>
-                    )}
                     <button
                         className="btn btn-secondary email-btn"
                         onClick={handleSendEmail}

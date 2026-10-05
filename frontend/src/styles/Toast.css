@@ -1,0 +1,124 @@
+/* ============================================================
+   TOAST NOTIFICATIONS — global, theme-matched replacement for
+   native alert() and the ad-hoc inline error banners scattered
+   across the app. Stacks top-right so it never collides with the
+   RAG chatbot FAB (bottom-right) or the Agentic AI drawer (right).
+   ============================================================ */
+
+.toast-viewport {
+  position: fixed;
+  top: calc(var(--nav-height, 64px) + 16px);
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 40px));
+  pointer-events: none;
+}
+
+.toast-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 32px 12px 14px;
+  box-shadow: var(--shadow-lg, 0 12px 30px rgba(0, 0, 0, 0.4));
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.toast-message {
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.toast-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.4;
+  animation: toast-shrink linear forwards;
+}
+
+@keyframes toast-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* Type variants -- border, icon and progress-bar color per severity */
+.toast-success {
+  border-left-color: var(--success, #10B981);
+}
+.toast-success .toast-icon,
+.toast-success .toast-progress {
+  color: var(--success, #10B981);
+}
+
+.toast-error {
+  border-left-color: var(--error, #EF4444);
+}
+.toast-error .toast-icon,
+.toast-error .toast-progress {
+  color: var(--error, #EF4444);
+}
+
+.toast-warning {
+  border-left-color: var(--warning, #F59E0B);
+}
+.toast-warning .toast-icon,
+.toast-warning .toast-progress {
+  color: var(--warning, #F59E0B);
+}
+
+.toast-info {
+  border-left-color: var(--accent-primary);
+}
+.toast-info .toast-icon,
+.toast-info .toast-progress {
+  color: var(--accent-primary);
+}
+
+@media (max-width: 480px) {
+  .toast-viewport {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

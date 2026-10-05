@@ -2,7 +2,7 @@ import { Router } from "express";
 import proctorController from "../controllers/proctor.controller.js";
 import { verifyProctorAccess } from "../middlewares/auth.middleware.js";
 import validate from "../middlewares/validate.middleware.js";
-import { chatSchema } from "../schemas/proctor.schema.js";
+import { chatSchema, batchZipSchema } from "../schemas/proctor.schema.js";
 
 const router = Router();
 
@@ -13,5 +13,6 @@ router.get("/:proctorId/scrape-list", proctorController.getScrapeList);
 router.get("/:proctorId/student/:studentUsn", proctorController.getProctee);
 router.get("/:proctorId/notifications", proctorController.getNotifications);
 router.post("/:proctorId/chat", validate(chatSchema), proctorController.handleChat);
+router.post("/:proctorId/reports/batch-zip", validate(batchZipSchema), proctorController.downloadReportsZip);
 
 export default router;

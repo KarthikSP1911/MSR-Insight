@@ -281,9 +281,9 @@
    ============================================ */
 
 .add-proctor-form-grid {
-  background: rgba(23, 23, 23, 0.8);
+  background: var(--bg-card);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  border: 1px solid var(--accent-glow);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
   margin-bottom: 2rem;
@@ -292,7 +292,42 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
   align-items: flex-end;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+/* Layout (col-span-full / mb-2 / flex justify-between items-center) is
+   Tailwind on the element itself -- this class only scopes the h3/close-btn
+   descendant styling below, which needs theme tokens Tailwind doesn't know. */
+.form-header-row h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.form-header-row .close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.form-header-row .close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.tab-panel {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.parent-form {
+  background: var(--bg-card);
+  padding: 2rem;
+  border: 1px solid var(--border-subtle);
 }
 
 @keyframes slideDown {
@@ -324,6 +359,79 @@
   .stat-card {
     padding: 1rem;
   }
+}
+
+/* ============================================
+   Unassigned Students Panel + Table
+   ============================================ */
+
+.unassigned-panel {
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.unassigned-list {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table thead tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.admin-table th {
+  padding: 0.75rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.admin-table td {
+  padding: 0.75rem 0.85rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-table-usn {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.admin-table .checkbox-col {
+  width: 40px;
+}
+
+.admin-table input[type="checkbox"],
+.student-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
 }
 
 /* Custom Scrollbar for Unassigned Table */
@@ -660,49 +768,6 @@
 }
 
 /* ============================================
-   Toast Notifications
-   ============================================ */
-
-.admin-toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  padding: 0.85rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
-  font-weight: 500;
-  box-shadow: var(--shadow-lg);
-  z-index: 10000;
-  animation: toastIn 0.3s ease-out;
-  max-width: 380px;
-  font-family: inherit;
-}
-
-.admin-toast.success {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--success);
-}
-
-.admin-toast.error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: var(--error);
-}
-
-@keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ============================================
    Confirm Dialog
    ============================================ */
 
@@ -823,23 +888,6 @@
 .student-dob {
   font-size: 0.75rem;
   color: var(--text-muted);
-}
-
-.year-selector {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  padding: 0 0.8rem;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-}
-
-.year-selector:hover {
-  border-color: var(--border-bright);
 }
 
 @keyframes spin {
